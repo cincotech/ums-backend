@@ -1,0 +1,62 @@
+Ce message semble être en anglais
+project_root/
+├── manage.py
+├── project_name/
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   ├── wsgi.py
+│   ├── __init__.py
+├── services/
+│   ├── foundational_service/      # apps indépendants (aucune dépendance)
+│   │   ├── geo_module/
+│   │   │   ├── country_app/      # App Django pour Countryapp
+│   │   │   │   ├── models.py
+│   │   │   │   ├── views.py
+│   │   │   │   ├── serializers.py
+│   │   │   │   ├── urls.py
+│   │   │   │   ├── admin.py
+│   │   │   │   ├── apps.py
+│   │   │   │   └── tests.py
+│   │   │   ├── province_app/
+│   │   │   ├── commune_app/
+│   │   │   ├── zone_app/
+│   │   │   ├── colline_app/
+│   │   ├── auth_module/
+│   │   │   ├── authentication_app/
+│   │   │   ├── authorization_app/
+│   │   │   ├── user_app/
+│   ├── core_service/              # apps centraux (utilisés par plusieurs apps)
+│   │   ├── academic_module/
+│   │   │   ├── university_app/
+│   │   │   ├── faculty_app/
+│   │   │   ├── department_app/
+│   │   │   ├── class_app/
+│   │   │   ├── module_app/
+│   │   │   ├── course_app/
+│   │   ├── student_module/
+│   │   │   ├── student_profile_app/
+│   │   │   ├── parent_app/
+│   │   │   ├── residence_app/
+│   │   │   ├── highschool_info_app/
+│   │   │   ├── graduate_info_app/
+│   │   ├── finance_module/
+│   │   │   ├── fees_app/
+│   │   │   ├── debt_app/
+│   │   │   ├── payment_app/
+│   │   │   ├── cancellation_app/
+│   ├── dependent_service/         # apps dépendants des autres apps
+│   │   ├── exam_module/
+│   │   │   ├── exam_app/
+│   │   │   ├── result_app/
+│   │   │   ├── attendance_app/
+│   │   ├── notification_module/
+│   │   │   ├── event_notification_app/
+│   │   │   ├── communication_app/
+│   │   ├── document_module/
+│   │   │   ├── request_app/
+│   │   │   ├── document_app/
+│   │   ├── infrastructure_module/
+│   │   │   ├── building_app/
+│   │   │   ├── room_app/
+│   │   │   ├── equipment_app/
