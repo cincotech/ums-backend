@@ -1,0 +1,1022 @@
+{
+  "info": {
+    "name": "UMS - University Management System API",
+    "description": "Collection complète des APIs du système de gestion universitaire avec authentification JWT et 2FA",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "test@example.com",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Inscription utilisateur",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"motdepasse123\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Dupont\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register/",
+              "host": ["{{base_url}}"],
+              "path": ["register", ""]
+            },
+            "description": "Inscription d'un nouvel utilisateur. Envoie automatiquement un OTP par email."
+          },
+          "response": []
+        },
+        {
+          "name": "Envoyer OTP Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/send-email-otp/",
+              "host": ["{{base_url}}"],
+              "path": ["send-email-otp", ""]
+            },
+            "description": "Envoie un code OTP à l'email spécifié pour vérification."
+          },
+          "response": []
+        },
+        {
+          "name": "Vérifier Email avec OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/verify-email/",
+              "host": ["{{base_url}}"],
+              "path": ["verify-email", ""]
+            },
+            "description": "Vérifie l'email de l'utilisateur avec le code OTP reçu."
+          },
+          "response": []
+        },
+        {
+          "name": "Connexion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.access) {",
+                  "        pm.collectionVariables.set('access_token', response.data.access);",
+                  "        pm.collectionVariables.set('refresh_token', response.data.refresh);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"motdepasse123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login/",
+              "host": ["{{base_url}}"],
+              "path": ["login", ""]
+            },
+            "description": "Connexion utilisateur. Retourne les tokens JWT si 2FA non requis."
+          },
+          "response": []
+        },
+        {
+          "name": "Réinitialiser mot de passe avec OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"123456\",\n  \"new_password\": \"nouveaumotdepasse123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/password/reset/verify/",
+              "host": ["{{base_url}}"],
+              "path": ["password", "reset", "verify", ""]
+            },
+            "description": "Réinitialise le mot de passe avec un code OTP."
+          },
+          "response": []
+        },
+        {
+          "name": "Actualiser Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.access) {",
+                  "        pm.collectionVariables.set('access_token', response.data.access);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/token/refresh/",
+              "host": ["{{base_url}}"],
+              "path": ["token", "refresh", ""]
+            },
+            "description": "Actualise le token d'accès avec le refresh token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔒 Authentification 2FA",
+      "item": [
+        {
+          "name": "Configuration 2FA Email",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/2fa/set/email/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "set", "email", ""]
+            },
+            "description": "Configure l'authentification 2FA par email. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Configuration 2FA TOTP (QR Code)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/2fa/set/totp/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "set", "totp", ""]
+            },
+            "description": "Génère un QR code pour configurer l'authentification TOTP. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Configuration 2FA Statique",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/2fa/set/static/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "set", "static", ""]
+            },
+            "description": "Configure l'authentification 2FA avec codes statiques. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Vérifier 2FA Email",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/2fa/verify/email/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "verify", "email", ""]
+            },
+            "description": "Vérifie le code 2FA par email. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Vérifier 2FA TOTP",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/2fa/verify/totp/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "verify", "totp", ""]
+            },
+            "description": "Vérifie le code TOTP. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Vérifier 2FA Statique",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"backup-code-123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/2fa/verify/static/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "verify", "static", ""]
+            },
+            "description": "Vérifie un code de sauvegarde statique. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Connexion 2FA Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.access) {",
+                  "        pm.collectionVariables.set('access_token', response.data.access);",
+                  "        pm.collectionVariables.set('refresh_token', response.data.refresh);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login/email/",
+              "host": ["{{base_url}}"],
+              "path": ["login", "email", ""]
+            },
+            "description": "Finalise la connexion avec 2FA par email."
+          },
+          "response": []
+        },
+        {
+          "name": "Connexion 2FA TOTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.access) {",
+                  "        pm.collectionVariables.set('access_token', response.data.access);",
+                  "        pm.collectionVariables.set('refresh_token', response.data.refresh);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login/totp/",
+              "host": ["{{base_url}}"],
+              "path": ["login", "totp", ""]
+            },
+            "description": "Finalise la connexion avec 2FA TOTP."
+          },
+          "response": []
+        },
+        {
+          "name": "Connexion 2FA Statique",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.access) {",
+                  "        pm.collectionVariables.set('access_token', response.data.access);",
+                  "        pm.collectionVariables.set('refresh_token', response.data.refresh);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"backup-code-123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login/static/",
+              "host": ["{{base_url}}"],
+              "path": ["login", "static", ""]
+            },
+            "description": "Finalise la connexion avec code de sauvegarde statique."
+          },
+          "response": []
+        },
+        {
+          "name": "Désactiver 2FA Email",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/2fa/disable/email/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "disable", "email", ""]
+            },
+            "description": "Désactive l'authentification 2FA par email. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Désactiver 2FA TOTP",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"secret_key\": \"ABCDEFGHIJKLMNOP\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/2fa/disable/totp/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "disable", "totp", ""]
+            },
+            "description": "Désactive l'authentification TOTP avec la clé secrète. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Désactiver 2FA Statique",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/2fa/disable/static/",
+              "host": ["{{base_url}}"],
+              "path": ["2fa", "disable", "static", ""]
+            },
+            "description": "Désactive l'authentification 2FA statique. Nécessite une authentification."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👥 Gestion Utilisateurs",
+      "item": [
+        {
+          "name": "Liste des utilisateurs",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/",
+              "host": ["{{base_url}}"],
+              "path": ["users", ""]
+            },
+            "description": "Récupère la liste des utilisateurs (utilisateur connecté uniquement). Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Détails utilisateur",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1", ""]
+            },
+            "description": "Récupère les détails d'un utilisateur spécifique. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Modifier utilisateur",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Dupont\",\n  \"phone_number\": \"+33123456789\",\n  \"birth_date\": \"1990-01-01\",\n  \"gender\": \"M\",\n  \"marital_status\": \"single\",\n  \"spoken_languages\": [\"fr\", \"en\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/1/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1", ""]
+            },
+            "description": "Modifie les informations d'un utilisateur. Nécessite une authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Vérifier mot de passe",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"motdepasse123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/1/verify-password/",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1", "verify-password", ""]
+            },
+            "description": "Vérifie si le mot de passe fourni correspond à celui de l'utilisateur. Nécessite une authentification."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🎭 Gestion des Rôles",
+      "item": [
+        {
+          "name": "Rôles disponibles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/available-roles/",
+              "host": ["{{base_url}}"],
+              "path": ["available-roles", ""]
+            },
+            "description": "Récupère tous les rôles actifs disponibles. Accessible sans authentification."
+          },
+          "response": []
+        },
+        {
+          "name": "Liste des rôles (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/roles/",
+              "host": ["{{base_url}}"],
+              "path": ["roles", ""]
+            },
+            "description": "Récupère tous les rôles. Nécessite des privilèges administrateur."
+          },
+          "response": []
+        },
+        {
+          "name": "Créer rôle (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Professeur\",\n  \"description\": \"Rôle pour les enseignants\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roles/",
+              "host": ["{{base_url}}"],
+              "path": ["roles", ""]
+            },
+            "description": "Crée un nouveau rôle. Nécessite des privilèges administrateur."
+          },
+          "response": []
+        },
+        {
+          "name": "Détails rôle (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/roles/1/",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1", ""]
+            },
+            "description": "Récupère les détails d'un rôle spécifique. Nécessite des privilèges administrateur."
+          },
+          "response": []
+        },
+        {
+          "name": "Modifier rôle (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Professeur Senior\",\n  \"description\": \"Rôle pour les enseignants expérimentés\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roles/1/",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1", ""]
+            },
+            "description": "Modifie un rôle existant. Nécessite des privilèges administrateur."
+          },
+          "response": []
+        },
+        {
+          "name": "Supprimer rôle (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/roles/1/",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1", ""]
+            },
+            "description": "Supprime un rôle. Nécessite des privilèges administrateur."
+          },
+          "response": []
+        },
+        {
+          "name": "Réassigner utilisateurs (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_role_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/roles/1/reassign/",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1", "reassign", ""]
+            },
+            "description": "Réassigne tous les utilisateurs d'un rôle vers un autre. Nécessite des privilèges administrateur."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📚 Documentation API",
+      "item": [
+        {
+          "name": "Schéma OpenAPI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/schema/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schema", ""]
+            },
+            "description": "Récupère le schéma OpenAPI de l'API."
+          },
+          "response": []
+        },
+        {
+          "name": "Documentation Swagger",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/docs/swagger/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "docs", "swagger", ""]
+            },
+            "description": "Interface Swagger pour tester l'API."
+          },
+          "response": []
+        },
+        {
+          "name": "Documentation ReDoc",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/docs/redoc/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "docs", "redoc", ""]
+            },
+            "description": "Documentation ReDoc de l'API."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Administration Django",
+      "item": [
+        {
+          "name": "Interface Admin Django",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/",
+              "host": ["{{base_url}}"],
+              "path": ["admin", ""]
+            },
+            "description": "Interface d'administration Django. Nécessite des privilèges administrateur."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script pré-requête global",
+          "console.log('Exécution de la requête:', pm.info.requestName);"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Tests globaux",
+          "pm.test('Status code is not 500', function () {",
+          "    pm.expect(pm.response.code).to.not.equal(500);",
+          "});",
+          "",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}
