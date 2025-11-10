@@ -13,8 +13,19 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv()
+
+
+def get_env_variable(var_name, default=None):
+    """Get environment variable or raise exception if not found and no default."""
+    value = os.getenv(var_name, default)
+    if value is None:
+        raise Exception(f"Set the {var_name} environment variable")
+    return value
 
 
 # Quick-start development settings - unsuitable for production
@@ -22,7 +33,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = get_env_variable(
+    "DJANGO_SECRET_KEY", "django-insecure-dev-key-change-in-production"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -106,6 +119,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "ums.urls"
 AUTH_USER_MODEL = "user_app.User"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
 
 TEMPLATES = [
     {
