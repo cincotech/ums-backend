@@ -1,7 +1,7 @@
 Ce message semble être en anglais
-project_root/
+ums/
 ├── manage.py
-├── project_name/
+├── ums/
 │   ├── settings.py
 │   ├── urls.py
 │   ├── asgi.py

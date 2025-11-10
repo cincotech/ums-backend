@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "import_export",
     "simple_history",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -124,7 +125,16 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+SPECTACULAR_SETTINGS = {
+    "TITLE": "UMS API",
+    "DESCRIPTION": "University Management System API Documentation",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # Optional: customize tags, security, etc.
+}
+
 
 TEMPLATES = [
     {
