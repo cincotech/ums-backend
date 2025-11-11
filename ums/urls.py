@@ -6,8 +6,11 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from core.views import HelloView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", HelloView.as_view()),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/swagger/",

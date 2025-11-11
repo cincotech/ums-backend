@@ -42,7 +42,7 @@ class AvailableRoleView(APIView):
 
     def get(self, request):
         # Fetch active roles using RoleService
-        roles = Role.objects.filter(is_active=True)
+        roles = Role.objects.all()
         serializer = RoleSerializer(roles, many=True)
         logger.info("Fetched active roles")
         return Response(
