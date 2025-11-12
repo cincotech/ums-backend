@@ -10,7 +10,7 @@ from core.views import HelloView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", HelloView.as_view()),
+    path('geo/', include('services.foundational_service.geo_module.urls')),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/swagger/",

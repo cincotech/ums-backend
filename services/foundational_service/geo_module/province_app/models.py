@@ -1,7 +1,5 @@
 import uuid
-
 from django.db import models
-
 from services.foundational_service.geo_module.country_app.models import Country
 
 
@@ -15,3 +13,7 @@ class Province(models.Model):
     class Meta:
         db_table = "provinces"
         unique_together = ("country", "province_name")
+
+    def __str__(self):
+        """Retourne le nom lisible de la province."""
+        return self.province_name
