@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OTP Verification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Tailwind-inspired minimal inline styles for email */
+        body { font-family: Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .header { font-size: 24px; font-weight: bold; color: #111827; margin-bottom: 10px; }
+        .subheader { font-size: 16px; color: #6b7280; margin-bottom: 20px; }
+        .otp-box { background-color: #f3f4f6; border: 2px dashed #3b82f6; color: #1d4ed8; font-size: 28px; font-weight: bold; text-align: center; padding: 15px; margin: 20px 0; border-radius: 8px; letter-spacing: 5px; }
+        .footer { font-size: 14px; color: #6b7280; margin-top: 30px; }
+        a { color: #3b82f6; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">University Management System</div>
+        <div class="subheader">Hello {{ user.first_name }} {{ user.last_name }},</div>
+        <p>You requested a One-Time Password (OTP) to <strong>{{ purpose }}</strong>. Use the code below to proceed:</p>
+
+        <div class="otp-box">{{ otp }}</div>
+
+        <p>This OTP is valid for <strong>{{ valid_minutes }} minutes</strong>. Please do not share it with anyone.</p>
+
+        <p>If you did not request this, please ignore this email or contact our support.</p>
+
+        <div class="footer">
+            University Management System &copy; {{ year }}. All rights reserved.<br>
+            <a href="{{ site_url }}">{{ site_url }}</a>
+        </div>
+    </div>
+</body>
+</html>

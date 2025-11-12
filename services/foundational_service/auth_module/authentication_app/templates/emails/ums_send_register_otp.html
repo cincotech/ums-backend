@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UMS Notification</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.3/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="max-w-lg mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden">
+    <!-- Header -->
+    <div class="bg-blue-700 text-white text-center py-6">
+      <h1 class="text-2xl font-bold">University Management System</h1>
+      <p class="text-sm">Your trusted platform for academic management</p>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6">
+      <h2 class="text-xl font-semibold mb-4">Hello {{ first_name }} {{ last_name }},</h2>
+      <p class="mb-4 text-gray-700">
+        Your account has been successfully created in the University Management System.
+      </p>
+
+      <!-- OTP Section (if applicable) -->
+      {% if otp %}
+      <div class="bg-gray-100 border-l-4 border-blue-700 p-4 mb-4">
+        <p class="text-gray-800 mb-2">Your One-Time Password (OTP) is:</p>
+        <p class="text-2xl font-bold text-blue-700 text-center">{{ otp }}</p>
+        <p class="text-gray-500 text-sm mt-2">This OTP will expire at {{ otp_expiry }}.</p>
+      </div>
+      {% endif %}
+
+      <p class="mb-4 text-gray-700">
+        You can now log in using your registered email: <span class="font-semibold">{{ email }}</span>.
+      </p>
+
+      <a href="{{ login_url }}" class="inline-block bg-blue-700 text-white font-semibold py-2 px-6 rounded hover:bg-blue-800 transition">
+        Login to Your Account
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="bg-gray-100 text-center text-gray-600 text-sm py-4">
+      <p>University Management System</p>
+      <p>Contact: <a href="mailto:{{ support_email }}" class="text-blue-600">{{ support_email }}</a></p>
+      <p>&copy; {{ current_year }} University Management System. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

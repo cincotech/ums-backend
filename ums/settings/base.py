@@ -107,7 +107,7 @@ WSGI_APPLICATION = "ums.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -143,3 +143,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+# Email configuration with defaults
+EMAIL_BACKEND = get_env_variable(
+    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = get_env_variable("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(get_env_variable("EMAIL_PORT", 587))
+EMAIL_USE_TLS = get_env_variable("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_HOST_USER = get_env_variable("EMAIL_HOST_USER", "testcomlab24@gmail.com")
+EMAIL_HOST_PASSWORD = get_env_variable("EMAIL_HOST_PASSWORD", "nyhbfgzcvhsadrpp")
+COMPANY_NAME = get_env_variable("COMPANY_NAME", "Upg")
