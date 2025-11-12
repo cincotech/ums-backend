@@ -101,16 +101,17 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
 ]
-
+print(BASE_DIR)
 ROOT_URLCONF = "ums.urls"
 WSGI_APPLICATION = "ums.wsgi.application"
+STATIC_URL = "/static/"
+# # Optional: Additional locations for static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-# # Optional: Additional locations for static files
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, "static"),
-# ]
 
 # Media files (optional)
 MEDIA_URL = "/media/"
