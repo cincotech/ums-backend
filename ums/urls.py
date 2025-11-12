@@ -20,4 +20,8 @@ urlpatterns = [
     path(
         "", include("services.foundational_service.auth_module.authentication_app.urls")
     ),
+    path(
+        "infrastructure/", include("services.dependent_service.infrastructure_module.urls")
+    ),
+
 ]

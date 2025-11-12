@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 from services.dependent_service.infrastructure_module.building_app.models import (
     Building,
@@ -17,6 +18,7 @@ class Room(models.Model):
     building = models.ForeignKey(
         Building, on_delete=models.RESTRICT, related_name="rooms"
     )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     room_name = models.CharField(max_length=100)
     capacity = models.PositiveIntegerField()
     room_type = models.CharField(max_length=10, choices=ROOM_TYPE, default="classroom")
