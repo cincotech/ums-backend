@@ -1,12 +1,17 @@
 import logging
+import secrets
 
 from django_otp.plugins.otp_email.models import EmailDevice
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-from .utils import generate_custom_token, generate_qr_code
+from .utils import generate_custom_token, generate_qr_code_base64
 
 logger = logging.getLogger(__name__)
+
+
+def random_hex(length=8):
+    return secrets.token_hex(length)
 
 
 class UserService:
@@ -95,25 +100,22 @@ class UserService:
             )
             raise EmailDevice.DoesNotExist("Email 2FA device not found")
 
-    def setup_totp_2fa(self, user):
+    def setup_totp_2fa(user):
         """
-        Sets up TOTP-based 2FA for the user.
-        Args:
-            user (User): The user to set up 2FA for.
-        Returns:
-            tuple: (TOTPDevice, dict) The created device and QR code data.
+        Sets up TOTP-based 2FA for the user without saving files.
+        Returns (device, base64_qr_code)
         """
         device, _ = TOTPDevice.objects.get_or_create(
             user=user,
             name=f"{user.email}_totp_2fa",
         )
+
         qr_url = device.config_url
-        file_name = f"totp_{user.id}.png"
-        qr_data = generate_qr_code(qr_url, file_name)
-        from django_otp.util import random_hex
+        qr_data = generate_qr_code_base64(qr_url)
 
         user.totp_secret_key = random_hex(15)
         user.save()
+
         logger.info(f"TOTP 2FA device created for user: {user.email}")
         return device, qr_data
 

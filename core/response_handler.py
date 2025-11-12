@@ -2,18 +2,22 @@ from rest_framework import status
 from rest_framework.response import Response
 
 
-def success_response(data=None, message="Success", status_code=status.HTTP_200_OK):
+def success_response(
+    data=None, message="Success", status_code=status.HTTP_200_OK, extra=None
+):
     """
-    Return a standardized success response
+    Return a standardized success response with optional extra fields.
     """
-    return Response(
-        {
-            "status": "success",
-            "message": message,
-            "data": data,
-        },
-        status=status_code,
-    )
+    response_data = {
+        "status": "success",
+        "message": message,
+        "data": data,
+    }
+
+    if extra and isinstance(extra, dict):
+        response_data.update(extra)  # merge extra fields like typeError, etc.
+
+    return Response(response_data, status=status_code)
 
 
 def error_response(
@@ -30,3 +34,22 @@ def error_response(
         },
         status=status_code,
     )
+
+
+def validate_serializer(serializer):
+    """
+    Validate a DRF serializer and return a standardized error response if invalid.
+    """
+    if not serializer.is_valid():
+        errors = serializer.errors
+        # Flatten or format errors
+        message = "; ".join(
+            [
+                f"{field}: {','.join(val) if isinstance(val, list) else str(val)}"
+                for field, val in errors.items()
+            ]
+        )
+        return error_response(
+            message=message, errors=errors, status_code=status.HTTP_400_BAD_REQUEST
+        )
+    return None

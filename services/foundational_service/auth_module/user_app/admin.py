@@ -15,7 +15,7 @@ from .models import Role, User
 # Role Admin
 # ----------------------------
 @admin.register(Role)
-class RoleAdmin(ModelAdmin):
+class RoleAdmin(ModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "description")
     search_fields = ("name",)
     ordering = ("name",)

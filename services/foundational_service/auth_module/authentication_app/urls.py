@@ -10,9 +10,6 @@ router.register(
     r"users", views.UserViewSet, basename="users"
 )  # Fixed from userViews to UserViewSet
 
-# Register the RoleViewSet with the 'roles' prefix
-router.register(r"roles", views.RoleViewSet, basename="role")
-
 # Define URL patterns for the application
 urlpatterns = [
     # Endpoint for user registration
