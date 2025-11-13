@@ -13,7 +13,9 @@ from services.foundational_service.auth_module.user_app.models import User
 
 class Teacher(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.RESTRICT, related_name="teacher")
+    user = models.OneToOneField(
+        User, on_delete=models.RESTRICT, related_name="teachers"
+    )
     teacher_grade = models.CharField(max_length=200)
     degree = models.ForeignKey(UniversityDegree, on_delete=models.RESTRICT)
     university = models.ForeignKey(University, on_delete=models.RESTRICT)

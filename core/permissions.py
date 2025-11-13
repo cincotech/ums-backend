@@ -73,8 +73,8 @@ class IsStudent(RolePermission):
     allowed_roles = ["student"]
 
 
-class IsDelegue(RolePermission):
-    allowed_roles = ["delegue"]
+class IsDelegate(RolePermission):
+    allowed_roles = ["delegate"]
 
 
 class IsAlumni(RolePermission):
@@ -88,8 +88,8 @@ class IsSuperAdminOrRector(RolePermission):
     allowed_roles = ["super_admin", "rector"]
 
 
-class IsTeacherOrDelegue(RolePermission):
-    allowed_roles = ["teacher", "delegue"]
+class IsTeacherOrdelegate(RolePermission):
+    allowed_roles = ["teacher", "delegate"]
 
 
 class IsStaff(RolePermission):

@@ -29,3 +29,38 @@ class Inscription(models.Model):
     class Meta:
         db_table = "inscriptions"
         unique_together = ("student", "academic_year", "class_fk")
+
+    def generate_matricule(self):
+        """
+        Generates and assigns a matricule to the student based on:
+        type formation code + academic year + sequential number
+        Example: F2025/00001
+        """
+        if self.student.matricule:
+            return self.student.matricule
+
+        try:
+            # Get type formation code from class -> department -> faculty -> type formation
+            type_code = self.class_fk.department.faculty.types.code
+        except AttributeError:
+            type_code = "X"
+
+        year = (
+            self.academic_year.civil_year
+        )  # use academic year instead of current year
+        existing_count = Student.objects.filter(
+            matricule__startswith=f"{type_code}{year}"
+        ).count()
+        sequential_number = existing_count + 1
+
+        matricule = f"{type_code}{year}/{str(sequential_number).zfill(5)}"
+        self.student.matricule = matricule
+        self.student.save()
+        return matricule
+
+    def save(self, *args, **kwargs):
+        # Generate matricule if student doesn't have one
+        if not self.student.matricule:
+            self.generate_matricule()
+
+        super().save(*args, **kwargs)
