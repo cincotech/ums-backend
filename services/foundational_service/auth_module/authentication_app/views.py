@@ -82,6 +82,9 @@ class RegisterView(APIView):
             return error
 
         user = serializer.save()
+        password = request.data.get("password")
+        user.set_password(password)
+        user.save()
         try:
             # Setup email 2FA device
             device = user_service.setup_email_2fa(user)
