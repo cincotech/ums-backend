@@ -14,3 +14,7 @@ class Commune(models.Model):
 
     class Meta:
         db_table = "communes"
+
+    def __str__(self):
+        """Retourne le nom lisible de la commune."""
+        return self.commune_name
