@@ -4,7 +4,7 @@ from rest_framework import status
 from .models import Colline
 from services.foundational_service.geo_module.serializers import CollineSerializer
 from services.foundational_service.geo_module.zone_app.models import Zone
-
+from core.response_handler import validate_serializer,error_response,success_response
 
 class CollineListCreateAPIView(APIView):
     """Lister toutes les collines ou en créer une nouvelle"""
@@ -21,6 +21,9 @@ class CollineListCreateAPIView(APIView):
 
     def post(self, request):
         serializer = CollineSerializer(data=request.data)
+        error=validate_serializer(serializer)
+        if error:
+            return error
         if serializer.is_valid():
             # Vérification que la zone existe avant la sauvegarde
             zone_id = serializer.validated_data.get('zone').id
@@ -47,6 +50,7 @@ class CollineDetailAPIView(APIView):
 
     def get(self, request, pk):
         colline = self.get_object(pk)
+        
         if not colline:
             return Response({"detail": "Colline not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = CollineSerializer(colline)
