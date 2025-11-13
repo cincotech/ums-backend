@@ -26,4 +26,7 @@ urlpatterns = [
     path(
         "", include("services.foundational_service.auth_module.authentication_app.urls")
     ),
+    path("", include("services.core_service.academic_module.urls")),
+    path("", include("services.core_service.student_module.urls")),
+    path("", include("services.core_service.finance_module.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
