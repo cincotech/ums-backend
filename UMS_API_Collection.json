@@ -925,6 +925,357 @@
       ]
     },
     {
+  "name": "🗓 Scheduling Module",
+  "item": [
+    {
+      "name": "Liste & Création des Slots",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/slots/",
+          "host": ["{{base_url}}"],
+          "path": ["slots", ""]
+        },
+        "description": "Récupère tous les slots existants."
+      },
+      "response": []
+    },
+    {
+      "name": "Créer un Slot",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start_time\": \"08:00:00\",\n  \"end_time\": \"09:00:00\",\n \"schedule_name\": \"Math Class\",\n  \"day_of_week\": \"Monday\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/slots/",
+          "host": ["{{base_url}}"],
+          "path": ["slots", ""]
+        },
+        "description": "Crée un nouveau slot."
+      },
+      "response": []
+    },
+    {
+      "name": "Liste & Création des Timetables",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/timetables/",
+          "host": ["{{base_url}}"],
+          "path": ["timetables", ""]
+        },
+        "description": "Récupère tous les timetables existants."
+      },
+      "response": []
+    },
+    {
+      "name": "Créer un Timetable",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Semestre 1\",\n  \"start_date\": \"2025-11-15\",\n  \"end_date\": \"2026-03-15\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/timetables/",
+          "host": ["{{base_url}}"],
+          "path": ["timetables", ""]
+        },
+        "description": "Crée un nouveau timetable."
+      },
+      "response": []
+    }
+  ]
+}
+,
+{
+  "name": "🌍 Geo Module",
+  "item": [
+    {
+      "name": "Pays",
+      "item": [
+        {
+          "name": "Liste des Pays",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/countries/",
+              "host": ["{{base_url}}"],
+              "path": ["countries", ""]
+            },
+            "description": "Récupère tous les pays."
+          },
+          "response": []
+        },
+        {
+          "name": "Créer un Pays",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"country_name\": \"Burundi\",\n  \"code\": \"BI\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/countries/",
+              "host": ["{{base_url}}"],
+              "path": ["countries", ""]
+            },
+            "description": "Crée un nouveau pays."
+          },
+          "response": []
+        },
+        {
+          "name": "Détail d'un Pays",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/countries/<uuid>/",
+              "host": ["{{base_url}}"],
+              "path": ["countries", "<uuid>", ""]
+            },
+            "description": "Récupère le détail d'un pays spécifique."
+          },
+          "response": []
+        },
+        {
+          "name": "Modifier un Pays",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"République du Burundi\",\n  \"code\": \"BI\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/countries/<uuid>/",
+              "host": ["{{base_url}}"],
+              "path": ["countries", "<uuid>", ""]
+            },
+            "description": "Modifie un pays existant."
+          },
+          "response": []
+        },
+        {
+          "name": "Supprimer un Pays",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/countries/<uuid>/",
+              "host": ["{{base_url}}"],
+              "path": ["countries", "<uuid>", ""]
+            },
+            "description": "Supprime un pays."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Provinces",
+      "item": [
+        {
+          "name": "Liste des Provinces",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/provinces/",
+              "host": ["{{base_url}}"],
+              "path": ["provinces", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer une Province",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bujumbura\",\n  \"country\": \"<country_uuid>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/provinces/",
+              "host": ["{{base_url}}"],
+              "path": ["provinces", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Communes",
+      "item": [
+        {
+          "name": "Liste des Communes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/communes/",
+              "host": ["{{base_url}}"],
+              "path": ["communes", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer une Commune",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gihosha\",\n  \"province\": \"<province_uuid>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/communes/",
+              "host": ["{{base_url}}"],
+              "path": ["communes", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Zones",
+      "item": [
+        {
+          "name": "Liste des Zones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/zones/",
+              "host": ["{{base_url}}"],
+              "path": ["zones", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer une Zone",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Zone 1\",\n  \"commune\": \"<commune_uuid>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/zones/",
+              "host": ["{{base_url}}"],
+              "path": ["zones", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Collines",
+      "item": [
+        {
+          "name": "Liste des Collines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/collines/",
+              "host": ["{{base_url}}"],
+              "path": ["collines", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer une Colline",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Collines Test\",\n  \"zone\": \"<zone_uuid>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/collines/",
+              "host": ["{{base_url}}"],
+              "path": ["collines", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+,
+    {
       "name": "📚 Documentation API",
       "item": [
         {
