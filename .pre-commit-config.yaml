@@ -11,6 +11,8 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
+        args: ['--maxkb=1024']      # <-- only for this hook
+        exclude: 'ums/staticfiles/.*'  # optional: ignore staticfiles
       - id: check-merge-conflict
       - id: check-ast
 
