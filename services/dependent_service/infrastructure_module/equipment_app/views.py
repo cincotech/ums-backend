@@ -1,7 +1,7 @@
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
+from core.views import BaseViewSet
 from .models import EquipmentType, Equipment, EquipmentAllocation, EquipmentMaintenance
+from core.permissions import IsSuperAdminCreateOnly
 from .serializers import (
     EquipmentTypeSerializer,
     EquipmentSerializer,
@@ -10,46 +10,25 @@ from .serializers import (
 )
 
 
-class EquipmentTypeViewSet(viewsets.ModelViewSet):
+class EquipmentTypeViewSet(BaseViewSet):
     queryset = EquipmentType.objects.all()
     serializer_class = EquipmentTypeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSuperAdminCreateOnly]
 
 
-class EquipmentViewSet(viewsets.ModelViewSet):
-    queryset = Equipment.objects.select_related('equipment_type').all()
+class EquipmentViewSet(BaseViewSet):
+    queryset = Equipment.objects.all()
     serializer_class = EquipmentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def list(self, request):
-        """
-        Si plusieurs filtres sont fournis, ils viennent du corps JSON.
-        """
-        filters = request.data or {}
-        queryset = self.queryset.filter(**filters) if filters else self.queryset
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+    permission_classes = [IsAuthenticated, IsSuperAdminCreateOnly]
 
 
-class EquipmentAllocationViewSet(viewsets.ModelViewSet):
-    queryset = EquipmentAllocation.objects.select_related('equipment', 'room', 'allocated_to').all()
+class EquipmentAllocationViewSet(BaseViewSet):
+    queryset = EquipmentAllocation.objects.all()
     serializer_class = EquipmentAllocationSerializer
-    permission_classes = [IsAuthenticated]
-
-    def list(self, request):
-        filters = request.data or {}
-        queryset = self.queryset.filter(**filters) if filters else self.queryset
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+    permission_classes = [IsAuthenticated, IsSuperAdminCreateOnly]
 
 
-class EquipmentMaintenanceViewSet(viewsets.ModelViewSet):
-    queryset = EquipmentMaintenance.objects.select_related('equipment').all()
+class EquipmentMaintenanceViewSet(BaseViewSet):
+    queryset = EquipmentMaintenance.objects.all()
     serializer_class = EquipmentMaintenanceSerializer
-    permission_classes = [IsAuthenticated]
-
-    def list(self, request):
-        filters = request.data or {}
-        queryset = self.queryset.filter(**filters) if filters else self.queryset
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+    permission_classes = [IsAuthenticated, IsSuperAdminCreateOnly]
