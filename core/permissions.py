@@ -28,6 +28,12 @@ class IsSuperAdmin(RolePermission):
 class IsRector(RolePermission):
     allowed_roles = ["rector"]
 
+class IsSuperAdminCreateOnly(IsSuperAdmin):
+    def has_permission(self, request, view):
+        if request.method == "POST":
+            return super().has_permission(request, view)
+        return True
+
 
 class IsDirectorAcademic(RolePermission):
     allowed_roles = ["director_academic"]
