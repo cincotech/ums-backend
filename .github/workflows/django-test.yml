@@ -25,7 +25,7 @@ jobs:
           --health-retries=5
 
     env:
-      DJANGO_SETTINGS_MODULE: core.settings
+      DJANGO_SETTINGS_MODULE: ums.settings
       DATABASE_URL: postgres://user:password@localhost:5432/test_db
 
     steps:
