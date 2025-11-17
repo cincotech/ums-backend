@@ -18,5 +18,5 @@ router.register(
 )
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("finance/", include(router.urls)),
 ]
