@@ -41,7 +41,7 @@ class TimetableListCreateAPIView(APIView):
             return error
         serializer.save()
         return success_response(data=serializer.data, message="Timetable created successfully", status_code=status.HTTP_201_CREATED)
-
+    
 
 # --- Attendance Views ---
 class AttendanceListCreateAPIView(APIView):
