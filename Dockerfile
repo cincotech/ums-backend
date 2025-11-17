@@ -27,4 +27,4 @@ COPY . /app/
 EXPOSE $PORT
 
 # Start Gunicorn
-CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:${PORT}"]
+CMD ["sh", "-c", "python3 manage.py runserver 0.0.0.0:${PORT}"]
