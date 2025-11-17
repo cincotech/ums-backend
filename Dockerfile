@@ -19,4 +19,4 @@ COPY . /app/
 EXPOSE $PORT
 
 # Start Gunicorn using Render's provided $PORT
-CMD ["sh", "-c", "gunicorn core.wsgi:application --bind 0.0.0.0:${PORT}"]
+CMD ["sh", "-c", "gunicorn ums.wsgi:application --bind 0.0.0.0:${PORT}"]
