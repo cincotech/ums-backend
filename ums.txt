@@ -60,3 +60,6 @@ ums/
 │   │   │   ├── building_app/
 │   │   │   ├── room_app/
 │   │   │   ├── equipment_app/
+
+
+learn this projects all and fixed all issues and where i make misteque for create ia models but that can ored exist but not change anthing in geo_module and auth module just you will use this i tell u if you want to import models in the app and i want to learn core_services  to know exist models that you can use in each dashboard and u will take look in depenent_models for learn exist models that you can use in dashbord for not create the models that is exist

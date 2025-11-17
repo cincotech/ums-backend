@@ -75,6 +75,16 @@ INSTALLED_APPS = [
     "services.dependent_service.infrastructure_module.room_app",
     "services.dependent_service.notification_module.event_notification_app",
     "services.dependent_service.scheduling_module.scheduling_app",
+    "services.dependent_service.dashboard_module.dashboard_app",
+    "services.dependent_service.dashboard_module.dashboard_shared_app",
+    "services.dependent_service.dashboard_module.dashboard_super_admin_app",
+    "services.dependent_service.dashboard_module.dashboard_recteur_app",
+    "services.dependent_service.dashboard_module.dashboard_quality_director_app",
+    "services.dependent_service.dashboard_module.dashboard_student_services_app",
+    "services.dependent_service.dashboard_module.dashboard_collection_agent_app",
+    "services.dependent_service.dashboard_module.dashboard_student_app",
+    "services.dependent_service.dashboard_module.dashboard_academic_secretary_app",
+    "services.dependent_service.dashboard_module.dashboard_alumni_app",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_totp",
@@ -90,6 +100,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -101,7 +112,9 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
 ]
-print(BASE_DIR)
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
 ROOT_URLCONF = "ums.urls"
 WSGI_APPLICATION = "ums.wsgi.application"
 STATIC_URL = "/static/"

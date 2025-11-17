@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 
+from services.foundational_service.auth_module.user_app.models import User
 from services.foundational_service.geo_module.country_app.models import Country
 
 
@@ -12,9 +13,21 @@ class AcademicYear(models.Model):
     civil_year = models.CharField(max_length=4)
     start_date = models.DateField()
     end_date = models.DateField()
+    is_closed = models.BooleanField(default=False)
+    closed_date = models.DateField(null=True, blank=True)
+    closed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="closed_academic_years",
+    )
 
     class Meta:
         db_table = "academic_years"
+
+    def __str__(self):
+        return self.academic_year
 
 
 class University(models.Model):
