@@ -14,5 +14,6 @@ class Zone(models.Model):
 
     class Meta:
         db_table = "zones"
+
     def __str__(self):
         return self.zone_name

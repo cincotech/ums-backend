@@ -2,7 +2,7 @@
   "info": {
     "name": "UMS - University Management System API",
     "description": "Collection complète des APIs du système de gestion universitaire avec authentification JWT et 2FA",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -35,11 +35,26 @@
       "key": "user_email",
       "value": "test@example.com",
       "type": "string"
+    },
+    {
+      "key": "room_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "equipment_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "building_id",
+      "value": "1",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "🔐 Authentication",
+      "name": "Authentication",
       "item": [
         {
           "name": "Inscription utilisateur",
@@ -53,7 +68,11 @@
             ],
             "body": {
               "mode": "raw",
+<<<<<<< HEAD
               "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"motdepasse123\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Dupont\",\n  \"birth_date\": \"1990-01-01\",\n  \"spoken_languages\": [\"fr\", \"en\"],\n  \"gender\": \"M\",\n  \"marital_status\": \"single\",\n  \"phone_number\": \"+25761234567\"\n}"
+=======
+              "raw": "{\n \"email\": \"{{user_email}}\",\n \"password\": \"motdepasse123\",\n \"first_name\": \"Jean\",\n \"last_name\": \"Dupont\"\n}"
+>>>>>>> dc569c6af56c27744d3b2b93a7658b48613e90df
             },
             "url": {
               "raw": "{{base_url}}/register/",
@@ -76,7 +95,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{user_email}}\"\n}"
+              "raw": "{\n \"email\": \"{{user_email}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/send-email-otp/",
@@ -99,7 +118,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/verify-email/",
@@ -118,11 +137,11 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.data && response.data.access) {",
-                  "        pm.collectionVariables.set('access_token', response.data.access);",
-                  "        pm.collectionVariables.set('refresh_token', response.data.refresh);",
-                  "    }",
+                  " const response = pm.response.json();",
+                  " if (response.data && response.data.access) {",
+                  " pm.collectionVariables.set('access_token', response.data.access);",
+                  " pm.collectionVariables.set('refresh_token', response.data.refresh);",
+                  " }",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -139,7 +158,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"motdepasse123\"\n}"
+              "raw": "{\n \"email\": \"{{user_email}}\",\n \"password\": \"motdepasse123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/login/",
@@ -162,7 +181,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"123456\",\n  \"new_password\": \"nouveaumotdepasse123\"\n}"
+              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"123456\",\n \"new_password\": \"nouveaumotdepasse123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/password/reset/verify/",
@@ -181,10 +200,10 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.data && response.data.access) {",
-                  "        pm.collectionVariables.set('access_token', response.data.access);",
-                  "    }",
+                  " const response = pm.response.json();",
+                  " if (response.data && response.data.access) {",
+                  " pm.collectionVariables.set('access_token', response.data.access);",
+                  " }",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -201,7 +220,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+              "raw": "{\n \"refresh\": \"{{refresh_token}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/token/refresh/",
@@ -215,7 +234,7 @@
       ]
     },
     {
-      "name": "🔒 Authentification 2FA",
+      "name": "Authentification 2FA",
       "item": [
         {
           "name": "Configuration 2FA Email",
@@ -321,7 +340,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/2fa/verify/email/",
@@ -354,7 +373,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/2fa/verify/totp/",
@@ -387,7 +406,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"otp\": \"backup-code-123\"\n}"
+              "raw": "{\n \"otp\": \"backup-code-123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/2fa/verify/static/",
@@ -406,11 +425,11 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.data && response.data.access) {",
-                  "        pm.collectionVariables.set('access_token', response.data.access);",
-                  "        pm.collectionVariables.set('refresh_token', response.data.refresh);",
-                  "    }",
+                  " const response = pm.response.json();",
+                  " if (response.data && response.data.access) {",
+                  " pm.collectionVariables.set('access_token', response.data.access);",
+                  " pm.collectionVariables.set('refresh_token', response.data.refresh);",
+                  " }",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -427,7 +446,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/login/email/",
@@ -446,11 +465,11 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.data && response.data.access) {",
-                  "        pm.collectionVariables.set('access_token', response.data.access);",
-                  "        pm.collectionVariables.set('refresh_token', response.data.refresh);",
-                  "    }",
+                  " const response = pm.response.json();",
+                  " if (response.data && response.data.access) {",
+                  " pm.collectionVariables.set('access_token', response.data.access);",
+                  " pm.collectionVariables.set('refresh_token', response.data.refresh);",
+                  " }",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -467,7 +486,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/login/totp/",
@@ -486,11 +505,11 @@
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "    const response = pm.response.json();",
-                  "    if (response.data && response.data.access) {",
-                  "        pm.collectionVariables.set('access_token', response.data.access);",
-                  "        pm.collectionVariables.set('refresh_token', response.data.refresh);",
-                  "    }",
+                  " const response = pm.response.json();",
+                  " if (response.data && response.data.access) {",
+                  " pm.collectionVariables.set('access_token', response.data.access);",
+                  " pm.collectionVariables.set('refresh_token', response.data.refresh);",
+                  " }",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -507,7 +526,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"otp\": \"backup-code-123\"\n}"
+              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"backup-code-123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/login/static/",
@@ -540,7 +559,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"otp\": \"123456\"\n}"
+              "raw": "{\n \"otp\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/2fa/disable/email/",
@@ -573,7 +592,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"secret_key\": \"ABCDEFGHIJKLMNOP\"\n}"
+              "raw": "{\n \"secret_key\": \"ABCDEFGHIJKLMNOP\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/2fa/disable/totp/",
@@ -616,7 +635,7 @@
       ]
     },
     {
-      "name": "👥 Gestion Utilisateurs",
+      "name": "Gestion Utilisateurs",
       "item": [
         {
           "name": "Liste des utilisateurs",
@@ -688,7 +707,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Dupont\",\n  \"phone_number\": \"+33123456789\",\n  \"birth_date\": \"1990-01-01\",\n  \"gender\": \"M\",\n  \"marital_status\": \"single\",\n  \"spoken_languages\": [\"fr\", \"en\"]\n}"
+              "raw": "{\n \"first_name\": \"Jean\",\n \"last_name\": \"Dupont\",\n \"phone_number\": \"+33123456789\",\n \"birth_date\": \"1990-01-01\",\n \"gender\": \"M\",\n \"marital_status\": \"single\",\n \"spoken_languages\": [\"fr\", \"en\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/users/1/",
@@ -721,7 +740,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"password\": \"motdepasse123\"\n}"
+              "raw": "{\n \"password\": \"motdepasse123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/users/1/verify-password/",
@@ -735,7 +754,7 @@
       ]
     },
     {
-      "name": "🎭 Gestion des Rôles",
+      "name": "Gestion des Rôles",
       "item": [
         {
           "name": "Rôles disponibles",
@@ -797,7 +816,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Professeur\",\n  \"description\": \"Rôle pour les enseignants\"\n}"
+              "raw": "{\n \"name\": \"Professeur\",\n \"description\": \"Rôle pour les enseignants\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/roles/",
@@ -854,7 +873,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Professeur Senior\",\n  \"description\": \"Rôle pour les enseignants expérimentés\"\n}"
+              "raw": "{\n \"name\": \"Professeur Senior\",\n \"description\": \"Rôle pour les enseignants expérimentés\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/roles/1/",
@@ -911,7 +930,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"new_role_id\": 2\n}"
+              "raw": "{\n \"new_role_id\": 2\n}"
             },
             "url": {
               "raw": "{{base_url}}/roles/1/reassign/",
@@ -921,6 +940,1036 @@
             "description": "Réassigne tous les utilisateurs d'un rôle vers un autre. Nécessite des privilèges administrateur."
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "Infrastructure (Bâtiments, Salles, Équipements)",
+      "item": [
+        {
+          "name": "Buildings",
+          "item": [
+            {
+              "name": "Liste des bâtiments",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/buildings/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "buildings", ""]
+                },
+                "description": "Récupère la liste complète des bâtiments de l'université."
+              },
+              "response": []
+            },
+            {
+              "name": "Détail d'un bâtiment (GET avec ID dans body)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"id\": {{building_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/buildings/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "buildings", ""]
+                },
+                "description": "Récupère les détails d'un bâtiment spécifique en passant l'ID dans le body (GET)."
+              },
+              "response": []
+            },
+            {
+              "name": "Créer un bâtiment",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      " const data = pm.response.json();",
+                      " if (data.data && data.data.id) {",
+                      " pm.collectionVariables.set('building_id', data.data.id);",
+                      " console.log('Building ID saved:', data.data.id);",
+                      " }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"building_name\": \"Bâtiment A\",\n \"building_code\": \"BAT-A\",\n \"location\": \"123 Rue de l'Université\",\n \"university\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/buildings/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "buildings", ""]
+                },
+                "description": "Crée un nouveau bâtiment. Retourne l'ID dans `data.id`."
+              },
+              "response": []
+            },
+            {
+              "name": "Modifier un bâtiment (PUT)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"building_name\": \"Bâtiment A (Rénové)\",\n \"location\": \"123 Rue de l'Université, 75001 Paris\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/buildings/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "buildings", ""]
+                },
+                "description": "Met à jour un bâtiment existant. L'ID est requis dans le body."
+              },
+              "response": []
+            },
+            {
+              "name": "Supprimer un bâtiment",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"id\": {{building_id}}\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/buildings/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "buildings", ""]
+                },
+                "description": "Supprime un bâtiment. L'ID est requis dans le body."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Rooms",
+          "item": [
+            {
+                "name": "Liste des salles",
+                "request": {
+                    "auth": {
+                        "type": "bearer",
+                        "bearer": [
+                            {
+                                "key": "token",
+                                "value": "{{access_token}}",
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "method": "GET",
+                    "header": [],
+                    "url": {
+                        "raw": "{{base_url}}/infrastructure/rooms/",
+                        "host": ["{{base_url}}"],
+                        "path": ["infrastructure", "rooms", ""]
+                    },
+                    "description": "Liste toutes les salles de l'université."
+                },
+                "response": []
+            },
+
+            {
+              "name": "Créer une salle",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      " const data = pm.response.json();",
+                      " pm.collectionVariables.set('room_id', data.id);",
+                      " console.log('Room ID saved:', data.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"room_name\": \"Salle A101\",\n \"building\": \"{{building_id}}\",\n \"capacity\": 50,\n \"room_type\": \"classroom\",\n \"is_available\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/rooms/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "rooms", ""]
+                },
+                "description": "Crée une nouvelle salle. Nécessite droits d'admin ou gestionnaire."
+              },
+              "response": []
+            },
+            {
+              "name": "Détails d'une salle",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/rooms/{{room_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "rooms", "{{room_id}}", ""]
+                },
+                "description": "Récupère les détails d'une salle spécifique."
+              },
+              "response": []
+            },
+            {
+              "name": "Modifier une salle (PUT)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"room_name\": \"Salle A101 (Rénovée)\",\n \"building\": \"{{building_id}}\",\n \"capacity\": 60,\n \"room_type\": \"classroom\",\n \"is_available\": false\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/rooms/{{room_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "rooms", "{{room_id}}", ""]
+                },
+                "description": "Remplace toutes les données de la salle."
+              },
+              "response": []
+            },
+            {
+              "name": "Mettre à jour partiellement (PATCH)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"capacity\": 55,\n \"is_available\": true\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/rooms/{{room_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "rooms", "{{room_id}}", ""]
+                },
+                "description": "Met à jour seulement certains champs."
+              },
+              "response": []
+            },
+            {
+              "name": "Supprimer une salle",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/rooms/{{room_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "rooms", "{{room_id}}", ""]
+                },
+                "description": "Supprime une salle (si non utilisée)."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Equipment Types",
+          "item": [
+            {
+              "name": "Liste des types d'équipement",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-types/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-types", ""]
+                },
+                "description": "Liste tous les types d'équipements."
+              },
+              "response": []
+            },
+            {
+              "name": "Créer un type d'équipement",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      " const data = pm.response.json();",
+                      " pm.collectionVariables.set('equipment_type_id', data.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"name\": \"Projecteur\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-types/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-types", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Détails d'un type",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-types/{{equipment_type_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-types", "{{equipment_type_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Modifier (PUT)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"name\": \"Projecteur 4K\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-types/{{equipment_type_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-types", "{{equipment_type_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Supprimer type",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-types/{{equipment_type_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-types", "{{equipment_type_id}}", ""]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Equipments",
+          "item": [
+            {
+              "name": "Liste des équipements",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipments/?room={{room_id}}&status=operational",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipments", ""],
+                  "query": [
+                    {
+                      "key": "room",
+                      "value": "{{room_id}}",
+                      "disabled": true
+                    },
+                    {
+                      "key": "status",
+                      "value": "operational",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Filtres : ?status=maintenance, ?equipment_type=1"
+              },
+              "response": []
+            },
+            {
+              "name": "Créer un équipement",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      " const data = pm.response.json();",
+                      " pm.collectionVariables.set('equipment_id', data.id);",
+                      " console.log('Equipment ID saved:', data.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"equipment_name\": \"Projecteur A\",\n \"serial_number\": \"PROJ-001\",\n \"equipment_type\": \"{{equipment_type_id}}\",\n \"equipment_number\": \"EQ-001\",\n \"purchase_date\": \"2023-05-10\",\n \"status\": \"working\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipments/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipments", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Détails d'un équipement",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipments/{{equipment_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipments", "{{equipment_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Modifier (PUT)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"status\": \"maintenance\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipments/{{equipment_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipments", "{{equipment_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Mettre à jour (PATCH)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"status\": \"operational\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipments/{{equipment_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipments", "{{equipment_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Supprimer équipement",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipments/{{equipment_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipments", "{{equipment_id}}", ""]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Equipment Allocations",
+          "item": [
+            {
+              "name": "Liste des allocations",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-allocations/?equipment={{equipment_id}}&active=true",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-allocations", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Allouer un équipement",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      " const data = pm.response.json();",
+                      " pm.collectionVariables.set('allocation_id', data.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"equipment\": \"{{equipment_id}}\",\n \"room\": \"{{room_id}}\",\n \"allocated_to\": \"550e8400-e29b-41d4-a716-446655440001\",\n \"allocation_date\": \"2025-04-01\",\n \"return_date\": \"2025-04-30\",\n \"status\": \"allocated\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-allocations/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-allocations", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Détails allocation",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-allocations/{{allocation_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-allocations", "{{allocation_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Terminer allocation (PATCH)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"return_date\": \"2025-04-15\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-allocations/{{allocation_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-allocations", "{{allocation_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Supprimer allocation",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-allocations/{{allocation_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-allocations", "{{allocation_id}}", ""]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Equipment Maintenances",
+          "item": [
+            {
+              "name": "Liste des maintenances",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/?equipment={{equipment_id}}&status=scheduled",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-maintenances", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Planifier une maintenance",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      " const data = pm.response.json();",
+                      " pm.collectionVariables.set('maintenance_id', data.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"equipment\": \"{{equipment_id}}\",\n \"maintenance_date\": \"2025-06-15\",\n \"return_date\": \"2025-06-16\",\n \"description\": \"Maintenance preventive\",\n \"performed_by\": \"Tech Support SAS\",\n \"cost\": 250.00\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-maintenances", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Détails maintenance",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/{{maintenance_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-maintenances", "{{maintenance_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Terminer maintenance (PATCH)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n \"cost\": 220.00\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/{{maintenance_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-maintenances", "{{maintenance_id}}", ""]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Supprimer maintenance",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/{{maintenance_id}}/",
+                  "host": ["{{base_url}}"],
+                  "path": ["infrastructure", "equipment-maintenances", "{{maintenance_id}}", ""]
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ]
     },
@@ -1692,8 +2741,9 @@
   ]
 }
 ,
+
     {
-      "name": "📚 Documentation API",
+      "name": "Documentation API",
       "item": [
         {
           "name": "Schéma OpenAPI",
@@ -1740,7 +2790,7 @@
       ]
     },
     {
-      "name": "⚙️ Administration Django",
+      "name": "Administration Django",
       "item": [
         {
           "name": "Interface Admin Django",
@@ -1777,11 +2827,11 @@
         "exec": [
           "// Tests globaux",
           "pm.test('Status code is not 500', function () {",
-          "    pm.expect(pm.response.code).to.not.equal(500);",
+          " pm.expect(pm.response.code).to.not.equal(500);",
           "});",
           "",
           "pm.test('Response time is less than 5000ms', function () {",
-          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          " pm.expect(pm.response.responseTime).to.be.below(5000);",
           "});"
         ]
       }

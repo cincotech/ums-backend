@@ -1,16 +1,18 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from .models import Province
-from services.foundational_service.geo_module.serializers import ProvinceSerializer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from services.foundational_service.geo_module.country_app.models import Country
+from services.foundational_service.geo_module.serializers import ProvinceSerializer
+
+from .models import Province
 
 
 class ProvinceListCreateAPIView(APIView):
     """Lister toutes les provinces ou en créer une nouvelle"""
 
     def get(self, request):
-        country_id = request.GET.get('country_id')
+        country_id = request.GET.get("country_id")
         if country_id:
             provinces = Province.objects.filter(country_id=country_id)
         else:
@@ -22,7 +24,7 @@ class ProvinceListCreateAPIView(APIView):
         serializer = ProvinceSerializer(data=request.data)
         if serializer.is_valid():
             # Vérification que le pays existe avant la sauvegarde
-            country_id = serializer.validated_data.get('country').id
+            country_id = serializer.validated_data.get("country").id
             try:
                 Country.objects.get(id=country_id)
             except Country.DoesNotExist:
@@ -48,14 +50,18 @@ class ProvinceDetailAPIView(APIView):
     def get(self, request, pk):
         province = self.get_object(pk)
         if not province:
-            return Response({"detail": "Province not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Province not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         serializer = ProvinceSerializer(province)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         province = self.get_object(pk)
         if not province:
-            return Response({"detail": "Province not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Province not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         serializer = ProvinceSerializer(province, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -65,6 +71,8 @@ class ProvinceDetailAPIView(APIView):
     def delete(self, request, pk):
         province = self.get_object(pk)
         if not province:
-            return Response({"detail": "Province not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Province not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         province.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
