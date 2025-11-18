@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from services.dependent_service.scheduling_module.scheduling_app.models import ScheduleSlot, Timetable, Attendance, ActivityReport
+
+from services.dependent_service.scheduling_module.scheduling_app.models import (
+    ActivityReport,
+    Attendance,
+    ScheduleSlot,
+    Timetable,
+)
+
 
 class ScheduleSlotSerializer(serializers.ModelSerializer):
     class Meta:

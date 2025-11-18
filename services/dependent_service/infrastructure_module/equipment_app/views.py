@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import IsGeneralService, IsSuperAdmin
+from core.permissions import IsGeneralService, IsSuperAdminOrGeneralService
 from core.response_handler import success_response, validate_serializer
 from core.views import BaseViewSet
 
@@ -20,7 +20,7 @@ class EquipmentTypeViewSet(BaseViewSet):
 
     def get_permissions(self):
         if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdmin()]
+            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
         return [IsAuthenticated(), IsGeneralService()]
 
 
@@ -30,7 +30,7 @@ class EquipmentViewSet(BaseViewSet):
 
     def get_permissions(self):
         if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdmin()]
+            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
         return [IsAuthenticated(), IsGeneralService()]
 
     def create(self, request, *args, **kwargs):
@@ -45,7 +45,7 @@ class EquipmentAllocationViewSet(BaseViewSet):
 
     def get_permissions(self):
         if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdmin()]
+            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
         return [IsAuthenticated(), IsGeneralService()]
 
     def create(self, request, *args, **kwargs):
@@ -94,5 +94,5 @@ class EquipmentMaintenanceViewSet(BaseViewSet):
 
     def get_permissions(self):
         if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdmin()]
+            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
         return [IsAuthenticated(), IsGeneralService()]

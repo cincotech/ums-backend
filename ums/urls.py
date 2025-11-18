@@ -8,11 +8,9 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
-from core.views import HelloView
-
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('geo/', include('services.foundational_service.geo_module.urls')),
+    path("geo/", include("services.foundational_service.geo_module.urls")),
     path("scheduling/", include("services.dependent_service.scheduling_module.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
@@ -27,7 +25,8 @@ urlpatterns = [
         "", include("services.foundational_service.auth_module.authentication_app.urls")
     ),
     path(
-        "infrastructure/", include("services.dependent_service.infrastructure_module.urls")
+        "infrastructure/",
+        include("services.dependent_service.infrastructure_module.urls"),
     ),
     path("", include("services.core_service.academic_module.urls")),
     path("", include("services.core_service.student_module.urls")),
