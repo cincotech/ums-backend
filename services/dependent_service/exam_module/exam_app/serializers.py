@@ -30,6 +30,8 @@ class ExamSerializer(serializers.ModelSerializer):
     end_time = serializers.DateTimeField()
 
     status = serializers.CharField(read_only=True)
+    created_by = serializers.UUIDField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Exam
@@ -42,6 +44,8 @@ class ExamSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "status",
+            "created_by",
+            "created_at",
         )
 
 
