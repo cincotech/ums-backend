@@ -8,6 +8,7 @@ from django.core.exceptions import (
 )
 from django.db import IntegrityError, OperationalError
 from rest_framework import exceptions, status
+from rest_framework.response import Response
 from rest_framework.views import exception_handler as drf_exception_handler
 
 from .response_handler import error_response
@@ -121,3 +122,18 @@ def custom_exception_handler(exc, context):
         errors=str(exc),
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
+
+
+def validate_serializer(serializer):
+    if not serializer.is_valid():
+        return Response(
+            {"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+        )
+    return None
+
+
+def success_response(data=None, message="", status_code=status.HTTP_200_OK):
+    response = {"message": message}
+    if data is not None:
+        response["data"] = data
+    return Response(response, status=status_code)

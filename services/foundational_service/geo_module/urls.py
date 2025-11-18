@@ -1,44 +1,43 @@
 # services/foundational_service/geo_module/urls.py
 from django.urls import path
-from services.foundational_service.geo_module.country_app.views import (
-    CountryListCreateAPIView,
-    CountryDetailAPIView,
-)
-from services.foundational_service.geo_module.province_app.views import (
-    ProvinceListCreateAPIView,
-    ProvinceDetailAPIView,
+
+from services.foundational_service.geo_module.colline_app.views import (
+    CollineDetailAPIView,
+    CollineListCreateAPIView,
 )
 from services.foundational_service.geo_module.commune_app.views import (
-    CommuneListCreateAPIView,
     CommuneDetailAPIView,
+    CommuneListCreateAPIView,
+)
+from services.foundational_service.geo_module.country_app.views import (
+    CountryDetailAPIView,
+    CountryListCreateAPIView,
+)
+from services.foundational_service.geo_module.province_app.views import (
+    ProvinceDetailAPIView,
+    ProvinceListCreateAPIView,
 )
 from services.foundational_service.geo_module.zone_app.views import (
-    ZoneListCreateAPIView,
     ZoneDetailAPIView,
-)
-from services.foundational_service.geo_module.colline_app.views import (
-    CollineListCreateAPIView,
-    CollineDetailAPIView,
+    ZoneListCreateAPIView,
 )
 
 urlpatterns = [
-    #Country
+    # Country
     path("countries/", CountryListCreateAPIView.as_view(), name="country-list"),
     path("countries/<uuid:pk>/", CountryDetailAPIView.as_view(), name="country-detail"),
-
-    #Province
+    # Province
     path("provinces/", ProvinceListCreateAPIView.as_view(), name="province-list"),
-    path("provinces/<uuid:pk>/", ProvinceDetailAPIView.as_view(), name="province-detail"),
-
-    #Commune
+    path(
+        "provinces/<uuid:pk>/", ProvinceDetailAPIView.as_view(), name="province-detail"
+    ),
+    # Commune
     path("communes/", CommuneListCreateAPIView.as_view(), name="commune-list"),
     path("communes/<uuid:pk>/", CommuneDetailAPIView.as_view(), name="commune-detail"),
-
-    #Zone
+    # Zone
     path("zones/", ZoneListCreateAPIView.as_view(), name="zone-list"),
     path("zones/<uuid:pk>/", ZoneDetailAPIView.as_view(), name="zone-detail"),
-
-    #Colline
+    # Colline
     path("collines/", CollineListCreateAPIView.as_view(), name="colline-list"),
     path("collines/<uuid:pk>/", CollineDetailAPIView.as_view(), name="colline-detail"),
 ]

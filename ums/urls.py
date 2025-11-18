@@ -12,6 +12,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("geo/", include("services.foundational_service.geo_module.urls")),
     path("scheduling/", include("services.dependent_service.scheduling_module.urls")),
+    path("api/", include("services.dependent_service.notification_module.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/swagger/",
@@ -24,6 +25,10 @@ urlpatterns = [
     path(
         "api/",
         include("services.foundational_service.auth_module.authentication_app.urls"),
+    ),
+    path(
+        "api/infrastructure/",
+        include("services.dependent_service.infrastructure_module.urls"),
     ),
     path("api/", include("services.core_service.academic_module.urls")),
     path("api/", include("services.core_service.student_module.urls")),
