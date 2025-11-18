@@ -25,7 +25,8 @@ class ScheduleSlot(models.Model):
 
     class Meta:
         db_table = "schedule_slots"
-
+    def __str__(self):
+        return self.schedule_name
 
 class Timetable(models.Model):
     STATUS = (
@@ -34,7 +35,7 @@ class Timetable(models.Model):
         ("Cancelled", "Cancelled"),
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    attribution = models.ForeignKey(Attribution, on_delete=models.RESTRICT)
+    attribution = models.ForeignKey(Attribution, on_delete=models.RESTRICT,blank=True,null=True)
     room = models.ForeignKey(Room, on_delete=models.RESTRICT)
     slot = models.ManyToManyField(ScheduleSlot)
     start_date = models.DateField()

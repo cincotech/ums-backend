@@ -52,5 +52,5 @@ router.register(
 
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("student/", include(router.urls)),
 ]
