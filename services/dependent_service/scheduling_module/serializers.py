@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from services.dependent_service.scheduling_module.scheduling_app.models import ScheduleSlot, Timetable, Attendance, ActivityReport
+
+from services.dependent_service.scheduling_module.scheduling_app.models import (
+    ActivityReport,
+    Attendance,
+    ScheduleSlot,
+    Timetable,
+)
+
 
 class ScheduleSlotSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,19 +23,17 @@ class TimetableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Timetable
         fields = "__all__"
-        extra_kwargs = {
-            'slot': {'read_only': True}
-        }
+        extra_kwargs = {"slot": {"read_only": True}}
 
     def create(self, validated_data):
-        slot_ids = validated_data.pop('slot_ids', [])
+        slot_ids = validated_data.pop("slot_ids", [])
         timetable = Timetable.objects.create(**validated_data)
         if slot_ids:
             timetable.slot.set(slot_ids)
         return timetable
 
     def update(self, instance, validated_data):
-        slot_ids = validated_data.pop('slot_ids', None)
+        slot_ids = validated_data.pop("slot_ids", None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
