@@ -68,7 +68,11 @@
             ],
             "body": {
               "mode": "raw",
+<<<<<<< HEAD
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"motdepasse123\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Dupont\",\n  \"birth_date\": \"1990-01-01\",\n  \"spoken_languages\": [\"fr\", \"en\"],\n  \"gender\": \"M\",\n  \"marital_status\": \"single\",\n  \"phone_number\": \"+25761234567\"\n}"
+=======
               "raw": "{\n \"email\": \"{{user_email}}\",\n \"password\": \"motdepasse123\",\n \"first_name\": \"Jean\",\n \"last_name\": \"Dupont\"\n}"
+>>>>>>> dc569c6af56c27744d3b2b93a7658b48613e90df
             },
             "url": {
               "raw": "{{base_url}}/register/",
