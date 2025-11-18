@@ -16,6 +16,7 @@ class Equipment(models.Model):
 
     STATUS = (
         ("working", "Working"),
+        ("available", "Available"),
         ("under_maintenance", "Under Maintenance"),
         ("out_of_order", "Out of Order"),
         ("disposed", "Disposed"),
@@ -26,7 +27,7 @@ class Equipment(models.Model):
     serial_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     equipment_number = models.CharField(max_length=9)
     purchase_date = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=86, choices=STATUS, default="working")
+    status = models.CharField(max_length=86, choices=STATUS, default="available")
 
     class Meta:
         db_table = "equipments"
