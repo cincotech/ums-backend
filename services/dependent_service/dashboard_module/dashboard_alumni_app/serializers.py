@@ -57,7 +57,7 @@ class AlumniDonationSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class AlumniDocumentRequestSerializer(serializers.ModelSerializer):
+class DocumentRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentRequest
         fields = "__all__"

@@ -3,18 +3,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 from core.response_handler import error_response, success_response
+from services.dependent_service.exam_module.exam_app.models import Exam
 
-from .models import (
-    ExamSession,
-    GradeComplaint,
-    JurySession,
-    OfficialDocument,
-    TeacherPaymentClaim,
-)
+from .models import GradeComplaint, JurySession, OfficialDocument, TeacherPaymentClaim
 from .serializers import (
     AcademicSecretaryStatsSerializer,
     ExamAttendanceSerializer,
-    ExamSessionSerializer,
+    ExamSerializer,
     GradeComplaintSerializer,
     GradeEntryStatusSerializer,
     JuryDecisionSerializer,
@@ -48,8 +43,8 @@ def exam_sessions(request):
     """Manage exam sessions"""
     try:
         if request.method == "GET":
-            exams = ExamSession.objects.select_related("course").order_by("exam_date")
-            serializer = ExamSessionSerializer(exams, many=True)
+            exams = Exam.objects.select_related("course").order_by("exam_date")
+            serializer = ExamSerializer(exams, many=True)
             return success_response(
                 data=serializer.data, message="Exam sessions retrieved"
             )
@@ -65,7 +60,7 @@ def exam_sessions(request):
                 course_id, exam_date, duration, room, supervisor_ids, request.user
             )
 
-            serializer = ExamSessionSerializer(exam)
+            serializer = ExamSerializer(exam)
             return success_response(
                 data=serializer.data, message="Exam session scheduled"
             )

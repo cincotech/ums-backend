@@ -1,8 +1,6 @@
 from django.contrib import admin
 
 from .models import (
-    ExamAttendance,
-    ExamSession,
     GradeComplaint,
     JuryDecision,
     JurySession,
@@ -13,20 +11,6 @@ from .models import (
 # NOTE: ExamSession and ExamAttendance are dashboard-specific models
 # For core exam management, use models from exam_module
 # TODO: Consider migrating to use exam_module models to avoid duplication
-
-
-@admin.register(ExamSession)
-class ExamSessionAdmin(admin.ModelAdmin):
-    list_display = ["course", "exam_date", "duration_minutes", "room", "created_at"]
-    list_filter = ["exam_date", "created_at"]
-    search_fields = ["course__course_name", "room"]
-
-
-@admin.register(ExamAttendance)
-class ExamAttendanceAdmin(admin.ModelAdmin):
-    list_display = ["exam_session", "student", "status", "recorded_at"]
-    list_filter = ["status", "recorded_at"]
-    search_fields = ["student__user__email", "student__matricule"]
 
 
 @admin.register(JurySession)
