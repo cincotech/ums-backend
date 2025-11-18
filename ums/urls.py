@@ -33,5 +33,6 @@ urlpatterns = [
     path("api/", include("services.core_service.academic_module.urls")),
     path("api/", include("services.core_service.student_module.urls")),
     path("api/", include("services.core_service.finance_module.urls")),
+    path("api/exams/", include("services.dependent_service.scheduling_module.urls")),
     path("api/", include("services.dependent_service.dashboard_module.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
