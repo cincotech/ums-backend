@@ -1,17 +1,20 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from .models import Colline
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from core.response_handler import validate_serializer
 from services.foundational_service.geo_module.serializers import CollineSerializer
 from services.foundational_service.geo_module.zone_app.models import Zone
-from core.response_handler import validate_serializer,error_response,success_response
+
+from .models import Colline
+
 
 class CollineListCreateAPIView(APIView):
     """Lister toutes les collines ou en créer une nouvelle"""
 
     def get(self, request):
         # Filtrage optionnel par zone
-        zone_id = request.GET.get('zone_id')
+        zone_id = request.GET.get("zone_id")
         if zone_id:
             collines = Colline.objects.filter(zone_id=zone_id)
         else:
@@ -21,12 +24,12 @@ class CollineListCreateAPIView(APIView):
 
     def post(self, request):
         serializer = CollineSerializer(data=request.data)
-        error=validate_serializer(serializer)
+        error = validate_serializer(serializer)
         if error:
             return error
         if serializer.is_valid():
             # Vérification que la zone existe avant la sauvegarde
-            zone_id = serializer.validated_data.get('zone').id
+            zone_id = serializer.validated_data.get("zone").id
             try:
                 Zone.objects.get(id=zone_id)
             except Zone.DoesNotExist:
@@ -50,16 +53,20 @@ class CollineDetailAPIView(APIView):
 
     def get(self, request, pk):
         colline = self.get_object(pk)
-        
+
         if not colline:
-            return Response({"detail": "Colline not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Colline not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         serializer = CollineSerializer(colline)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         colline = self.get_object(pk)
         if not colline:
-            return Response({"detail": "Colline not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Colline not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         serializer = CollineSerializer(colline, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -69,7 +76,8 @@ class CollineDetailAPIView(APIView):
     def delete(self, request, pk):
         colline = self.get_object(pk)
         if not colline:
-            return Response({"detail": "Colline not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Colline not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         colline.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
