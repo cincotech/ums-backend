@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import IsGeneralService, IsSuperAdminCreateOnly
+from core.permissions import IsGeneralService, IsSuperAdmin
 from core.response_handler import success_response, validate_serializer
 from core.views import BaseViewSet
 
@@ -17,24 +17,36 @@ from .serializers import (
 class EquipmentTypeViewSet(BaseViewSet):
     queryset = EquipmentType.objects.all()
     serializer_class = EquipmentTypeSerializer
-    permission_classes = [IsAuthenticated, IsSuperAdminCreateOnly]
+
+    def get_permissions(self):
+        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
+            return [IsAuthenticated(), IsSuperAdmin()]
+        return [IsAuthenticated(), IsGeneralService()]
 
 
 class EquipmentViewSet(BaseViewSet):
     queryset = Equipment.objects.all()
     serializer_class = EquipmentSerializer
-    permission_classes = [IsAuthenticated, IsGeneralService]
+
+    def get_permissions(self):
+        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
+            return [IsAuthenticated(), IsSuperAdmin()]
+        return [IsAuthenticated(), IsGeneralService()]
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
-        request.data["status"] = "available"  # par défaut
+        request.data["status"] = "available"
         return super().create(request, *args, **kwargs)
 
 
 class EquipmentAllocationViewSet(BaseViewSet):
     queryset = EquipmentAllocation.objects.all()
     serializer_class = EquipmentAllocationSerializer
-    permission_classes = [IsAuthenticated, IsGeneralService]
+
+    def get_permissions(self):
+        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
+            return [IsAuthenticated(), IsSuperAdmin()]
+        return [IsAuthenticated(), IsGeneralService()]
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
@@ -46,11 +58,8 @@ class EquipmentAllocationViewSet(BaseViewSet):
             return validation_error
 
         allocation = serializer.save()
-
-        # L'équipement devient "working" lors de l'allocation
-        equipment = allocation.equipment
-        equipment.status = "working"
-        equipment.save()
+        allocation.equipment.status = "working"
+        allocation.equipment.save()
 
         return success_response(
             data=serializer.data,
@@ -69,11 +78,9 @@ class EquipmentAllocationViewSet(BaseViewSet):
 
         allocation = serializer.save()
 
-        # Si l'équipement est retourné
         if allocation.status == "returned" and old_status != "returned":
-            equipment = allocation.equipment
-            equipment.status = "available"  # redeviens disponible
-            equipment.save()
+            allocation.equipment.status = "available"
+            allocation.equipment.save()
 
         return success_response(
             data=serializer.data,
@@ -84,4 +91,8 @@ class EquipmentAllocationViewSet(BaseViewSet):
 class EquipmentMaintenanceViewSet(BaseViewSet):
     queryset = EquipmentMaintenance.objects.all()
     serializer_class = EquipmentMaintenanceSerializer
-    permission_classes = [IsAuthenticated, IsSuperAdminCreateOnly]
+
+    def get_permissions(self):
+        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
+            return [IsAuthenticated(), IsSuperAdmin()]
+        return [IsAuthenticated(), IsGeneralService()]
