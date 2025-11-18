@@ -1,5 +1,7 @@
 import uuid
+
 from django.db import models
+
 from services.foundational_service.geo_module.country_app.models import Country
 
 

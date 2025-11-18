@@ -1,7 +1,7 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from core.permissions import IsGeneralService, IsSuperAdmin
+from core.permissions import IsSuperAdmin, IsSuperAdminOrGeneralService
 from core.response_handler import error_response, success_response, validate_serializer
 
 from .models import Building
@@ -21,17 +21,16 @@ class BuildingAPIView(APIView):
         """
         Retourne les permissions dynamiquement selon la méthode HTTP.
         """
-        if self.request.method == "GET":
-            return [IsAuthenticated(), IsSuperAdmin() | IsGeneralService()]
+        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
+            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
+        # POST/PUT/DELETE accessible uniquement à super_admin
         return [IsAuthenticated(), IsSuperAdmin()]
 
     def get(self, request):
         building_id = request.data.get("id")
         if building_id:
             try:
-                building = Building.objects.select_related("university").get(
-                    pk=building_id
-                )
+                building = Building.objects.get(pk=building_id)
                 serializer = BuildingSerializer(building)
                 return success_response(
                     data=serializer.data, message="Bâtiment récupéré avec succès."
@@ -39,7 +38,7 @@ class BuildingAPIView(APIView):
             except Building.DoesNotExist:
                 return error_response(message="Bâtiment introuvable.", status_code=404)
         else:
-            buildings = Building.objects.select_related("university").all()
+            buildings = Building.objects.all()
             serializer = BuildingSerializer(buildings, many=True)
             return success_response(
                 data=serializer.data,

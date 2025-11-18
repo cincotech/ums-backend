@@ -1,5 +1,6 @@
-from django.db import models
 import uuid
+
+from django.db import models
 
 from services.dependent_service.infrastructure_module.building_app.models import (
     Building,
