@@ -3,7 +3,9 @@ from django.urls import include, path
 urlpatterns = [
     path(
         "dashboard/",
-        include("services.dependent_service.dashboard_module.dashboard_app.urls"),
+        include(
+            "services.dependent_service.dashboard_module.dashboard_academic_app.urls"
+        ),
     ),
     path(
         "dashboard/",

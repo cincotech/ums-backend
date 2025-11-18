@@ -4,10 +4,10 @@ from django.utils import timezone
 
 from services.core_service.academic_module.course_app.models import Course
 from services.dependent_service.exam_module.attendance_app.models import ExamAttendance
+from services.dependent_service.exam_module.exam_app.models import Exam
 from services.dependent_service.exam_module.result_app.models import Result
 
 from .models import (
-    ExamSession,
     GradeComplaint,
     JuryDecision,
     JurySession,
@@ -21,9 +21,7 @@ class AcademicSecretaryService:
     @staticmethod
     def get_dashboard_stats():
         """Get academic secretary dashboard overview"""
-        pending_exams = ExamSession.objects.filter(
-            exam_date__gte=timezone.now()
-        ).count()
+        pending_exams = Exam.objects.filter(exam_date__gte=timezone.now()).count()
 
         pending_complaints = GradeComplaint.objects.filter(
             status__in=["submitted", "assigned", "in_review"]
@@ -54,7 +52,7 @@ class AcademicSecretaryService:
     @staticmethod
     def schedule_exam(course_id, exam_date, duration, room, supervisor_ids, user):
         """Schedule exam session"""
-        exam = ExamSession.objects.create(
+        exam = Exam.objects.create(
             course_id=course_id,
             exam_date=exam_date,
             duration_minutes=duration,
@@ -239,7 +237,7 @@ class AcademicSecretaryService:
     @staticmethod
     def generate_exam_convocations(exam_id):
         """Generate individual exam convocations for students"""
-        ExamSession.objects.get(id=exam_id)
+        Exam.objects.get(id=exam_id)
 
         # Get enrolled students for the course
         # This would generate individual convocation documents
