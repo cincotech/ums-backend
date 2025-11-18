@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import CommuneListCreateAPIView, CommuneDetailAPIView
+
+from .views import CommuneDetailAPIView, CommuneListCreateAPIView
 
 urlpatterns = [
     path("communes/", CommuneListCreateAPIView.as_view(), name="commune-list-create"),
