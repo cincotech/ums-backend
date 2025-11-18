@@ -2075,20 +2075,437 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Semestre 1\",\n  \"start_date\": \"2025-11-15\",\n  \"end_date\": \"2026-03-15\"\n}"
+          "raw": "{\n  \"attribution\": \"c3a820f9-7e0a-4a91-b62c-3f96d918bba1\",\n  \"room\": \"d51bff2f-0d93-49c8-98b3-0fd346d066a3\",\n  \"slot\": \"d3eadb22-4e90-4f62-9e36-23481f2378de\",,\n  \"start_date\": \"2025-11-15\",\n  \"end_date\": \"2026-03-15\"\n}"
         },
         "url": {
-          "raw": "{{base_url}}/timetables/",
+          "raw": "{{base_url}}/scheduling/timetables/",
           "host": ["{{base_url}}"],
-          "path": ["timetables", ""]
+          "path": ["scheduling", "timetables", ""]
         },
         "description": "Crée un nouveau timetable."
       },
       "response": []
+    },
+    {
+      "name": "Liste des Attendances",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/scheduling/attendances/",
+          "host": ["{{base_url}}"],
+          "path": ["scheduling", "attendances", ""]
+        },
+        "description": "Récupère toutes les attendances existantes."
+      },
+      "response": []
+    },
+    {
+      "name": "Créer une Attendance",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"timetable\": \"92de6f3e-91d1-41cc-b750-53ae550fc6de\",\n  \"student\": \"11111111-1111-1111-1111-111111111111\",\n  \"status\": \"Present\",\n  \"remarks\": \"Étudiant présent et attentif\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/scheduling/attendances/",
+          "host": ["{{base_url}}"],
+          "path": ["scheduling", "attendances", ""]
+        },
+        "description": "Enregistre une nouvelle attendance. Statuts disponibles: Present, Absent, Excused."
+      },
+      "response": []
     }
   ]
-}
-,
+},
+{
+  "name": "📧 Notification Module",
+  "item": [
+    {
+      "name": "Liste des Notifications",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", ""]
+        },
+        "description": "Récupère toutes les notifications avec pagination et tri par date d'envoi."
+      },
+      "response": []
+    },
+    {
+      "name": "Créer une Notification",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"telephone\": \"+25761234567\",\n  \"message\": \"Votre inscription a été confirmée avec succès.\",\n  \"sent_at\": \"2025-11-17T10:30:00Z\",\n  \"delivery_status\": \"sent\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/notifications/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", ""]
+        },
+        "description": "Crée une nouvelle notification. Au moins un moyen de contact (email ou téléphone) est requis."
+      },
+      "response": []
+    },
+    {
+      "name": "Détails d'une Notification",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/<uuid>/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "<uuid>", ""]
+        },
+        "description": "Récupère les détails d'une notification spécifique par son ID."
+      },
+      "response": []
+    },
+    {
+      "name": "Modifier une Notification",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"updated@example.com\",\n  \"telephone\": \"+25761234567\",\n  \"message\": \"Message mis à jour.\",\n  \"sent_at\": \"2025-11-17T11:00:00Z\",\n  \"delivery_status\": \"sent\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/notifications/<uuid>/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "<uuid>", ""]
+        },
+        "description": "Modifie complètement une notification existante."
+      },
+      "response": []
+    },
+    {
+      "name": "Modifier Partiellement une Notification",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"delivery_status\": \"failed\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/notifications/<uuid>/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "<uuid>", ""]
+        },
+        "description": "Modifie partiellement une notification (seulement les champs fournis)."
+      },
+      "response": []
+    },
+    {
+      "name": "Supprimer une Notification",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/<uuid>/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "<uuid>", ""]
+        },
+        "description": "Supprime une notification."
+      },
+      "response": []
+    },
+    {
+      "name": "Notifications Envoyées",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/sent/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "sent", ""]
+        },
+        "description": "Récupère toutes les notifications avec le statut 'sent'."
+      },
+      "response": []
+    },
+    {
+      "name": "Notifications Échouées",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/failed/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "failed", ""]
+        },
+        "description": "Récupère toutes les notifications avec le statut 'failed'."
+      },
+      "response": []
+    },
+    {
+      "name": "Marquer comme Envoyée",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/<uuid>/mark-as-sent/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "<uuid>", "mark-as-sent", ""]
+        },
+        "description": "Marque une notification comme envoyée et met à jour la date d'envoi."
+      },
+      "response": []
+    },
+    {
+      "name": "Marquer comme Échouée",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/<uuid>/mark-as-failed/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "<uuid>", "mark-as-failed", ""]
+        },
+        "description": "Marque une notification comme échouée."
+      },
+      "response": []
+    },
+    {
+      "name": "Notifications par Email",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/by-email/user@example.com/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "by-email", "user@example.com", ""]
+        },
+        "description": "Récupère toutes les notifications pour une adresse email spécifique."
+      },
+      "response": []
+    },
+    {
+      "name": "Notifications par Téléphone",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/by-phone/+25761234567/",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "by-phone", "+25761234567", ""]
+        },
+        "description": "Récupère toutes les notifications pour un numéro de téléphone spécifique."
+      },
+      "response": []
+    },
+    {
+      "name": "Filtrer les Notifications",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{access_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/notifications/?delivery_status=sent&search=confirmation&ordering=-sent_at",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", ""],
+          "query": [
+            {
+              "key": "delivery_status",
+              "value": "sent",
+              "description": "Filtrer par statut (sent/failed)"
+            },
+            {
+              "key": "search",
+              "value": "confirmation",
+              "description": "Recherche dans email, téléphone et message"
+            },
+            {
+              "key": "ordering",
+              "value": "-sent_at",
+              "description": "Tri (sent_at, -sent_at, delivery_status, -delivery_status)"
+            }
+          ]
+        },
+        "description": "Exemple de filtrage et recherche avancée dans les notifications."
+      },
+      "response": []
+    }
+  ]
+},
 {
   "name": "🌍 Geo Module",
   "item": [

@@ -65,6 +65,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             "password",
             "first_name",
             "last_name",
+            "birth_date",
+            "spoken_languages",
+            "gender",
+            "marital_status",
+            "phone_number",
         ]
         extra_kwargs = {
             "password": {"write_only": True},
