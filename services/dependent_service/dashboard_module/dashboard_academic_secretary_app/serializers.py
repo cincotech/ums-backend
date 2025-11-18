@@ -1,8 +1,9 @@
 from rest_framework import serializers
 
+from services.dependent_service.exam_module.attendance_app.models import ExamAttendance
+from services.dependent_service.exam_module.exam_app.models import Exam
+
 from .models import (
-    ExamAttendance,
-    ExamSession,
     GradeComplaint,
     JuryDecision,
     JurySession,
@@ -11,21 +12,17 @@ from .models import (
 )
 
 
-class ExamSessionSerializer(serializers.ModelSerializer):
+class ExamSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source="course.course_name", read_only=True)
-    supervisor_names = serializers.SerializerMethodField()
 
     class Meta:
-        model = ExamSession
+        model = Exam
         fields = [
             "id",
             "course",
             "course_name",
             "exam_date",
             "duration_minutes",
-            "room",
-            "supervisors",
-            "supervisor_names",
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]

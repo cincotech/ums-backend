@@ -8,41 +8,6 @@ from services.core_service.student_module.student_profile_app.models import Stud
 from services.foundational_service.auth_module.user_app.models import User
 
 
-class ExamSession(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    exam_date = models.DateTimeField()
-    duration_minutes = models.IntegerField()
-    room = models.CharField(max_length=100)
-    supervisors = models.ManyToManyField(User, related_name="supervised_exams")
-    created_by = models.ForeignKey(User, on_delete=models.RESTRICT)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "exam_sessions"
-
-
-class ExamAttendance(models.Model):
-    STATUS_CHOICES = (
-        ("present", "Présent"),
-        ("absent", "Absent"),
-        ("late", "Retard"),
-        ("incident", "Incident"),
-    )
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    exam_session = models.ForeignKey(ExamSession, on_delete=models.CASCADE)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    incident_notes = models.TextField(null=True, blank=True)
-    recorded_by = models.ForeignKey(User, on_delete=models.RESTRICT)
-    recorded_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "exam_attendance_secretary"
-        unique_together = ["exam_session", "student"]
-
-
 class JurySession(models.Model):
     STATUS_CHOICES = (
         ("scheduled", "Planifié"),

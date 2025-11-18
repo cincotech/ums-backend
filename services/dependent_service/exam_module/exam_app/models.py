@@ -9,6 +9,7 @@ from services.dependent_service.infrastructure_module.room_app.models import Roo
 from services.foundational_service.auth_module.authorization_app.models import (
     Supervisor,
 )
+from services.foundational_service.auth_module.user_app.models import User
 
 
 class ExamType(models.Model):
@@ -35,6 +36,8 @@ class Exam(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     status = models.CharField(max_length=12, choices=STATUS, default="scheduled")
+    created_by = models.ForeignKey(User, on_delete=models.RESTRICT, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:
         db_table = "exams"

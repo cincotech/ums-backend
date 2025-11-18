@@ -1,9 +1,11 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
-from .models import Zone
-from services.foundational_service.geo_module.serializers import ZoneSerializer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from services.foundational_service.geo_module.commune_app.models import Commune
+from services.foundational_service.geo_module.serializers import ZoneSerializer
+
+from .models import Zone
 
 
 class ZoneListCreateAPIView(APIView):
@@ -11,7 +13,7 @@ class ZoneListCreateAPIView(APIView):
 
     def get(self, request):
         # Filtrage optionnel par commune
-        commune_id = request.GET.get('commune_id')
+        commune_id = request.GET.get("commune_id")
         if commune_id:
             zones = Zone.objects.filter(commune_id=commune_id)
         else:
@@ -23,7 +25,7 @@ class ZoneListCreateAPIView(APIView):
         serializer = ZoneSerializer(data=request.data)
         if serializer.is_valid():
             # Vérification que la commune existe avant la sauvegarde
-            commune_id = serializer.validated_data.get('commune').id
+            commune_id = serializer.validated_data.get("commune").id
             try:
                 Commune.objects.get(id=commune_id)
             except Commune.DoesNotExist:
@@ -48,14 +50,18 @@ class ZoneDetailAPIView(APIView):
     def get(self, request, pk):
         zone = self.get_object(pk)
         if not zone:
-            return Response({"detail": "Zone not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Zone not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         serializer = ZoneSerializer(zone)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         zone = self.get_object(pk)
         if not zone:
-            return Response({"detail": "Zone not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Zone not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         serializer = ZoneSerializer(zone, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -65,7 +71,8 @@ class ZoneDetailAPIView(APIView):
     def delete(self, request, pk):
         zone = self.get_object(pk)
         if not zone:
-            return Response({"detail": "Zone not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Zone not found"}, status=status.HTTP_404_NOT_FOUND
+            )
         zone.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
