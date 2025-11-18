@@ -25,9 +25,19 @@ class ExamViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        request.data._mutable = True
-        request.data["status"] = "scheduled"
-        return super().create(request, *args, **kwargs)
+        data = request.data.copy()
+        data["created_by"] = request.user.id
+        serializer = self.get_serializer(data=data)
+        validation_error = validate_serializer(serializer)
+        if validation_error:
+            return validation_error
+
+        serializer.save()
+        return success_response(
+            data=serializer.data,
+            message="Exam created successfully",
+            status_code=status.HTTP_201_CREATED,
+        )
 
 
 class ExamRoomViewSet(BaseViewSet):
