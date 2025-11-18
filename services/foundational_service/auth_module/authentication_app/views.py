@@ -274,7 +274,12 @@ class LoginView(APIView):
                 "methods": required_methods,
             }
             return success_response(
-                data=data, message=message, status_code=status.HTTP_403_FORBIDDEN
+                data=data,
+                message=message,
+                status_code=status.HTTP_403_FORBIDDEN,
+                extra={
+                    {"typeError": "requires_2fa"},
+                },
             )
 
         refresh = RefreshToken.for_user(user)
