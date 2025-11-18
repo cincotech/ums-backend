@@ -55,4 +55,8 @@ urlpatterns = [
             "services.dependent_service.dashboard_module.dashboard_alumni_app.urls"
         ),
     ),
+    path(
+        "dashboard/doyen/",
+        include("services.dependent_service.dashboard_module.dashboard_doyen_app.urls"),
+    ),
 ]

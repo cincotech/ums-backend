@@ -2,6 +2,7 @@ import logging
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from drf_spectacular.utils import OpenApiExample, extend_schema_serializer
 from rest_framework import serializers
 
 from services.foundational_service.auth_module.user_app.models import Role, User
@@ -57,6 +58,25 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
+@extend_schema_serializer(
+    examples=[
+        OpenApiExample(
+            "Registration Example",
+            summary="Sample registration payload",
+            value={
+                "email": "john.doe@example.com",
+                "password": "StrongPass123!",
+                "first_name": "John",
+                "last_name": "Doe",
+                "birth_date": "1998-12-01",
+                "spoken_languages": ["en", "fr"],
+                "gender": "M",
+                "marital_status": "S",
+                "phone_number": "+257611223344",
+            },
+        ),
+    ]
+)
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
