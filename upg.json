@@ -1,0 +1,213 @@
+[
+  {
+    "model": "yourapp.Faculty",
+    "pk": 1,
+    "fields": {
+      "name": "Faculté des Technologies de l’Information et de la Communication",
+      "abbreviation": "FTIC"
+    }
+  },
+  {
+    "model": "yourapp.Faculty",
+    "pk": 2,
+    "fields": {
+      "name": "Faculté des Sciences de l’Ingénieur",
+      "abbreviation": "FSI"
+    }
+  },
+  {
+    "model": "yourapp.Faculty",
+    "pk": 3,
+    "fields": {
+      "name": "Faculté des Sciences de l’Environnement",
+      "abbreviation": "FSE"
+    }
+  },
+  {
+    "model": "yourapp.Faculty",
+    "pk": 4,
+    "fields": {
+      "name": "Faculté des Hautes Études Commerciales",
+      "abbreviation": "FHEC"
+    }
+  },
+  {
+    "model": "yourapp.Faculty",
+    "pk": 5,
+    "fields": {
+      "name": "Institut Supérieur Professionnel",
+      "abbreviation": "ISP"
+    }
+  },
+  {
+    "model": "yourapp.Faculty",
+    "pk": 6,
+    "fields": {
+      "name": "Institut Supérieur d’Informatique Appliquée",
+      "abbreviation": "ISIA"
+    }
+  },
+
+  {
+    "model": "yourapp.Department",
+    "pk": 1,
+    "fields": {
+      "faculty": 1,
+      "name": "Génie Logiciel",
+      "abbreviation": "GL"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 2,
+    "fields": {
+      "faculty": 1,
+      "name": "Systèmes Embarqués",
+      "abbreviation": "SE"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 3,
+    "fields": {
+      "faculty": 1,
+      "name": "Électronique & Maintenance Informatique",
+      "abbreviation": "EMI"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 4,
+    "fields": {
+      "faculty": 1,
+      "name": "Informatique de Gestion",
+      "abbreviation": "IG"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 5,
+    "fields": {
+      "faculty": 2,
+      "name": "Génie Civil – Bâtiments et Infrastructures",
+      "abbreviation": "GC"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 6,
+    "fields": {
+      "faculty": 2,
+      "name": "Génie Électrique",
+      "abbreviation": "GE"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 7,
+    "fields": {
+      "faculty": 3,
+      "name": "Sol et Environnement",
+      "abbreviation": "SEnv"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 8,
+    "fields": {
+      "faculty": 3,
+      "name": "Climat et Biodiversité",
+      "abbreviation": "CB"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 9,
+    "fields": {
+      "faculty": 3,
+      "name": "Eau, Pollution et Assainissement",
+      "abbreviation": "EPA"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 10,
+    "fields": {
+      "faculty": 4,
+      "name": "Finance, Banque et Assurance",
+      "abbreviation": "FBA"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 11,
+    "fields": {
+      "faculty": 4,
+      "name": "Comptabilité, Contrôle et Audit",
+      "abbreviation": "CCA"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 12,
+    "fields": {
+      "faculty": 4,
+      "name": "Marketing et Management",
+      "abbreviation": "MM"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 13,
+    "fields": {
+      "faculty": 4,
+      "name": "Développement Communautaire",
+      "abbreviation": "IDC"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 14,
+    "fields": {
+      "faculty": 4,
+      "name": "Finance et Comptabilité",
+      "abbreviation": "IFC"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 15,
+    "fields": {
+      "faculty": 5,
+      "name": "Gestion des Projets",
+      "abbreviation": "GP"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 16,
+    "fields": {
+      "faculty": 5,
+      "name": "Technologie et Maintenance Industrielle",
+      "abbreviation": "TMI"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 17,
+    "fields": {
+      "faculty": 6,
+      "name": "Informatique Appliquée",
+      "abbreviation": "IA"
+    }
+  },
+  {
+    "model": "yourapp.Department",
+    "pk": 18,
+    "fields": {
+      "faculty": 6,
+      "name": "Réseaux et Télécommunications",
+      "abbreviation": "RT"
+    }
+  }
+]

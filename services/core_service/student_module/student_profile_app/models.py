@@ -19,7 +19,7 @@ class Student(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.RESTRICT, related_name="students_users"
     )
-    matricule = models.CharField(max_length=120, unique=True, null=True)
+    matricule = models.CharField(max_length=120, unique=True, null=True, blank=True)
     colline = models.ForeignKey(
         Colline, on_delete=models.RESTRICT, related_name="birthplaces"
     )

@@ -35,5 +35,8 @@ class Faculty(models.Model):
         related_name="faculties",
     )
 
+    def __str__(self):
+        return self.faculty_name
+
     class Meta:
         db_table = "faculties"

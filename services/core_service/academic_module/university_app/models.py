@@ -38,6 +38,9 @@ class University(models.Model):
         Country, on_delete=models.RESTRICT, related_name="universities"
     )
 
+    def __str__(self):
+        return self.university_name
+
     class Meta:
         db_table = "universities"
 
