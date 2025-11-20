@@ -88,7 +88,11 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
     nationality = models.ForeignKey(
-        Country, on_delete=models.RESTRICT, related_name="nationals", null=True
+        Country,
+        on_delete=models.RESTRICT,
+        related_name="nationals",
+        null=True,
+        blank=True,
     )
     residence = models.ManyToManyField(Colline, related_name="residences", blank=True)
     marital_status = models.CharField(

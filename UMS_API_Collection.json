@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "UMS - University Management System API",
-    "description": "Collection complète des APIs du système de gestion universitaire avec authentification JWT et 2FA",
+    "description": "Collection compl\u00e8te des APIs du syst\u00e8me de gestion universitaire avec authentification JWT et 2FA",
     "version": "1.1.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -68,16 +68,17 @@
             ],
             "body": {
               "mode": "raw",
-<<<<<<< HEAD
               "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"motdepasse123\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Dupont\",\n  \"birth_date\": \"1990-01-01\",\n  \"spoken_languages\": [\"fr\", \"en\"],\n  \"gender\": \"M\",\n  \"marital_status\": \"single\",\n  \"phone_number\": \"+25761234567\"\n}"
-=======
-              "raw": "{\n \"email\": \"{{user_email}}\",\n \"password\": \"motdepasse123\",\n \"first_name\": \"Jean\",\n \"last_name\": \"Dupont\"\n}"
->>>>>>> dc569c6af56c27744d3b2b93a7658b48613e90df
             },
             "url": {
               "raw": "{{base_url}}/register/",
-              "host": ["{{base_url}}"],
-              "path": ["register", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "register",
+                ""
+              ]
             },
             "description": "Inscription d'un nouvel utilisateur. Envoie automatiquement un OTP par email."
           },
@@ -99,15 +100,20 @@
             },
             "url": {
               "raw": "{{base_url}}/send-email-otp/",
-              "host": ["{{base_url}}"],
-              "path": ["send-email-otp", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "send-email-otp",
+                ""
+              ]
             },
-            "description": "Envoie un code OTP à l'email spécifié pour vérification."
+            "description": "Envoie un code OTP \u00e0 l'email sp\u00e9cifi\u00e9 pour v\u00e9rification."
           },
           "response": []
         },
         {
-          "name": "Vérifier Email avec OTP",
+          "name": "V\u00e9rifier Email avec OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -122,10 +128,15 @@
             },
             "url": {
               "raw": "{{base_url}}/verify-email/",
-              "host": ["{{base_url}}"],
-              "path": ["verify-email", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "verify-email",
+                ""
+              ]
             },
-            "description": "Vérifie l'email de l'utilisateur avec le code OTP reçu."
+            "description": "V\u00e9rifie l'email de l'utilisateur avec le code OTP re\u00e7u."
           },
           "response": []
         },
@@ -162,15 +173,20 @@
             },
             "url": {
               "raw": "{{base_url}}/login/",
-              "host": ["{{base_url}}"],
-              "path": ["login", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login",
+                ""
+              ]
             },
             "description": "Connexion utilisateur. Retourne les tokens JWT si 2FA non requis."
           },
           "response": []
         },
         {
-          "name": "Réinitialiser mot de passe avec OTP",
+          "name": "R\u00e9initialiser mot de passe avec OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -185,10 +201,17 @@
             },
             "url": {
               "raw": "{{base_url}}/password/reset/verify/",
-              "host": ["{{base_url}}"],
-              "path": ["password", "reset", "verify", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "password",
+                "reset",
+                "verify",
+                ""
+              ]
             },
-            "description": "Réinitialise le mot de passe avec un code OTP."
+            "description": "R\u00e9initialise le mot de passe avec un code OTP."
           },
           "response": []
         },
@@ -224,10 +247,16 @@
             },
             "url": {
               "raw": "{{base_url}}/token/refresh/",
-              "host": ["{{base_url}}"],
-              "path": ["token", "refresh", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "token",
+                "refresh",
+                ""
+              ]
             },
-            "description": "Actualise le token d'accès avec le refresh token."
+            "description": "Actualise le token d'acc\u00e8s avec le refresh token."
           },
           "response": []
         }
@@ -258,10 +287,17 @@
             ],
             "url": {
               "raw": "{{base_url}}/2fa/set/email/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "set", "email", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "set",
+                "email",
+                ""
+              ]
             },
-            "description": "Configure l'authentification 2FA par email. Nécessite une authentification."
+            "description": "Configure l'authentification 2FA par email. N\u00e9cessite une authentification."
           },
           "response": []
         },
@@ -282,10 +318,17 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/2fa/set/totp/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "set", "totp", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "set",
+                "totp",
+                ""
+              ]
             },
-            "description": "Génère un QR code pour configurer l'authentification TOTP. Nécessite une authentification."
+            "description": "G\u00e9n\u00e8re un QR code pour configurer l'authentification TOTP. N\u00e9cessite une authentification."
           },
           "response": []
         },
@@ -311,15 +354,22 @@
             ],
             "url": {
               "raw": "{{base_url}}/2fa/set/static/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "set", "static", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "set",
+                "static",
+                ""
+              ]
             },
-            "description": "Configure l'authentification 2FA avec codes statiques. Nécessite une authentification."
+            "description": "Configure l'authentification 2FA avec codes statiques. N\u00e9cessite une authentification."
           },
           "response": []
         },
         {
-          "name": "Vérifier 2FA Email",
+          "name": "V\u00e9rifier 2FA Email",
           "request": {
             "auth": {
               "type": "bearer",
@@ -344,15 +394,22 @@
             },
             "url": {
               "raw": "{{base_url}}/2fa/verify/email/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "verify", "email", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "verify",
+                "email",
+                ""
+              ]
             },
-            "description": "Vérifie le code 2FA par email. Nécessite une authentification."
+            "description": "V\u00e9rifie le code 2FA par email. N\u00e9cessite une authentification."
           },
           "response": []
         },
         {
-          "name": "Vérifier 2FA TOTP",
+          "name": "V\u00e9rifier 2FA TOTP",
           "request": {
             "auth": {
               "type": "bearer",
@@ -377,15 +434,22 @@
             },
             "url": {
               "raw": "{{base_url}}/2fa/verify/totp/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "verify", "totp", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "verify",
+                "totp",
+                ""
+              ]
             },
-            "description": "Vérifie le code TOTP. Nécessite une authentification."
+            "description": "V\u00e9rifie le code TOTP. N\u00e9cessite une authentification."
           },
           "response": []
         },
         {
-          "name": "Vérifier 2FA Statique",
+          "name": "V\u00e9rifier 2FA Statique",
           "request": {
             "auth": {
               "type": "bearer",
@@ -410,10 +474,17 @@
             },
             "url": {
               "raw": "{{base_url}}/2fa/verify/static/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "verify", "static", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "verify",
+                "static",
+                ""
+              ]
             },
-            "description": "Vérifie un code de sauvegarde statique. Nécessite une authentification."
+            "description": "V\u00e9rifie un code de sauvegarde statique. N\u00e9cessite une authentification."
           },
           "response": []
         },
@@ -450,8 +521,14 @@
             },
             "url": {
               "raw": "{{base_url}}/login/email/",
-              "host": ["{{base_url}}"],
-              "path": ["login", "email", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login",
+                "email",
+                ""
+              ]
             },
             "description": "Finalise la connexion avec 2FA par email."
           },
@@ -490,8 +567,14 @@
             },
             "url": {
               "raw": "{{base_url}}/login/totp/",
-              "host": ["{{base_url}}"],
-              "path": ["login", "totp", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login",
+                "totp",
+                ""
+              ]
             },
             "description": "Finalise la connexion avec 2FA TOTP."
           },
@@ -530,15 +613,21 @@
             },
             "url": {
               "raw": "{{base_url}}/login/static/",
-              "host": ["{{base_url}}"],
-              "path": ["login", "static", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login",
+                "static",
+                ""
+              ]
             },
             "description": "Finalise la connexion avec code de sauvegarde statique."
           },
           "response": []
         },
         {
-          "name": "Désactiver 2FA Email",
+          "name": "D\u00e9sactiver 2FA Email",
           "request": {
             "auth": {
               "type": "bearer",
@@ -563,15 +652,22 @@
             },
             "url": {
               "raw": "{{base_url}}/2fa/disable/email/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "disable", "email", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "disable",
+                "email",
+                ""
+              ]
             },
-            "description": "Désactive l'authentification 2FA par email. Nécessite une authentification."
+            "description": "D\u00e9sactive l'authentification 2FA par email. N\u00e9cessite une authentification."
           },
           "response": []
         },
         {
-          "name": "Désactiver 2FA TOTP",
+          "name": "D\u00e9sactiver 2FA TOTP",
           "request": {
             "auth": {
               "type": "bearer",
@@ -596,15 +692,22 @@
             },
             "url": {
               "raw": "{{base_url}}/2fa/disable/totp/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "disable", "totp", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "disable",
+                "totp",
+                ""
+              ]
             },
-            "description": "Désactive l'authentification TOTP avec la clé secrète. Nécessite une authentification."
+            "description": "D\u00e9sactive l'authentification TOTP avec la cl\u00e9 secr\u00e8te. N\u00e9cessite une authentification."
           },
           "response": []
         },
         {
-          "name": "Désactiver 2FA Statique",
+          "name": "D\u00e9sactiver 2FA Statique",
           "request": {
             "auth": {
               "type": "bearer",
@@ -625,10 +728,17 @@
             ],
             "url": {
               "raw": "{{base_url}}/2fa/disable/static/",
-              "host": ["{{base_url}}"],
-              "path": ["2fa", "disable", "static", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "2fa",
+                "disable",
+                "static",
+                ""
+              ]
             },
-            "description": "Désactive l'authentification 2FA statique. Nécessite une authentification."
+            "description": "D\u00e9sactive l'authentification 2FA statique. N\u00e9cessite une authentification."
           },
           "response": []
         }
@@ -654,15 +764,20 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/users/",
-              "host": ["{{base_url}}"],
-              "path": ["users", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ""
+              ]
             },
-            "description": "Récupère la liste des utilisateurs (utilisateur connecté uniquement). Nécessite une authentification."
+            "description": "R\u00e9cup\u00e8re la liste des utilisateurs (utilisateur connect\u00e9 uniquement). N\u00e9cessite une authentification."
           },
           "response": []
         },
         {
-          "name": "Détails utilisateur",
+          "name": "D\u00e9tails utilisateur",
           "request": {
             "auth": {
               "type": "bearer",
@@ -678,10 +793,16 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/users/1/",
-              "host": ["{{base_url}}"],
-              "path": ["users", "1", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "1",
+                ""
+              ]
             },
-            "description": "Récupère les détails d'un utilisateur spécifique. Nécessite une authentification."
+            "description": "R\u00e9cup\u00e8re les d\u00e9tails d'un utilisateur sp\u00e9cifique. N\u00e9cessite une authentification."
           },
           "response": []
         },
@@ -711,15 +832,21 @@
             },
             "url": {
               "raw": "{{base_url}}/users/1/",
-              "host": ["{{base_url}}"],
-              "path": ["users", "1", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "1",
+                ""
+              ]
             },
-            "description": "Modifie les informations d'un utilisateur. Nécessite une authentification."
+            "description": "Modifie les informations d'un utilisateur. N\u00e9cessite une authentification."
           },
           "response": []
         },
         {
-          "name": "Vérifier mot de passe",
+          "name": "V\u00e9rifier mot de passe",
           "request": {
             "auth": {
               "type": "bearer",
@@ -744,34 +871,46 @@
             },
             "url": {
               "raw": "{{base_url}}/users/1/verify-password/",
-              "host": ["{{base_url}}"],
-              "path": ["users", "1", "verify-password", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "1",
+                "verify-password",
+                ""
+              ]
             },
-            "description": "Vérifie si le mot de passe fourni correspond à celui de l'utilisateur. Nécessite une authentification."
+            "description": "V\u00e9rifie si le mot de passe fourni correspond \u00e0 celui de l'utilisateur. N\u00e9cessite une authentification."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Gestion des Rôles",
+      "name": "Gestion des R\u00f4les",
       "item": [
         {
-          "name": "Rôles disponibles",
+          "name": "R\u00f4les disponibles",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/available-roles/",
-              "host": ["{{base_url}}"],
-              "path": ["available-roles", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "available-roles",
+                ""
+              ]
             },
-            "description": "Récupère tous les rôles actifs disponibles. Accessible sans authentification."
+            "description": "R\u00e9cup\u00e8re tous les r\u00f4les actifs disponibles. Accessible sans authentification."
           },
           "response": []
         },
         {
-          "name": "Liste des rôles (Admin)",
+          "name": "Liste des r\u00f4les (Admin)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -787,15 +926,20 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/roles/",
-              "host": ["{{base_url}}"],
-              "path": ["roles", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles",
+                ""
+              ]
             },
-            "description": "Récupère tous les rôles. Nécessite des privilèges administrateur."
+            "description": "R\u00e9cup\u00e8re tous les r\u00f4les. N\u00e9cessite des privil\u00e8ges administrateur."
           },
           "response": []
         },
         {
-          "name": "Créer rôle (Admin)",
+          "name": "Cr\u00e9er r\u00f4le (Admin)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -816,19 +960,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n \"name\": \"Professeur\",\n \"description\": \"Rôle pour les enseignants\"\n}"
+              "raw": "{\n \"name\": \"Professeur\",\n \"description\": \"R\u00f4le pour les enseignants\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/roles/",
-              "host": ["{{base_url}}"],
-              "path": ["roles", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles",
+                ""
+              ]
             },
-            "description": "Crée un nouveau rôle. Nécessite des privilèges administrateur."
+            "description": "Cr\u00e9e un nouveau r\u00f4le. N\u00e9cessite des privil\u00e8ges administrateur."
           },
           "response": []
         },
         {
-          "name": "Détails rôle (Admin)",
+          "name": "D\u00e9tails r\u00f4le (Admin)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -844,15 +993,21 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/roles/1/",
-              "host": ["{{base_url}}"],
-              "path": ["roles", "1", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles",
+                "1",
+                ""
+              ]
             },
-            "description": "Récupère les détails d'un rôle spécifique. Nécessite des privilèges administrateur."
+            "description": "R\u00e9cup\u00e8re les d\u00e9tails d'un r\u00f4le sp\u00e9cifique. N\u00e9cessite des privil\u00e8ges administrateur."
           },
           "response": []
         },
         {
-          "name": "Modifier rôle (Admin)",
+          "name": "Modifier r\u00f4le (Admin)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -873,19 +1028,25 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n \"name\": \"Professeur Senior\",\n \"description\": \"Rôle pour les enseignants expérimentés\"\n}"
+              "raw": "{\n \"name\": \"Professeur Senior\",\n \"description\": \"R\u00f4le pour les enseignants exp\u00e9riment\u00e9s\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/roles/1/",
-              "host": ["{{base_url}}"],
-              "path": ["roles", "1", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles",
+                "1",
+                ""
+              ]
             },
-            "description": "Modifie un rôle existant. Nécessite des privilèges administrateur."
+            "description": "Modifie un r\u00f4le existant. N\u00e9cessite des privil\u00e8ges administrateur."
           },
           "response": []
         },
         {
-          "name": "Supprimer rôle (Admin)",
+          "name": "Supprimer r\u00f4le (Admin)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -901,15 +1062,21 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/roles/1/",
-              "host": ["{{base_url}}"],
-              "path": ["roles", "1", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles",
+                "1",
+                ""
+              ]
             },
-            "description": "Supprime un rôle. Nécessite des privilèges administrateur."
+            "description": "Supprime un r\u00f4le. N\u00e9cessite des privil\u00e8ges administrateur."
           },
           "response": []
         },
         {
-          "name": "Réassigner utilisateurs (Admin)",
+          "name": "R\u00e9assigner utilisateurs (Admin)",
           "request": {
             "auth": {
               "type": "bearer",
@@ -934,48 +1101,135 @@
             },
             "url": {
               "raw": "{{base_url}}/roles/1/reassign/",
-              "host": ["{{base_url}}"],
-              "path": ["roles", "1", "reassign", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roles",
+                "1",
+                "reassign",
+                ""
+              ]
             },
-            "description": "Réassigne tous les utilisateurs d'un rôle vers un autre. Nécessite des privilèges administrateur."
+            "description": "R\u00e9assigne tous les utilisateurs d'un r\u00f4le vers un autre. N\u00e9cessite des privil\u00e8ges administrateur."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Infrastructure (Bâtiments, Salles, Équipements)",
+      "name": "Documentation API",
       "item": [
         {
-          "name": "Buildings",
+          "name": "Sch\u00e9ma OpenAPI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/schema/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "schema",
+                ""
+              ]
+            },
+            "description": "R\u00e9cup\u00e8re le sch\u00e9ma OpenAPI de l'API."
+          },
+          "response": []
+        },
+        {
+          "name": "Documentation Swagger",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/docs/swagger/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "docs",
+                "swagger",
+                ""
+              ]
+            },
+            "description": "Interface Swagger pour tester l'API."
+          },
+          "response": []
+        },
+        {
+          "name": "Documentation ReDoc",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/docs/redoc/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "docs",
+                "redoc",
+                ""
+              ]
+            },
+            "description": "Documentation ReDoc de l'API."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Administration Django",
+      "item": [
+        {
+          "name": "Interface Admin Django",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                ""
+              ]
+            },
+            "description": "Interface d'administration Django. N\u00e9cessite des privil\u00e8ges administrateur."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udf0d Geo Module",
+      "item": [
+        {
+          "name": "Countries",
           "item": [
             {
-              "name": "Liste des bâtiments",
+              "name": "List Countrys",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/buildings/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "buildings", ""]
+                  "raw": "{{base_url}}/geo/countries/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "countries"
+                  ]
                 },
-                "description": "Récupère la liste complète des bâtiments de l'université."
-              },
-              "response": []
-            },
-            {
-              "name": "Détail d'un bâtiment (GET avec ID dans body)",
-              "request": {
+                "description": "Get list of Countrys",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -985,57 +1239,13 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n \"id\": {{building_id}}\n}"
-                },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/buildings/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "buildings", ""]
-                },
-                "description": "Récupère les détails d'un bâtiment spécifique en passant l'ID dans le body (GET)."
-              },
-              "response": []
-            },
-            {
-              "name": "Créer un bâtiment",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "if (pm.response.code === 201) {",
-                      " const data = pm.response.json();",
-                      " if (data.data && data.data.id) {",
-                      " pm.collectionVariables.set('building_id', data.data.id);",
-                      " console.log('Building ID saved:', data.data.id);",
-                      " }",
-                      "}"
-                    ],
-                    "type": "text/javascript"
-                  }
                 }
-              ],
+              },
+              "response": []
+            },
+            {
+              "name": "Create Country",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "POST",
                 "header": [
                   {
@@ -1043,22 +1253,21 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/countries/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "countries"
+                  ]
+                },
+                "description": "Create a new Country",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"building_name\": \"Bâtiment A\",\n \"building_code\": \"BAT-A\",\n \"location\": \"123 Rue de l'Université\",\n \"university\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
+                  "raw": "{\n  \"country_name\": \"Burundi\",\n  \"code\": \"BI\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/buildings/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "buildings", ""]
-                },
-                "description": "Crée un nouveau bâtiment. Retourne l'ID dans `data.id`."
-              },
-              "response": []
-            },
-            {
-              "name": "Modifier un bâtiment (PUT)",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1068,7 +1277,43 @@
                       "type": "string"
                     }
                   ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Country",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/geo/countries/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "countries",
+                    "1"
+                  ]
                 },
+                "description": "Get details of a Country",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Country",
+              "request": {
                 "method": "PUT",
                 "header": [
                   {
@@ -1076,22 +1321,22 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/countries/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "countries",
+                    "1"
+                  ]
+                },
+                "description": "Update a Country",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"building_name\": \"Bâtiment A (Rénové)\",\n \"location\": \"123 Rue de l'Université, 75001 Paris\"\n}"
+                  "raw": "{\n  \"country_name\": \"Burundi\",\n  \"code\": \"BI\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/buildings/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "buildings", ""]
-                },
-                "description": "Met à jour un bâtiment existant. L'ID est requis dans le body."
-              },
-              "response": []
-            },
-            {
-              "name": "Supprimer un bâtiment",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1101,75 +1346,61 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Country",
+              "request": {
                 "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n \"id\": {{building_id}}\n}"
-                },
+                "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/buildings/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "buildings", ""]
+                  "raw": "{{base_url}}/geo/countries/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "countries",
+                    "1"
+                  ]
                 },
-                "description": "Supprime un bâtiment. L'ID est requis dans le body."
+                "description": "Delete a Country",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             }
           ]
         },
         {
-          "name": "Rooms",
+          "name": "Provinces",
           "item": [
             {
-                "name": "Liste des salles",
-                "request": {
-                    "auth": {
-                        "type": "bearer",
-                        "bearer": [
-                            {
-                                "key": "token",
-                                "value": "{{access_token}}",
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "method": "GET",
-                    "header": [],
-                    "url": {
-                        "raw": "{{base_url}}/infrastructure/rooms/",
-                        "host": ["{{base_url}}"],
-                        "path": ["infrastructure", "rooms", ""]
-                    },
-                    "description": "Liste toutes les salles de l'université."
-                },
-                "response": []
-            },
-
-            {
-              "name": "Créer une salle",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "if (pm.response.code === 201) {",
-                      " const data = pm.response.json();",
-                      " pm.collectionVariables.set('room_id', data.id);",
-                      " console.log('Room ID saved:', data.id);",
-                      "}"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
+              "name": "List Provinces",
               "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/geo/provinces/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "provinces"
+                  ]
+                },
+                "description": "Get list of Provinces",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1179,7 +1410,13 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Province",
+              "request": {
                 "method": "POST",
                 "header": [
                   {
@@ -1187,22 +1424,21 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/provinces/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "provinces"
+                  ]
+                },
+                "description": "Create a new Province",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"room_name\": \"Salle A101\",\n \"building\": \"{{building_id}}\",\n \"capacity\": 50,\n \"room_type\": \"classroom\",\n \"is_available\": true\n}"
+                  "raw": "{\n  \"province_name\": \"Bujumbura\",\n  \"country\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/rooms/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "rooms", ""]
-                },
-                "description": "Crée une nouvelle salle. Nécessite droits d'admin ou gestionnaire."
-              },
-              "response": []
-            },
-            {
-              "name": "Détails d'une salle",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1212,21 +1448,27 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Province",
+              "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/rooms/{{room_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "rooms", "{{room_id}}", ""]
+                  "raw": "{{base_url}}/geo/provinces/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "provinces",
+                    "1"
+                  ]
                 },
-                "description": "Récupère les détails d'une salle spécifique."
-              },
-              "response": []
-            },
-            {
-              "name": "Modifier une salle (PUT)",
-              "request": {
+                "description": "Get details of a Province",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1236,7 +1478,13 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Province",
+              "request": {
                 "method": "PUT",
                 "header": [
                   {
@@ -1244,22 +1492,22 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/provinces/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "provinces",
+                    "1"
+                  ]
+                },
+                "description": "Update a Province",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"room_name\": \"Salle A101 (Rénovée)\",\n \"building\": \"{{building_id}}\",\n \"capacity\": 60,\n \"room_type\": \"classroom\",\n \"is_available\": false\n}"
+                  "raw": "{\n  \"province_name\": \"Bujumbura\",\n  \"country\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/rooms/{{room_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "rooms", "{{room_id}}", ""]
-                },
-                "description": "Remplace toutes les données de la salle."
-              },
-              "response": []
-            },
-            {
-              "name": "Mettre à jour partiellement (PATCH)",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1269,59 +1517,61 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n \"capacity\": 55,\n \"is_available\": true\n}"
-                },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/rooms/{{room_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "rooms", "{{room_id}}", ""]
-                },
-                "description": "Met à jour seulement certains champs."
+                }
               },
               "response": []
             },
             {
-              "name": "Supprimer une salle",
+              "name": "Delete Province",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/rooms/{{room_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "rooms", "{{room_id}}", ""]
+                  "raw": "{{base_url}}/geo/provinces/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "provinces",
+                    "1"
+                  ]
                 },
-                "description": "Supprime une salle (si non utilisée)."
+                "description": "Delete a Province",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               },
               "response": []
             }
           ]
         },
         {
-          "name": "Equipment Types",
+          "name": "Communes",
           "item": [
             {
-              "name": "Liste des types d'équipement",
+              "name": "List Communes",
               "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/geo/communes/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "communes"
+                  ]
+                },
+                "description": "Get list of Communes",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1331,45 +1581,13 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-types/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-types", ""]
-                },
-                "description": "Liste tous les types d'équipements."
+                }
               },
               "response": []
             },
             {
-              "name": "Créer un type d'équipement",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "if (pm.response.code === 201) {",
-                      " const data = pm.response.json();",
-                      " pm.collectionVariables.set('equipment_type_id', data.id);",
-                      "}"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
+              "name": "Create Commune",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "POST",
                 "header": [
                   {
@@ -1377,21 +1595,21 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/communes/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "communes"
+                  ]
+                },
+                "description": "Create a new Commune",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"name\": \"Projecteur\"\n}"
+                  "raw": "{\n  \"commune_name\": \"Gihosha\",\n  \"province\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-types/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-types", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Détails d'un type",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1401,20 +1619,27 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Commune",
+              "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-types/{{equipment_type_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-types", "{{equipment_type_id}}", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Modifier (PUT)",
-              "request": {
+                  "raw": "{{base_url}}/geo/communes/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "communes",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Commune",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1424,7 +1649,13 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Commune",
+              "request": {
                 "method": "PUT",
                 "header": [
                   {
@@ -1432,21 +1663,22 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/communes/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "communes",
+                    "1"
+                  ]
+                },
+                "description": "Update a Commune",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"name\": \"Projecteur 4K\"\n}"
+                  "raw": "{\n  \"commune_name\": \"Gihosha\",\n  \"province\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-types/{{equipment_type_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-types", "{{equipment_type_id}}", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Supprimer type",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1456,13 +1688,36 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Commune",
+              "request": {
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-types/{{equipment_type_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-types", "{{equipment_type_id}}", ""]
+                  "raw": "{{base_url}}/geo/communes/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "communes",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Commune",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -1470,11 +1725,24 @@
           ]
         },
         {
-          "name": "Equipments",
+          "name": "Zones",
           "item": [
             {
-              "name": "Liste des équipements",
+              "name": "List Zones",
               "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/geo/zones/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "zones"
+                  ]
+                },
+                "description": "Get list of Zones",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1484,58 +1752,13 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipments/?room={{room_id}}&status=operational",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipments", ""],
-                  "query": [
-                    {
-                      "key": "room",
-                      "value": "{{room_id}}",
-                      "disabled": true
-                    },
-                    {
-                      "key": "status",
-                      "value": "operational",
-                      "disabled": true
-                    }
-                  ]
-                },
-                "description": "Filtres : ?status=maintenance, ?equipment_type=1"
+                }
               },
               "response": []
             },
             {
-              "name": "Créer un équipement",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "if (pm.response.code === 201) {",
-                      " const data = pm.response.json();",
-                      " pm.collectionVariables.set('equipment_id', data.id);",
-                      " console.log('Equipment ID saved:', data.id);",
-                      "}"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
+              "name": "Create Zone",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "POST",
                 "header": [
                   {
@@ -1543,21 +1766,21 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/zones/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "zones"
+                  ]
+                },
+                "description": "Create a new Zone",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"equipment_name\": \"Projecteur A\",\n \"serial_number\": \"PROJ-001\",\n \"equipment_type\": \"{{equipment_type_id}}\",\n \"equipment_number\": \"EQ-001\",\n \"purchase_date\": \"2023-05-10\",\n \"status\": \"working\"\n}"
+                  "raw": "{\n  \"zone_name\": \"Zone 1\",\n  \"commune\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipments/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipments", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Détails d'un équipement",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1567,20 +1790,27 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Zone",
+              "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/equipments/{{equipment_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipments", "{{equipment_id}}", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Modifier (PUT)",
-              "request": {
+                  "raw": "{{base_url}}/geo/zones/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "zones",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Zone",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1590,7 +1820,13 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Zone",
+              "request": {
                 "method": "PUT",
                 "header": [
                   {
@@ -1598,21 +1834,22 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/zones/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "zones",
+                    "1"
+                  ]
+                },
+                "description": "Update a Zone",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"status\": \"maintenance\"\n}"
+                  "raw": "{\n  \"zone_name\": \"Zone 1\",\n  \"commune\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipments/{{equipment_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipments", "{{equipment_id}}", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Mettre à jour (PATCH)",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1622,45 +1859,36 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "PATCH",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n \"status\": \"operational\"\n}"
-                },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipments/{{equipment_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipments", "{{equipment_id}}", ""]
                 }
               },
               "response": []
             },
             {
-              "name": "Supprimer équipement",
+              "name": "Delete Zone",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/equipments/{{equipment_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipments", "{{equipment_id}}", ""]
+                  "raw": "{{base_url}}/geo/zones/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "zones",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Zone",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -1668,11 +1896,24 @@
           ]
         },
         {
-          "name": "Equipment Allocations",
+          "name": "Collines",
           "item": [
             {
-              "name": "Liste des allocations",
+              "name": "List Collines",
               "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/geo/collines/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "collines"
+                  ]
+                },
+                "description": "Get list of Collines",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1682,44 +1923,13 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-allocations/?equipment={{equipment_id}}&active=true",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-allocations", ""]
                 }
               },
               "response": []
             },
             {
-              "name": "Allouer un équipement",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "if (pm.response.code === 201) {",
-                      " const data = pm.response.json();",
-                      " pm.collectionVariables.set('allocation_id', data.id);",
-                      "}"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
+              "name": "Create Colline",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "POST",
                 "header": [
                   {
@@ -1727,21 +1937,21 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/collines/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "collines"
+                  ]
+                },
+                "description": "Create a new Colline",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"equipment\": \"{{equipment_id}}\",\n \"room\": \"{{room_id}}\",\n \"allocated_to\": \"550e8400-e29b-41d4-a716-446655440001\",\n \"allocation_date\": \"2025-04-01\",\n \"return_date\": \"2025-04-30\",\n \"status\": \"allocated\"\n}"
+                  "raw": "{\n  \"colline_name\": \"Kigobe\",\n  \"zone\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-allocations/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-allocations", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Détails allocation",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1751,20 +1961,27 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Colline",
+              "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-allocations/{{allocation_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-allocations", "{{allocation_id}}", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Terminer allocation (PATCH)",
-              "request": {
+                  "raw": "{{base_url}}/geo/collines/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "collines",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Colline",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1774,29 +1991,36 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "PATCH",
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Colline",
+              "request": {
+                "method": "PUT",
                 "header": [
                   {
                     "key": "Content-Type",
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/geo/collines/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "collines",
+                    "1"
+                  ]
+                },
+                "description": "Update a Colline",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"return_date\": \"2025-04-15\"\n}"
+                  "raw": "{\n  \"colline_name\": \"Kigobe\",\n  \"zone\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-allocations/{{allocation_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-allocations", "{{allocation_id}}", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Supprimer allocation",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1806,25 +2030,66 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Colline",
+              "request": {
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-allocations/{{allocation_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-allocations", "{{allocation_id}}", ""]
+                  "raw": "{{base_url}}/geo/collines/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "geo",
+                    "collines",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Colline",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udf93 Academic Module",
+      "item": [
         {
-          "name": "Equipment Maintenances",
+          "name": "Universities",
           "item": [
             {
-              "name": "Liste des maintenances",
+              "name": "List Universitys",
               "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/universities/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "universities"
+                  ]
+                },
+                "description": "Get list of Universitys",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1834,44 +2099,13 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/?equipment={{equipment_id}}&status=scheduled",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-maintenances", ""]
                 }
               },
               "response": []
             },
             {
-              "name": "Planifier une maintenance",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "if (pm.response.code === 201) {",
-                      " const data = pm.response.json();",
-                      " pm.collectionVariables.set('maintenance_id', data.id);",
-                      "}"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
+              "name": "Create University",
               "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                },
                 "method": "POST",
                 "header": [
                   {
@@ -1879,21 +2113,21 @@
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/api/universities/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "universities"
+                  ]
+                },
+                "description": "Create a new University",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"equipment\": \"{{equipment_id}}\",\n \"maintenance_date\": \"2025-06-15\",\n \"return_date\": \"2025-06-16\",\n \"description\": \"Maintenance preventive\",\n \"performed_by\": \"Tech Support SAS\",\n \"cost\": 250.00\n}"
+                  "raw": "{\n  \"university_name\": \"University of Burundi\",\n  \"university_abrev\": \"UB\",\n  \"country\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-maintenances", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Détails maintenance",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1903,20 +2137,27 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get University",
+              "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/{{maintenance_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-maintenances", "{{maintenance_id}}", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Terminer maintenance (PATCH)",
-              "request": {
+                  "raw": "{{base_url}}/api/universities/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "universities",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a University",
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1926,29 +2167,36 @@
                       "type": "string"
                     }
                   ]
-                },
-                "method": "PATCH",
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update University",
+              "request": {
+                "method": "PUT",
                 "header": [
                   {
                     "key": "Content-Type",
                     "value": "application/json"
                   }
                 ],
+                "url": {
+                  "raw": "{{base_url}}/api/universities/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "universities",
+                    "1"
+                  ]
+                },
+                "description": "Update a University",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n \"cost\": 220.00\n}"
+                  "raw": "{\n  \"university_name\": \"University of Burundi\",\n  \"university_abrev\": \"UB\",\n  \"country\": \"<uuid>\"\n}"
                 },
-                "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/{{maintenance_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-maintenances", "{{maintenance_id}}", ""]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Supprimer maintenance",
-              "request": {
                 "auth": {
                   "type": "bearer",
                   "bearer": [
@@ -1958,13 +2206,1233 @@
                       "type": "string"
                     }
                   ]
-                },
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete University",
+              "request": {
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/infrastructure/equipment-maintenances/{{maintenance_id}}/",
-                  "host": ["{{base_url}}"],
-                  "path": ["infrastructure", "equipment-maintenances", "{{maintenance_id}}", ""]
+                  "raw": "{{base_url}}/api/universities/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "universities",
+                    "1"
+                  ]
+                },
+                "description": "Delete a University",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Faculties",
+          "item": [
+            {
+              "name": "List Facultys",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/faculties/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "faculties"
+                  ]
+                },
+                "description": "Get list of Facultys",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Faculty",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/faculties/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "faculties"
+                  ]
+                },
+                "description": "Create a new Faculty",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"faculty_name\": \"Faculty of Science\",\n  \"faculty_abreviation\": \"FSc\",\n  \"university\": \"<uuid>\",\n  \"types\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Faculty",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/faculties/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "faculties",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Faculty",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Faculty",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/faculties/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "faculties",
+                    "1"
+                  ]
+                },
+                "description": "Update a Faculty",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"faculty_name\": \"Faculty of Science\",\n  \"faculty_abreviation\": \"FSc\",\n  \"university\": \"<uuid>\",\n  \"types\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Faculty",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/faculties/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "faculties",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Faculty",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Departments",
+          "item": [
+            {
+              "name": "List Departments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/departments/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments"
+                  ]
+                },
+                "description": "Get list of Departments",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Department",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/departments/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments"
+                  ]
+                },
+                "description": "Create a new Department",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"department_name\": \"Computer Science\",\n  \"abreviation\": \"CS\",\n  \"faculty\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Department",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/departments/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Department",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Department",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/departments/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments",
+                    "1"
+                  ]
+                },
+                "description": "Update a Department",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"department_name\": \"Computer Science\",\n  \"abreviation\": \"CS\",\n  \"faculty\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Department",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/departments/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "departments",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Department",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Classes",
+          "item": [
+            {
+              "name": "List Classs",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/classes/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "classes"
+                  ]
+                },
+                "description": "Get list of Classs",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Class",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/classes/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "classes"
+                  ]
+                },
+                "description": "Create a new Class",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"class_name\": \"BAC 1\",\n  \"department\": \"<uuid>\",\n  \"class_group\": [\n    \"A\",\n    \"B\"\n  ]\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Class",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/classes/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "classes",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Class",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Class",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/classes/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "classes",
+                    "1"
+                  ]
+                },
+                "description": "Update a Class",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"class_name\": \"BAC 1\",\n  \"department\": \"<uuid>\",\n  \"class_group\": [\n    \"A\",\n    \"B\"\n  ]\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Class",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/classes/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "classes",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Class",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Modules",
+          "item": [
+            {
+              "name": "List Modules",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/modules/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "modules"
+                  ]
+                },
+                "description": "Get list of Modules",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Module",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/modules/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "modules"
+                  ]
+                },
+                "description": "Create a new Module",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"module_name\": \"Programming I\",\n  \"code\": \"CSC101\",\n  \"class_fk\": \"<uuid>\",\n  \"semester_id\": \"S1\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Module",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/modules/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "modules",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Module",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Module",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/modules/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "modules",
+                    "1"
+                  ]
+                },
+                "description": "Update a Module",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"module_name\": \"Programming I\",\n  \"code\": \"CSC101\",\n  \"class_fk\": \"<uuid>\",\n  \"semester_id\": \"S1\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Module",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/modules/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "modules",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Module",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Courses",
+          "item": [
+            {
+              "name": "List Courses",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/courses/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "courses"
+                  ]
+                },
+                "description": "Get list of Courses",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Course",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/courses/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "courses"
+                  ]
+                },
+                "description": "Create a new Course",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"course_name\": \"Intro to Python\",\n  \"cm\": 30,\n  \"td\": 15,\n  \"tp\": 15,\n  \"module_id\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Course",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/courses/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "courses",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Course",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Course",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/courses/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "courses",
+                    "1"
+                  ]
+                },
+                "description": "Update a Course",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"course_name\": \"Intro to Python\",\n  \"cm\": 30,\n  \"td\": 15,\n  \"tp\": 15,\n  \"module_id\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Course",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/courses/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "courses",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Course",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Teachers",
+          "item": [
+            {
+              "name": "List Teachers",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/teachers/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "teachers"
+                  ]
+                },
+                "description": "Get list of Teachers",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Teacher",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/teachers/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "teachers"
+                  ]
+                },
+                "description": "Create a new Teacher",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user\": \"<uuid>\",\n  \"teacher_grade\": \"Professor\",\n  \"speciality\": \"AI\",\n  \"university\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Teacher",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/teachers/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "teachers",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Teacher",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Teacher",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/teachers/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "teachers",
+                    "1"
+                  ]
+                },
+                "description": "Update a Teacher",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user\": \"<uuid>\",\n  \"teacher_grade\": \"Professor\",\n  \"speciality\": \"AI\",\n  \"university\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Teacher",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/teachers/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "teachers",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Teacher",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Academic Years",
+          "item": [
+            {
+              "name": "List Academic Years",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/academic-years/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "academic-years"
+                  ]
+                },
+                "description": "Get list of Academic Years",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Academic Year",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/academic-years/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "academic-years"
+                  ]
+                },
+                "description": "Create a new Academic Year",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"academic_year\": \"2024-2025\",\n  \"start_date\": \"2024-09-01\",\n  \"end_date\": \"2025-06-30\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Academic Year",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/academic-years/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "academic-years",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Academic Year",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Academic Year",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/academic-years/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "academic-years",
+                    "1"
+                  ]
+                },
+                "description": "Update a Academic Year",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"academic_year\": \"2024-2025\",\n  \"start_date\": \"2024-09-01\",\n  \"end_date\": \"2025-06-30\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Academic Year",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/academic-years/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "academic-years",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Academic Year",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -1974,702 +3442,1043 @@
       ]
     },
     {
-  "name": "🗓 Scheduling Module",
-  "item": [
-    {
-      "name": "Liste & Création des Slots",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/slots/",
-          "host": ["{{base_url}}"],
-          "path": ["slots", ""]
-        },
-        "description": "Récupère tous les slots existants."
-      },
-      "response": []
-    },
-    {
-      "name": "Créer un Slot",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"start_time\": \"08:00:00\",\n  \"end_time\": \"09:00:00\",\n \"schedule_name\": \"Math Class\",\n  \"day_of_week\": \"Monday\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/slots/",
-          "host": ["{{base_url}}"],
-          "path": ["slots", ""]
-        },
-        "description": "Crée un nouveau slot."
-      },
-      "response": []
-    },
-    {
-      "name": "Liste & Création des Timetables",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/timetables/",
-          "host": ["{{base_url}}"],
-          "path": ["timetables", ""]
-        },
-        "description": "Récupère tous les timetables existants."
-      },
-      "response": []
-    },
-    {
-      "name": "Créer un Timetable",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"attribution\": \"c3a820f9-7e0a-4a91-b62c-3f96d918bba1\",\n  \"room\": \"d51bff2f-0d93-49c8-98b3-0fd346d066a3\",\n  \"slot\": \"d3eadb22-4e90-4f62-9e36-23481f2378de\",,\n  \"start_date\": \"2025-11-15\",\n  \"end_date\": \"2026-03-15\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/scheduling/timetables/",
-          "host": ["{{base_url}}"],
-          "path": ["scheduling", "timetables", ""]
-        },
-        "description": "Crée un nouveau timetable."
-      },
-      "response": []
-    },
-    {
-      "name": "Liste des Attendances",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/scheduling/attendances/",
-          "host": ["{{base_url}}"],
-          "path": ["scheduling", "attendances", ""]
-        },
-        "description": "Récupère toutes les attendances existantes."
-      },
-      "response": []
-    },
-    {
-      "name": "Créer une Attendance",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"timetable\": \"92de6f3e-91d1-41cc-b750-53ae550fc6de\",\n  \"student\": \"11111111-1111-1111-1111-111111111111\",\n  \"status\": \"Present\",\n  \"remarks\": \"Étudiant présent et attentif\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/scheduling/attendances/",
-          "host": ["{{base_url}}"],
-          "path": ["scheduling", "attendances", ""]
-        },
-        "description": "Enregistre une nouvelle attendance. Statuts disponibles: Present, Absent, Excused."
-      },
-      "response": []
-    }
-  ]
-},
-{
-  "name": "📧 Notification Module",
-  "item": [
-    {
-      "name": "Liste des Notifications",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", ""]
-        },
-        "description": "Récupère toutes les notifications avec pagination et tri par date d'envoi."
-      },
-      "response": []
-    },
-    {
-      "name": "Créer une Notification",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"user@example.com\",\n  \"telephone\": \"+25761234567\",\n  \"message\": \"Votre inscription a été confirmée avec succès.\",\n  \"sent_at\": \"2025-11-17T10:30:00Z\",\n  \"delivery_status\": \"sent\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/notifications/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", ""]
-        },
-        "description": "Crée une nouvelle notification. Au moins un moyen de contact (email ou téléphone) est requis."
-      },
-      "response": []
-    },
-    {
-      "name": "Détails d'une Notification",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/<uuid>/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "<uuid>", ""]
-        },
-        "description": "Récupère les détails d'une notification spécifique par son ID."
-      },
-      "response": []
-    },
-    {
-      "name": "Modifier une Notification",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"updated@example.com\",\n  \"telephone\": \"+25761234567\",\n  \"message\": \"Message mis à jour.\",\n  \"sent_at\": \"2025-11-17T11:00:00Z\",\n  \"delivery_status\": \"sent\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/notifications/<uuid>/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "<uuid>", ""]
-        },
-        "description": "Modifie complètement une notification existante."
-      },
-      "response": []
-    },
-    {
-      "name": "Modifier Partiellement une Notification",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"delivery_status\": \"failed\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/notifications/<uuid>/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "<uuid>", ""]
-        },
-        "description": "Modifie partiellement une notification (seulement les champs fournis)."
-      },
-      "response": []
-    },
-    {
-      "name": "Supprimer une Notification",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "DELETE",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/<uuid>/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "<uuid>", ""]
-        },
-        "description": "Supprime une notification."
-      },
-      "response": []
-    },
-    {
-      "name": "Notifications Envoyées",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/sent/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "sent", ""]
-        },
-        "description": "Récupère toutes les notifications avec le statut 'sent'."
-      },
-      "response": []
-    },
-    {
-      "name": "Notifications Échouées",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/failed/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "failed", ""]
-        },
-        "description": "Récupère toutes les notifications avec le statut 'failed'."
-      },
-      "response": []
-    },
-    {
-      "name": "Marquer comme Envoyée",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/<uuid>/mark-as-sent/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "<uuid>", "mark-as-sent", ""]
-        },
-        "description": "Marque une notification comme envoyée et met à jour la date d'envoi."
-      },
-      "response": []
-    },
-    {
-      "name": "Marquer comme Échouée",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/<uuid>/mark-as-failed/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "<uuid>", "mark-as-failed", ""]
-        },
-        "description": "Marque une notification comme échouée."
-      },
-      "response": []
-    },
-    {
-      "name": "Notifications par Email",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/by-email/user@example.com/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "by-email", "user@example.com", ""]
-        },
-        "description": "Récupère toutes les notifications pour une adresse email spécifique."
-      },
-      "response": []
-    },
-    {
-      "name": "Notifications par Téléphone",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/by-phone/+25761234567/",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", "by-phone", "+25761234567", ""]
-        },
-        "description": "Récupère toutes les notifications pour un numéro de téléphone spécifique."
-      },
-      "response": []
-    },
-    {
-      "name": "Filtrer les Notifications",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "{{access_token}}",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/notifications/?delivery_status=sent&search=confirmation&ordering=-sent_at",
-          "host": ["{{base_url}}"],
-          "path": ["notifications", ""],
-          "query": [
-            {
-              "key": "delivery_status",
-              "value": "sent",
-              "description": "Filtrer par statut (sent/failed)"
-            },
-            {
-              "key": "search",
-              "value": "confirmation",
-              "description": "Recherche dans email, téléphone et message"
-            },
-            {
-              "key": "ordering",
-              "value": "-sent_at",
-              "description": "Tri (sent_at, -sent_at, delivery_status, -delivery_status)"
-            }
-          ]
-        },
-        "description": "Exemple de filtrage et recherche avancée dans les notifications."
-      },
-      "response": []
-    }
-  ]
-},
-{
-  "name": "🌍 Geo Module",
-  "item": [
-    {
-      "name": "Pays",
+      "name": "\ud83d\udc68\u200d\ud83c\udf93 Student Module",
       "item": [
         {
-          "name": "Liste des Pays",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/countries/",
-              "host": ["{{base_url}}"],
-              "path": ["countries", ""]
+          "name": "Students",
+          "item": [
+            {
+              "name": "List Students",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/students/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "students"
+                  ]
+                },
+                "description": "Get list of Students",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "description": "Récupère tous les pays."
-          },
-          "response": []
+            {
+              "name": "Create Student",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/students/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "students"
+                  ]
+                },
+                "description": "Create a new Student",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user\": \"<uuid>\",\n  \"matricule\": \"12345\",\n  \"colline\": \"<uuid>\",\n  \"cam\": \"123456789\",\n  \"parent_ids\": [\n    \"<uuid>\"\n  ]\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Student",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/students/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "students",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Student",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Student",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/students/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "students",
+                    "1"
+                  ]
+                },
+                "description": "Update a Student",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"user\": \"<uuid>\",\n  \"matricule\": \"12345\",\n  \"colline\": \"<uuid>\",\n  \"cam\": \"123456789\",\n  \"parent_ids\": [\n    \"<uuid>\"\n  ]\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Student",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/students/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "students",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Student",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Créer un Pays",
-          "request": {
-            "method": "POST",
-            "header": [
-              {"key": "Content-Type", "value": "application/json"}
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"country_name\": \"Burundi\",\n  \"code\": \"BI\"\n}"
+          "name": "Inscriptions",
+          "item": [
+            {
+              "name": "List Inscriptions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/inscriptions/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inscriptions"
+                  ]
+                },
+                "description": "Get list of Inscriptions",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "url": {
-              "raw": "{{base_url}}/countries/",
-              "host": ["{{base_url}}"],
-              "path": ["countries", ""]
+            {
+              "name": "Create Inscription",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/inscriptions/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inscriptions"
+                  ]
+                },
+                "description": "Create a new Inscription",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"student\": \"<uuid>\",\n  \"academic_year\": \"<uuid>\",\n  \"class_fk\": \"<uuid>\",\n  \"date_inscription\": \"2024-09-15\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "description": "Crée un nouveau pays."
-          },
-          "response": []
+            {
+              "name": "Get Inscription",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/inscriptions/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inscriptions",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Inscription",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Inscription",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/inscriptions/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inscriptions",
+                    "1"
+                  ]
+                },
+                "description": "Update a Inscription",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"student\": \"<uuid>\",\n  \"academic_year\": \"<uuid>\",\n  \"class_fk\": \"<uuid>\",\n  \"date_inscription\": \"2024-09-15\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Inscription",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/inscriptions/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "inscriptions",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Inscription",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Détail d'un Pays",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/countries/<uuid>/",
-              "host": ["{{base_url}}"],
-              "path": ["countries", "<uuid>", ""]
+          "name": "Parents",
+          "item": [
+            {
+              "name": "List Parents",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/parents/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "parents"
+                  ]
+                },
+                "description": "Get list of Parents",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "description": "Récupère le détail d'un pays spécifique."
-          },
-          "response": []
+            {
+              "name": "Create Parent",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/parents/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "parents"
+                  ]
+                },
+                "description": "Create a new Parent",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"parent_name\": \"John Doe\",\n  \"parent_phone\": \"+257...\",\n  \"parent_email\": \"parent@example.com\",\n  \"profession\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Parent",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/parents/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "parents",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Parent",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Parent",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/parents/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "parents",
+                    "1"
+                  ]
+                },
+                "description": "Update a Parent",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"parent_name\": \"John Doe\",\n  \"parent_phone\": \"+257...\",\n  \"parent_email\": \"parent@example.com\",\n  \"profession\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Parent",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/parents/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "parents",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Parent",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         },
         {
-          "name": "Modifier un Pays",
-          "request": {
-            "method": "PUT",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"République du Burundi\",\n  \"code\": \"BI\"\n}"
+          "name": "Student Cards",
+          "item": [
+            {
+              "name": "List Student Cards",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/student-cards/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "student-cards"
+                  ]
+                },
+                "description": "Get list of Student Cards",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "url": {
-              "raw": "{{base_url}}/countries/<uuid>/",
-              "host": ["{{base_url}}"],
-              "path": ["countries", "<uuid>", ""]
+            {
+              "name": "Create Student Card",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/student-cards/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "student-cards"
+                  ]
+                },
+                "description": "Create a new Student Card",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"student\": \"<uuid>\",\n  \"card_number\": \"CARD-001\",\n  \"issue_date\": \"2024-10-01\",\n  \"expiry_date\": \"2025-10-01\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "description": "Modifie un pays existant."
-          },
-          "response": []
-        },
-        {
-          "name": "Supprimer un Pays",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/countries/<uuid>/",
-              "host": ["{{base_url}}"],
-              "path": ["countries", "<uuid>", ""]
+            {
+              "name": "Get Student Card",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/student-cards/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "student-cards",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Student Card",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "description": "Supprime un pays."
-          },
-          "response": []
+            {
+              "name": "Update Student Card",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/student-cards/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "student-cards",
+                    "1"
+                  ]
+                },
+                "description": "Update a Student Card",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"student\": \"<uuid>\",\n  \"card_number\": \"CARD-001\",\n  \"issue_date\": \"2024-10-01\",\n  \"expiry_date\": \"2025-10-01\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Student Card",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/student-cards/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "student-cards",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Student Card",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Provinces",
+      "name": "\ud83d\udcb0 Finance Module",
       "item": [
         {
-          "name": "Liste des Provinces",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/provinces/",
-              "host": ["{{base_url}}"],
-              "path": ["provinces", ""]
+          "name": "Fees",
+          "item": [
+            {
+              "name": "List Fees",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/fees/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fees"
+                  ]
+                },
+                "description": "Get list of Fees",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Fee",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/fees/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fees"
+                  ]
+                },
+                "description": "Create a new Fee",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"class_fk\": \"<uuid>\",\n  \"academic_year\": \"<uuid>\",\n  \"wording\": \"<uuid>\",\n  \"base_amount\": 500000\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Fee",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/fees/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fees",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Fee",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Fee",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/fees/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fees",
+                    "1"
+                  ]
+                },
+                "description": "Update a Fee",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"class_fk\": \"<uuid>\",\n  \"academic_year\": \"<uuid>\",\n  \"wording\": \"<uuid>\",\n  \"base_amount\": 500000\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Fee",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/fees/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "fees",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Fee",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
+          ]
         },
         {
-          "name": "Créer une Province",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Bujumbura\",\n  \"country\": \"<country_uuid>\"\n}"
+          "name": "Payments",
+          "item": [
+            {
+              "name": "List Payments",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/payments/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "payments"
+                  ]
+                },
+                "description": "Get list of Payments",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "url": {
-              "raw": "{{base_url}}/provinces/",
-              "host": ["{{base_url}}"],
-              "path": ["provinces", ""]
+            {
+              "name": "Create Payment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/payments/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "payments"
+                  ]
+                },
+                "description": "Create a new Payment",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"feessheet\": \"<uuid>\",\n  \"amount_paid\": 100000,\n  \"payment_method\": \"bank\",\n  \"bank\": \"<uuid>\",\n  \"inscription\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Payment",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/payments/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "payments",
+                    "1"
+                  ]
+                },
+                "description": "Get details of a Payment",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update Payment",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/payments/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "payments",
+                    "1"
+                  ]
+                },
+                "description": "Update a Payment",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"feessheet\": \"<uuid>\",\n  \"amount_paid\": 100000,\n  \"payment_method\": \"bank\",\n  \"bank\": \"<uuid>\",\n  \"inscription\": \"<uuid>\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Payment",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/payments/1/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "payments",
+                    "1"
+                  ]
+                },
+                "description": "Delete a Payment",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             }
-          },
-          "response": []
+          ]
         }
       ]
     },
     {
-      "name": "Communes",
-      "item": [
-        {
-          "name": "Liste des Communes",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/communes/",
-              "host": ["{{base_url}}"],
-              "path": ["communes", ""]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Créer une Commune",
-          "request": {
-            "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Gihosha\",\n  \"province\": \"<province_uuid>\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/communes/",
-              "host": ["{{base_url}}"],
-              "path": ["communes", ""]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Zones",
+      "name": "\ud83d\udcca Dashboard Module",
       "item": [
         {
           "name": "Liste des Zones",
@@ -2737,7 +4546,11 @@
           "response": []
         }
       ]
-    },
+    }
+  ]
+}
+,
+
     {
       "name": "Documentation API",
       "item": [
@@ -2756,51 +4569,105 @@
           "response": []
         },
         {
-          "name": "Documentation Swagger",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/docs/swagger/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "docs", "swagger", ""]
+          "name": "Shared Dashboard Features",
+          "item": [
+            {
+              "name": "My Notifications",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/dashboard/notifications/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "dashboard",
+                    "notifications"
+                  ]
+                },
+                "description": "Get my notifications",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "description": "Interface Swagger pour tester l'API."
-          },
-          "response": []
-        },
-        {
-          "name": "Documentation ReDoc",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/docs/redoc/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "docs", "redoc", ""]
+            {
+              "name": "My Messages",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/dashboard/messages/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "dashboard",
+                    "messages"
+                  ]
+                },
+                "description": "Get my messages",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
             },
-            "description": "Documentation ReDoc de l'API."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Administration Django",
-      "item": [
-        {
-          "name": "Interface Admin Django",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/admin/",
-              "host": ["{{base_url}}"],
-              "path": ["admin", ""]
-            },
-            "description": "Interface d'administration Django. Nécessite des privilèges administrateur."
-          },
-          "response": []
+            {
+              "name": "Send Message",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/dashboard/messages/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "dashboard",
+                    "messages"
+                  ]
+                },
+                "description": "Send a message",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"recipient\": \"<uuid>\",\n  \"subject\": \"Hello\",\n  \"content\": \"Message content\",\n  \"message_type\": \"internal\"\n}"
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
         }
       ]
     }
@@ -2811,8 +4678,8 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Script pré-requête global",
-          "console.log('Exécution de la requête:', pm.info.requestName);"
+          "// Script pr\u00e9-requ\u00eate global",
+          "console.log('Ex\u00e9cution de la requ\u00eate:', pm.info.requestName);"
         ]
       }
     },

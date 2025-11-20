@@ -60,8 +60,12 @@ ROLES = [
         "Former student maintaining engagement, mentoring, offering career support, and requesting academic documents post-graduation. | Ancien étudiant maintenant engagé, mentor, offrant un soutien de carrière et demandant des documents académiques après l'obtention du diplôme.",
     ),
     (
-        "'delegate'",
+        "delegate",
         "Represents the students of a class or group, communicates with teachers and administration, and organizes class activities. | Représente les étudiants d'une classe ou d'un groupe, communique avec les enseignants et l'administration, et organise les activités de la classe.",
+    ),
+    (
+        "guest",
+        "Limited access for visitors or external users to explore public resources and request specific services. | Accès limité pour les visiteurs ou utilisateurs externes afin d'explorer les ressources publiques et de demander certains services.",
     ),
 ]
 
