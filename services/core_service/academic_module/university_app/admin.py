@@ -1,6 +1,7 @@
 # Register your models here.
-from django.contrib import admin
-from django.db import models
+from django.contrib import admin, messages
+from django.db import models, transaction
+from django.utils.html import format_html
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
@@ -73,7 +74,14 @@ class UniversityDegreeResource(resources.ModelResource):
 @admin.register(AcademicYear)
 class AcademicYearAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = AcademicYearResource
-    list_display = ("academic_year", "civil_year", "start_date", "end_date")
+    list_display = (
+        "academic_year",
+        "civil_year",
+        "start_date",
+        "end_date",
+        "is_closed",
+        "close_year_button",
+    )
     search_fields = ("academic_year", "civil_year")
     ordering = ("-start_date",)
 
@@ -97,6 +105,39 @@ class AcademicYearAdmin(ImportExportModelAdmin, ModelAdmin):
             "widget": admin.widgets.AdminTextInputWidget(attrs={"class": "vTextField"})
         },
     }
+
+    # --------------- Custom Action ----------------
+    actions = ["close_academic_years"]
+
+    def close_academic_years(self, request, queryset):
+        """
+        Admin action to close selected academic years
+        """
+        for year in queryset:
+            if year.is_closed:
+                self.message_user(
+                    request, f"{year} is already closed.", level=messages.WARNING
+                )
+                continue
+            # Close the year; use request.user as closed_by
+            with transaction.atomic():
+                year.close_year(closed_by_user=request.user)
+            self.message_user(
+                request, f"{year} closed successfully.", level=messages.SUCCESS
+            )
+
+    close_academic_years.short_description = "Close selected Academic Years"
+
+    # Optional: add a button in list_display
+    def close_year_button(self, obj):
+        if not obj.is_closed:
+            return format_html(
+                '<a class="button" href="{}">Close Year</a>', f"./{obj.id}/close/"
+            )
+        return "Closed"
+
+    close_year_button.short_description = "Close Year"
+    close_year_button.allow_tags = True
 
 
 # ----------------------------
