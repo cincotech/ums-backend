@@ -14,5 +14,8 @@ class Department(models.Model):
         Faculty, on_delete=models.RESTRICT, related_name="departments"
     )
 
+    def __str__(self):
+        return self.department_name
+
     class Meta:
         db_table = "departments"

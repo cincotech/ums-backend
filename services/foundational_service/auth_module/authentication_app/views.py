@@ -84,6 +84,8 @@ class RegisterView(APIView):
         user = serializer.save()
         password = request.data.get("password")
         user.set_password(password)
+        guest_role, _ = Role.objects.get_or_create(name="guest")
+        user.role = guest_role
         user.save()
         try:
             # Setup email 2FA device
@@ -193,6 +195,7 @@ class LoginView(APIView):
     def post(self, request):
         email = request.data["email"]
         password = request.data["password"]
+        print(request.data)
 
         if not User.objects.filter(email=email).exists():
             logger.error(f"Login failed: No account found for email {email}")
@@ -274,7 +277,10 @@ class LoginView(APIView):
                 "methods": required_methods,
             }
             return success_response(
-                data=data, message=message, status_code=status.HTTP_403_FORBIDDEN
+                data=data,
+                message=message,
+                status_code=status.HTTP_403_FORBIDDEN,
+                extra={"typeError": "requires_2fa"},
             )
 
         refresh = RefreshToken.for_user(user)
@@ -750,10 +756,11 @@ class ResetPasswordWithOTPView(APIView):
         email = request.data.get("email")
         token = request.data.get("otp")
         new_password = request.data.get("new_password")
+        print(request.data)
 
         try:
             user = User.objects.get(email=email)
-            device = EmailDevice.objects.get(user=user, email=email)
+            device = EmailDevice.objects.get(user=user)
 
             if device.verify_token(token):
                 user.set_password(new_password)
