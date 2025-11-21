@@ -4481,217 +4481,92 @@
       "name": "\ud83d\udcca Dashboard Module",
       "item": [
         {
-          "name": "Recteur Dashboard",
-          "item": [
-            {
-              "name": "List Payment Derogations",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/dashboard/payment-derogations/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "dashboard",
-                    "payment-derogations"
-                  ]
-                },
-                "description": "List all payment derogations",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Create Derogation",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/dashboard/payment-derogations/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "dashboard",
-                    "payment-derogations"
-                  ]
-                },
-                "description": "Request a derogation",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"student\": \"<uuid>\",\n  \"derogation_type\": \"postponement\",\n  \"amount\": 50000,\n  \"reason\": \"Financial hardship\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Validate Derogation",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/dashboard/payment-derogations/<uuid>/validate/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "dashboard",
-                    "payment-derogations",
-                    "<uuid>",
-                    "validate"
-                  ]
-                },
-                "description": "Validate a derogation",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"status\": \"approved\",\n  \"decision_notes\": \"Approved based on evidence\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
+          "name": "Liste des Zones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/zones/",
+              "host": ["{{base_url}}"],
+              "path": ["zones", ""]
             }
-          ]
+          },
+          "response": []
         },
         {
-          "name": "Academic Secretary Dashboard",
-          "item": [
-            {
-              "name": "List Jury Sessions",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/dashboard/jury-sessions/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "dashboard",
-                    "jury-sessions"
-                  ]
-                },
-                "description": "List jury sessions",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
+          "name": "Créer une Zone",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Zone 1\",\n  \"commune\": \"<commune_uuid>\"\n}"
             },
-            {
-              "name": "Create Jury Session",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/dashboard/jury-sessions/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "dashboard",
-                    "jury-sessions"
-                  ]
-                },
-                "description": "Schedule a jury session",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"session_name\": \"Jury S1 2024\",\n  \"session_date\": \"2025-02-15T10:00:00Z\",\n  \"jury_members\": [\n    \"<uuid>\"\n  ]\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "List Grade Complaints",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/dashboard/grade-complaints/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "dashboard",
-                    "grade-complaints"
-                  ]
-                },
-                "description": "List student complaints",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
+            "url": {
+              "raw": "{{base_url}}/zones/",
+              "host": ["{{base_url}}"],
+              "path": ["zones", ""]
             }
-          ]
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Collines",
+      "item": [
+        {
+          "name": "Liste des Collines",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/collines/",
+              "host": ["{{base_url}}"],
+              "path": ["collines", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer une Colline",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Collines Test\",\n  \"zone\": \"<zone_uuid>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/collines/",
+              "host": ["{{base_url}}"],
+              "path": ["collines", ""]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+,
+
+    {
+      "name": "Documentation API",
+      "item": [
+        {
+          "name": "Schéma OpenAPI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/schema/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "schema", ""]
+            },
+            "description": "Récupère le schéma OpenAPI de l'API."
+          },
+          "response": []
         },
         {
           "name": "Shared Dashboard Features",

@@ -22,7 +22,7 @@ class StudentCard(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="cards")
-    card_number = models.CharField(max_length=30, unique=True)
+    card_number = models.CharField(max_length=30, unique=True, null=True, blank=True)
     issue_date = models.DateField()
     expiry_date = models.DateField()
     status = models.CharField(max_length=8, choices=STATUS, default="active")
@@ -34,7 +34,7 @@ class StudentCard(models.Model):
         related_name="printed_cards",
     )  # Changed to User
     photo = models.ImageField(upload_to="student_cards/photos/", null=True, blank=True)
-    qrcode_data = models.TextField()
+    qrcode_data = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = "student_cards"

@@ -34,7 +34,7 @@ class StudentCardResource(resources.ModelResource):
             "expiry_date",
             "status",
             "printed_by",
-            "photo_url",
+            "photo",
             "qrcode_data",
         )
         export_order = (
@@ -45,7 +45,7 @@ class StudentCardResource(resources.ModelResource):
             "expiry_date",
             "status",
             "printed_by",
-            "photo_url",
+            "photo",
             "qrcode_data",
         )
 
@@ -102,7 +102,7 @@ class StudentCardAdmin(ImportExportModelAdmin, ModelAdmin):
                     "expiry_date",
                     "status",
                     "printed_by",
-                    "photo_url",
+                    "photo",
                     "qrcode_data",
                 )
             },

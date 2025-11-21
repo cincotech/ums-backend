@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.utils import timezone
 
 from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.university_app.models import AcademicYear
@@ -9,6 +10,17 @@ from services.core_service.student_module.student_profile_app.models import Stud
 
 # Create your models here.
 class Inscription(models.Model):
+    STATUS_CHOICES = [
+        ("Active", "Active"),
+        ("Completed", "Completed"),
+        ("Withdrawn", "Withdrawn"),
+        ("Dropped", "Dropped"),
+        ("Pending", "Pending"),
+        ("Suspended", "Suspended"),
+        ("Canceled", "Canceled"),
+        ("Replaced", "Replaced"),
+    ]
+
     GROUPE = [(chr(65 + i), chr(65 + i)) for i in range(26)]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(
@@ -21,7 +33,9 @@ class Inscription(models.Model):
         Class, on_delete=models.RESTRICT, related_name="inscriptions"
     )
     date_inscription = models.DateField()
-    regist_status = models.CharField(max_length=4, default="ACT")
+    regist_status = models.CharField(
+        max_length=15, choices=STATUS_CHOICES, default="Pending"
+    )
     groupe = models.CharField(max_length=1, choices=GROUPE, default="A")
     withdrawal_date = models.DateField(null=True, blank=True)
     is_year_close = models.BooleanField(default=False)
@@ -29,6 +43,60 @@ class Inscription(models.Model):
     class Meta:
         db_table = "inscriptions"
         unique_together = ("student", "academic_year", "class_fk")
+
+    def __str__(self):
+        return f"{self.student} - {self.class_fk} ({self.regist_status})"
+
+    # ----------------- STATUS HANDLER FUNCTIONS -----------------
+    def activate(self):
+        if self.regist_status in ["Pending", "Suspended"]:
+            self.regist_status = "Active"
+            self.save()
+
+    def complete(self):
+        if self.regist_status == "Active":
+            self.regist_status = "Completed"
+            self.save()
+
+    def withdraw(self):
+        if self.regist_status in ["Active", "Pending"]:
+            self.regist_status = "Withdrawn"
+            self.withdrawal_date = timezone.now().date()
+            self.save()
+
+    def drop(self):
+        if self.regist_status == "Active":
+            self.regist_status = "Dropped"
+            self.save()
+
+    def suspend(self):
+        if self.regist_status == "Active":
+            self.regist_status = "Suspended"
+            self.save()
+
+    def cancel(self):
+        if self.regist_status in ["Pending", "Active"]:
+            self.regist_status = "Canceled"
+            self.save()
+
+    def replace(self, new_class):
+        if self.regist_status in ["Active", "Pending"]:
+            self.regist_status = "Replaced"
+            self.save()
+            return Inscription.objects.create(
+                student=self.student,
+                academic_year=self.academic_year,
+                class_fk=new_class,
+                regist_status="Active",
+                groupe=self.groupe,
+            )
+
+    # ----------------- HELPER FUNCTIONS -----------------
+    def is_active(self):
+        return self.regist_status == "Active"
+
+    def is_completed(self):
+        return self.regist_status == "Completed"
 
     def generate_matricule(self):
         """
