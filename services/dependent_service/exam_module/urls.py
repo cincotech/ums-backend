@@ -1,13 +1,14 @@
-from attendance_app.views import ExamAttendanceViewSet
 from django.urls import include, path
-from exam_app.views import (
+from rest_framework.routers import DefaultRouter
+
+from .attendance_app.views import ExamAttendanceViewSet
+from .exam_app.views import (
     ExamRoomViewSet,
     ExamSupervisorViewSet,
     ExamTypeViewSet,
     ExamViewSet,
 )
-from rest_framework.routers import DefaultRouter
-from result_app.views import (
+from .result_app.views import (
     CompiledResultViewSet,
     ResultViewSet,
     SessionViewSet,
