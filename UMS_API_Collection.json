@@ -4795,6 +4795,211 @@
           ]
         }
       ]
+    },
+    {
+      "name": "📝 Exam Module",
+      "item": [
+        {
+          "name": "Exam Attendances",
+          "item": [
+            {
+              "name": "List Attendances",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/exams/exam-attendances/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "exam-attendances", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Record Attendance",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"exam\": \"<uuid>\",\n  \"student\": \"<uuid>\",\n  \"attendance_status\": \"Present\",\n  \"arrival_time\": \"08:00:00\",\n  \"incident_notes\": \"None\"\n}"},
+                "url": {
+                  "raw": "{{base_url}}/api/exams/exam-attendances/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "exam-attendances", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Exam Sessions",
+          "item": [
+            {
+              "name": "List Sessions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/exams/sessions/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "sessions", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Session",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"name\": \"Session Jan 2025\",\n  \"start_date\": \"2025-01-15\",\n  \"end_date\": \"2025-01-30\",\n  \"academic_year\": \"<uuid>\"\n}"},
+                "url": {
+                  "raw": "{{base_url}}/api/exams/sessions/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "sessions", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Exam Results",
+          "item": [
+            {
+              "name": "List Results",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/exams/results/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "results", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Record Result",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"exam\": \"<uuid>\",\n  \"student\": \"<uuid>\",\n  \"score\": 85.5,\n  \"grade\": \"B\",\n  \"remarks\": \"Good work\"\n}"},
+                "url": {
+                  "raw": "{{base_url}}/api/exams/results/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "results", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Compiled Results",
+          "item": [
+            {
+              "name": "List Compiled Results",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/exams/compiled-results/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "compiled-results", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Compiled Result",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"student\": \"<uuid>\",\n  \"session\": \"<uuid>\",\n  \"total_score\": 425.5,\n  \"average\": 85.1,\n  \"grade\": \"B\",\n  \"status\": \"Passed\"\n}"},
+                "url": {
+                  "raw": "{{base_url}}/api/exams/compiled-results/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "compiled-results", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Supplements",
+          "item": [
+            {
+              "name": "List Supplements",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/exams/supplements/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "supplements", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Supplement",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"student\": \"<uuid>\",\n  \"exam\": \"<uuid>\",\n  \"reason\": \"Justified absence\",\n  \"supplement_date\": \"2025-02-15\",\n  \"status\": \"Scheduled\"\n}"},
+                "url": {
+                  "raw": "{{base_url}}/api/exams/supplements/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "exams", "supplements", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
     }
   ],
   "event": [
