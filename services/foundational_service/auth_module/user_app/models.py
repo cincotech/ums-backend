@@ -10,6 +10,8 @@ from services.foundational_service.auth_module.authentication_app.services impor
 from services.foundational_service.geo_module.colline_app.models import Colline
 from services.foundational_service.geo_module.country_app.models import Country
 
+# from services.core_service.academic_module.university_app.models import University
+
 logger = logging.getLogger(__name__)
 
 
@@ -95,6 +97,13 @@ class User(AbstractUser):
         blank=True,
     )
     residence = models.ManyToManyField(Colline, related_name="residences", blank=True)
+    university = models.ForeignKey(
+        "university_app.University",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="users",
+    )
     marital_status = models.CharField(
         max_length=1, choices=MaritalStatusChoices.choices, blank=True, null=True
     )

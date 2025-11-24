@@ -211,7 +211,7 @@ class LoginView(APIView):
             return error_response(
                 message="Incorrect password. If you forgot your password, please reset it.",
                 errors="InvalidCredentials",
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_403_FORBIDDEN,
             )
 
         if not user.email_verified:
@@ -732,6 +732,19 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Return only the current user's data
         return User.objects.filter(id=self.request.user.id)
+
+    @action(detail=False, methods=["get"])
+    def me(self, request):
+        """
+        GET /users/me/ -> Return current authenticated user's data
+        """
+        # import time
+        # time.sleep(8)
+        serializer = self.get_serializer(request.user)
+        return success_response(
+            message=" current authenticated user's data",
+            data=serializer.data,
+        )
 
     @action(detail=True, methods=["post"], url_path="verify-password")
     def verify_password(self, request, pk=None):
