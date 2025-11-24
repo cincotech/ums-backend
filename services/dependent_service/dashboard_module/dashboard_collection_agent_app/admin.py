@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from .models import (
     CollectionCorrespondence,
-    LegalCase,
     PaymentPlan,
     PaymentPromise,
     PaymentReminder,
@@ -25,7 +24,7 @@ class PaymentReminderAdmin(admin.ModelAdmin):
 @admin.register(PaymentPlan)
 class PaymentPlanAdmin(admin.ModelAdmin):
     list_display = [
-        "student",
+        "feessheet",
         "total_amount",
         "monthly_amount",
         "start_date",
@@ -54,10 +53,3 @@ class CollectionCorrespondenceAdmin(admin.ModelAdmin):
     list_display = ["student", "correspondence_type", "subject", "sent_at"]
     list_filter = ["correspondence_type", "sent_at"]
     search_fields = ["student__user__email", "subject"]
-
-
-@admin.register(LegalCase)
-class LegalCaseAdmin(admin.ModelAdmin):
-    list_display = ["student", "total_debt", "status", "prepared_at"]
-    list_filter = ["status", "prepared_at"]
-    search_fields = ["student__user__email", "student__matricule"]

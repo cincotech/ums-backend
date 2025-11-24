@@ -76,7 +76,6 @@ class InscriptionAdmin(ImportExportModelAdmin, ModelAdmin):
         "class_fk",
         "date_inscription",
         "regist_status",
-        "groupe",
         "is_year_close",
     )
     search_fields = (
@@ -88,7 +87,6 @@ class InscriptionAdmin(ImportExportModelAdmin, ModelAdmin):
         "academic_year",
         "class_fk",
         "regist_status",
-        "groupe",
         "is_year_close",
     )
     ordering = ("date_inscription",)
@@ -103,7 +101,6 @@ class InscriptionAdmin(ImportExportModelAdmin, ModelAdmin):
                     "class_fk",
                     "date_inscription",
                     "regist_status",
-                    "groupe",
                     "withdrawal_date",
                     "is_year_close",
                 )

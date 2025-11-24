@@ -14,7 +14,7 @@ class JurySession(models.Model):
         ("in_progress", "En Cours"),
         ("completed", "Terminé"),
     )
-
+    # add classgroup
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     session_name = models.CharField(max_length=255)
     session_date = models.DateTimeField()
