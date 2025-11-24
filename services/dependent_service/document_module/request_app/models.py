@@ -2,8 +2,10 @@ import uuid
 
 from django.db import models
 
-from services.core_service.finance_module.payment_app.models import Payment
 from services.core_service.student_module.student_profile_app.models import Student
+from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+    Payment,
+)
 from services.dependent_service.document_module.document_app.models import Document
 
 
@@ -25,7 +27,11 @@ class Request(models.Model):
     admin_comment = models.TextField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
     payment = models.ForeignKey(
-        Payment, on_delete=models.RESTRICT, null=True, blank=True
+        Payment,
+        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        related_name="document_payment",
     )
 
     class Meta:

@@ -23,6 +23,7 @@ class Teacher(models.Model):
     url_cv = models.URLField(null=True, blank=True)
     url_other = models.JSONField(default=list, null=True, blank=True)
     url_diploma = models.FileField(upload_to="Teacher_diploma", null=True, blank=True)
+    # is_visitor = models.BooleanField(default=False)
 
     class Meta:
         db_table = "teachers"

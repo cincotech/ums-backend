@@ -17,3 +17,13 @@ class Module(models.Model):
 
     class Meta:
         db_table = "modules"
+
+    def __str__(self):
+        return f"{self.module_name} ({self.semester_id})"
+
+    @property
+    def total_credits(self):
+        """
+        Calculate the total credits of all courses in this module.
+        """
+        return self.courses.aggregate(total=models.Sum("credits"))["total"] or 0
