@@ -114,7 +114,7 @@ class AlumniEventRegistration(models.Model):
         unique_together = ["event", "alumni"]
 
 
-class AlumniDonation(models.Model):
+class AlumiDonation(models.Model):
     DONATION_TYPES = (
         ("scholarship", "Bourse d'Études"),
         ("research", "Recherche"),

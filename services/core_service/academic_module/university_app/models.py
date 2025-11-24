@@ -7,10 +7,28 @@ from services.foundational_service.auth_module.user_app.models import User
 from services.foundational_service.geo_module.country_app.models import Country
 
 
+class University(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    university_name = models.CharField(max_length=255)
+    university_abrev = models.CharField(max_length=15, null=True, blank=True)
+    country = models.ForeignKey(
+        Country, on_delete=models.RESTRICT, related_name="universities"
+    )
+
+    def __str__(self):
+        return self.university_name
+
+    class Meta:
+        db_table = "universities"
+
+
 class AcademicYear(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     academic_year = models.CharField(max_length=15)
     description = models.CharField(max_length=255)
+    university = models.ForeignKey(
+        University, on_delete=models.CASCADE, related_name="academic_years"
+    )
     civil_year = models.CharField(max_length=4)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -79,19 +97,18 @@ class AcademicYear(models.Model):
         )
 
 
-class University(models.Model):
+class UniversityAdmin(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    university_name = models.CharField(max_length=255)
-    university_abrev = models.CharField(max_length=15, null=True, blank=True)
-    country = models.ForeignKey(
-        Country, on_delete=models.RESTRICT, related_name="universities"
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="university_admin"
     )
+    university = models.ForeignKey(
+        University, on_delete=models.CASCADE, related_name="admins"
+    )
+    is_super_admin = models.BooleanField(default=False)  # optional
 
     def __str__(self):
-        return self.university_name
-
-    class Meta:
-        db_table = "universities"
+        return f"{self.user.username} - {self.university.university_name}"
 
 
 class UniversityDegree(models.Model):

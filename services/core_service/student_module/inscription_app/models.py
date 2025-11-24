@@ -36,7 +36,6 @@ class Inscription(models.Model):
     regist_status = models.CharField(
         max_length=15, choices=STATUS_CHOICES, default="Pending"
     )
-    groupe = models.CharField(max_length=1, choices=GROUPE, default="A")
     withdrawal_date = models.DateField(null=True, blank=True)
     is_year_close = models.BooleanField(default=False)
 
@@ -88,7 +87,6 @@ class Inscription(models.Model):
                 academic_year=self.academic_year,
                 class_fk=new_class,
                 regist_status="Active",
-                groupe=self.groupe,
             )
 
     # ----------------- HELPER FUNCTIONS -----------------
