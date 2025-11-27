@@ -10,6 +10,7 @@ class TypeFormationSerializer(serializers.ModelSerializer):
 
 
 class FacultySerializer(serializers.ModelSerializer):
+
     types = TypeFormationSerializer(read_only=True)
     types_id = serializers.PrimaryKeyRelatedField(
         queryset=TypeFormation.objects.all(), source="types", write_only=True
