@@ -2,6 +2,8 @@
 
 # from . import views
 
+urlpatterns = []
+
 # urlpatterns = [
 #     path("overview/", views.dashboard_overview, name="dashboard-overview"),
 #     path(

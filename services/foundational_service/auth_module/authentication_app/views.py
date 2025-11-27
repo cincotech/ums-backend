@@ -3,14 +3,19 @@ import logging
 
 from django.contrib.auth import authenticate
 from django_otp.plugins.otp_email.models import EmailDevice
-from rest_framework import status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from core.audit import log_login, log_security_event
 from core.response_handler import error_response, success_response, validate_serializer
 from services.foundational_service.auth_module.user_app.models import Role, User
 
@@ -87,6 +92,7 @@ class RegisterView(APIView):
         guest_role, _ = Role.objects.get_or_create(name="guest")
         user.role = guest_role
         user.save()
+        # log_user_action(user, "create", f"User registered: {email}", "User", user.id)
         try:
             # Setup email 2FA device
             device = user_service.setup_email_2fa(user)
@@ -160,6 +166,7 @@ class EmailOTPVerificationView(APIView):
             if user_service.verify_email_otp(user, otp_token):
                 message = user_service.verify_user_email(user)
                 logger.info(f"Email verified for {email}")
+                # log_user_action(request, "update", f"Email verified: {email}", "User", user.id)
                 return success_response(message=message)
             logger.error(f"Email OTP verification failed: Invalid OTP for {email}")
             return error_response(
@@ -208,6 +215,13 @@ class LoginView(APIView):
         user = authenticate(username=email, password=password)
         if not user:
             logger.error(f"Login failed: Invalid credentials for {email}")
+            log_security_event(
+                request,
+                "failed_login",
+                f"Failed login attempt: {email}",
+                severity="warning",
+                success=False,
+            )
             return error_response(
                 message="Incorrect password. If you forgot your password, please reset it.",
                 errors="InvalidCredentials",
@@ -285,6 +299,7 @@ class LoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
         logger.info(f"Login successful for {email}")
+        log_login(request, user, success=True)
         return success_response(
             data={
                 "user": UserSerializer(user).data,
@@ -318,6 +333,7 @@ class SetEmail2FAView(APIView):
                     setup_type="email",
                 )
                 logger.info(f"Email 2FA setup initiated for {user.email}")
+                # log_user_action(request, "update", f"Email 2FA setup initiated", "User", user.id)
                 return success_response(
                     message="Email 2FA setup initiated. OTP sent to your email."
                 )
@@ -401,6 +417,7 @@ class VerifyEmail2FAView(APIView):
         try:
             if user_service.verify_email_2fa(user, otp_token):
                 logger.info(f"Email 2FA verified for {user.email}")
+                # log_user_action(request, "update", f"Email 2FA verified", "User", user.id)
                 return success_response(message="Email 2FA verified successfully")
             logger.error(f"Email 2FA verification failed: Invalid OTP for {user.email}")
             return error_response(message="Invalid OTP", errors="InvalidOTP")
@@ -778,6 +795,12 @@ class ResetPasswordWithOTPView(APIView):
             if device.verify_token(token):
                 user.set_password(new_password)
                 user.save()
+                log_security_event(
+                    request,
+                    "password_reset",
+                    f"Password reset for user: {email}",
+                    severity="info",
+                )
                 return success_response(message="Password reset successful")
             return error_response(errors="InvalidOTP", message="Invalid  OTP")
 
@@ -791,3 +814,25 @@ class ResetPasswordWithOTPView(APIView):
                 message="Something went wrong",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class LogoutAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        try:
+            # Get all tokens of this user
+            tokens = OutstandingToken.objects.filter(user=user)
+
+            # Blacklist all of them
+            for token in tokens:
+                try:
+                    BlacklistedToken.objects.get(token=token)
+                except BlacklistedToken.DoesNotExist:
+                    BlacklistedToken.objects.create(token=token)
+
+            return success_response(message="Logged out successfully")
+
+        except Exception:
+            return error_response(message="Something went wrong")
