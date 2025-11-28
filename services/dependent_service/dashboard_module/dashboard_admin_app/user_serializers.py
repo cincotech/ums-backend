@@ -3,6 +3,8 @@ from rest_framework import serializers
 
 from services.foundational_service.auth_module.authorization_app.models import Profile
 from services.foundational_service.auth_module.user_app.models import Role
+from services.foundational_service.geo_module.colline_app.models import Colline
+from services.foundational_service.geo_module.country_app.models import Country
 
 User = get_user_model()
 
@@ -22,20 +24,39 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class UserListSerializer(serializers.ModelSerializer):
-    role_name = serializers.CharField(source="role.name", read_only=True)
+    role = RoleSerializer(read_only=True)
+    nationality = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.all(), allow_null=True
+    )
+    residence = serializers.PrimaryKeyRelatedField(
+        queryset=Colline.objects.all(), many=True, allow_null=True
+    )
     profile = ProfileSerializer(source="profiles", read_only=True)
 
     class Meta:
         model = User
         fields = [
             "id",
+            "gender",
             "email",
+            "phone_number",
             "first_name",
             "last_name",
+            "birth_date",
+            "nationality",
+            "residence",
+            "marital_status",
+            "role",
+            "email_verified",
+            "requires_2fa",
+            "requires_2fa_qr",
+            "requires_2fa_email",
+            "requires_2fa_static",
+            "totp_secret_key",
+            "profile_picture",
+            "spoken_languages",
             "phone_number",
             "is_active",
-            "role",
-            "role_name",
             "profile",
             "created_at",
         ]
