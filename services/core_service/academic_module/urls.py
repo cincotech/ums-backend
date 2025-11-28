@@ -20,6 +20,8 @@ from services.core_service.academic_module.university_app.views import (
 )
 
 router = DefaultRouter()
+router.register(r"typeformations", TypeFormationViewSet, basename="typeformations")
+router.register(r"faculties", FacultyViewSet, basename="faculties")
 router.register("academic-years", AcademicYearViewSet, basename="academic-year")
 router.register("universities", UniversityViewSet, basename="university")
 router.register("degrees", UniversityDegreeViewSet, basename="university-degree")
