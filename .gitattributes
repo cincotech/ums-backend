@@ -1,0 +1,19 @@
+* text=auto eol=lf
+
+# Python
+*.py text eol=lf
+*.pyw text eol=lf
+
+# HTML/CSS/JS/Config files
+*.html text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.env text eol=lf
+
+# Windows only files — autorisés à rester CRLF si nécessaires
+*.bat text eol=crlf
+*.cmd text eol=crlf
