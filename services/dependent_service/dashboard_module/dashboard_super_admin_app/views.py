@@ -1,257 +1,216 @@
-# from rest_framework import status
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
+from datetime import timedelta
 
-# from core.response_handler import error_response, success_response
-# from services.dependent_service.dashboard_module.dashboard_shared_app.models import (
-#     BackupRecord,
-#     SystemConfiguration,
-# )
-# from services.foundational_service.auth_module.user_app.models import Role, User
+from django.utils import timezone
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-# from .serializers import (
-#     AuditLogSerializer,
-#     BackupRecordSerializer,
-#     RoleManagementSerializer,
-#     SuperAdminDashboardStatsSerializer,
-#     SystemConfigurationSerializer,
-#     UserManagementSerializer,
-# )
-# from .services import SuperAdminDashboardService
+from core.audit import log_audit, log_backup_action, log_config_change
+from services.core_service.academic_module.university_app.models import University
+from services.foundational_service.auth_module.user_app.models import User
 
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def super_admin_dashboard_overview(request):
-#     """Get super admin dashboard overview"""
-#     try:
-#         stats = SuperAdminDashboardService.get_dashboard_stats()
-#         serializer = SuperAdminDashboardStatsSerializer(stats)
-#         return success_response(
-#             data=serializer.data, message="Dashboard overview retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+from .models import AuditLog, BackupRecord, EmergencyRecovery, SystemConfiguration
+from .permissions import IsSuperAdmin
+from .serializers import (
+    AuditLogSerializer,
+    BackupRecordSerializer,
+    EmergencyRecoverySerializer,
+    SystemConfigurationSerializer,
+)
 
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def user_management(request):
-#     """Manage users - list all or create new"""
-#     try:
-#         if request.method == "GET":
-#             users = User.objects.all().select_related("role")
-#             serializer = UserManagementSerializer(users, many=True)
-#             return success_response(data=serializer.data, message="Users retrieved")
+class SuperAdminDashboardViewSet(viewsets.ViewSet):
+    """Super Admin Dashboard - Full system management"""
 
-#         elif request.method == "POST":
-#             user = SuperAdminDashboardService.manage_user(
-#                 None, "create", request.data, request.user
-#             )
-#             serializer = UserManagementSerializer(user)
-#             return success_response(data=serializer.data, message="User created")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
 
+    @action(detail=False, methods=["get"])
+    def overview(self, request):
+        """System overview statistics"""
+        data = {
+            "total_universities": University.objects.count(),
+            "total_users": User.objects.count(),
+            "active_users": User.objects.filter(is_active=True).count(),
+            "inactive_users": User.objects.filter(is_active=False).count(),
+            "failed_logins_24h": AuditLog.objects.filter(
+                action="failed_login",
+                timestamp__gte=timezone.now() - timedelta(hours=24),
+            ).count(),
+            "security_alerts_24h": AuditLog.objects.filter(
+                severity__in=["warning", "critical"],
+                timestamp__gte=timezone.now() - timedelta(hours=24),
+            ).count(),
+            "pending_backups": BackupRecord.objects.filter(status="pending").count(),
+            "completed_backups_24h": BackupRecord.objects.filter(
+                status="completed",
+                completed_at__gte=timezone.now() - timedelta(hours=24),
+            ).count(),
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
-# @api_view(["PUT", "DELETE", "PATCH"])
-# @permission_classes([IsAuthenticated])
-# def user_management_detail(request, user_id):
-#     """Update, delete or toggle user status"""
-#     try:
-#         if request.method == "PUT":
-#             user = SuperAdminDashboardService.manage_user(
-#                 user_id, "update", request.data, request.user
-#             )
-#             serializer = UserManagementSerializer(user)
-#             return success_response(data=serializer.data, message="User updated")
+    @action(detail=False, methods=["get"])
+    def system_health(self, request):
+        """System health metrics"""
+        data = {
+            "database_status": "healthy",
+            "backup_running": BackupRecord.objects.filter(status="running").exists(),
+            "security_alerts": AuditLog.objects.filter(
+                severity__in=["warning", "critical"],
+                timestamp__gte=timezone.now() - timedelta(hours=24),
+            ).count(),
+            "active_sessions": User.objects.filter(is_active=True).count(),
+            "failed_operations_24h": AuditLog.objects.filter(
+                success=False,
+                timestamp__gte=timezone.now() - timedelta(hours=24),
+            ).count(),
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
-#         elif request.method == "PATCH":
-#             user = SuperAdminDashboardService.manage_user(
-#                 user_id, "toggle_active", {}, request.user
-#             )
-#             serializer = UserManagementSerializer(user)
-#             return success_response(data=serializer.data, message="User status toggled")
+    @action(detail=False, methods=["get"])
+    def audit_logs(self, request):
+        """Get audit logs with filtering"""
+        action_filter = request.query_params.get("action")
+        severity_filter = request.query_params.get("severity")
+        days = int(request.query_params.get("days", 7))
 
-#         elif request.method == "DELETE":
-#             SuperAdminDashboardService.manage_user(user_id, "delete", {}, request.user)
-#             return success_response(message="User deleted")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        logs = AuditLog.objects.filter(
+            timestamp__gte=timezone.now() - timedelta(days=days)
+        )
 
+        if action_filter:
+            logs = logs.filter(action=action_filter)
+        if severity_filter:
+            logs = logs.filter(severity=severity_filter)
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def role_management(request):
-#     """Manage roles - list all or create new"""
-#     try:
-#         if request.method == "GET":
-#             roles = Role.objects.all()
-#             serializer = RoleManagementSerializer(roles, many=True)
-#             return success_response(data=serializer.data, message="Roles retrieved")
+        logs = logs[:100]
+        serializer = AuditLogSerializer(logs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-#         elif request.method == "POST":
-#             role = SuperAdminDashboardService.manage_role(
-#                 None, "create", request.data, request.user
-#             )
-#             serializer = RoleManagementSerializer(role)
-#             return success_response(data=serializer.data, message="Role created")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    @action(detail=False, methods=["get"])
+    def backups(self, request):
+        """Get backup records"""
+        backups = BackupRecord.objects.all()[:20]
+        serializer = BackupRecordSerializer(backups, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=["post"])
+    def initiate_backup(self, request):
+        """Initiate system backup"""
+        backup_type = request.data.get("backup_type", "full")
 
-# @api_view(["PUT", "DELETE"])
-# @permission_classes([IsAuthenticated])
-# def role_management_detail(request, role_id):
-#     """Update or delete role"""
-#     try:
-#         if request.method == "PUT":
-#             role = SuperAdminDashboardService.manage_role(
-#                 role_id, "update", request.data, request.user
-#             )
-#             serializer = RoleManagementSerializer(role)
-#             return success_response(data=serializer.data, message="Role updated")
+        backup = BackupRecord.objects.create(
+            backup_type=backup_type,
+            initiated_by=request.user,
+            status="pending",
+        )
 
-#         elif request.method == "DELETE":
-#             SuperAdminDashboardService.manage_role(role_id, "delete", {}, request.user)
-#             return success_response(message="Role deleted")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        log_backup_action(request, str(backup.id), "initiated", "pending")
 
+        serializer = BackupRecordSerializer(backup)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def system_configuration(request):
-#     """Manage system configurations"""
-#     try:
-#         if request.method == "GET":
-#             configs = SystemConfiguration.objects.filter(is_active=True)
-#             serializer = SystemConfigurationSerializer(configs, many=True)
-#             return success_response(
-#                 data=serializer.data, message="Configurations retrieved"
-#             )
+    @action(detail=False, methods=["get"])
+    def system_config(self, request):
+        """Get system configurations"""
+        configs = SystemConfiguration.objects.filter(is_active=True)
+        serializer = SystemConfigurationSerializer(configs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-#         elif request.method == "POST":
-#             config = SuperAdminDashboardService.manage_system_config(
-#                 None, "create", request.data, request.user
-#             )
-#             serializer = SystemConfigurationSerializer(config)
-#             return success_response(
-#                 data=serializer.data, message="Configuration created"
-#             )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    @action(detail=False, methods=["post"])
+    def update_system_config(self, request):
+        """Update system configuration"""
+        category = request.data.get("category")
+        key = request.data.get("key")
+        value = request.data.get("value")
 
+        config, created = SystemConfiguration.objects.get_or_create(
+            category=category,
+            key=key,
+            defaults={"created_by": request.user},
+        )
 
-# @api_view(["PUT", "DELETE"])
-# @permission_classes([IsAuthenticated])
-# def system_configuration_detail(request, config_id):
-#     """Update or delete system configuration"""
-#     try:
-#         if request.method == "PUT":
-#             config = SuperAdminDashboardService.manage_system_config(
-#                 config_id, "update", request.data, request.user
-#             )
-#             serializer = SystemConfigurationSerializer(config)
-#             return success_response(
-#                 data=serializer.data, message="Configuration updated"
-#             )
+        old_value = config.value
+        config.value = value
+        config.modified_by = request.user
+        config.save()
 
-#         elif request.method == "DELETE":
-#             SuperAdminDashboardService.manage_system_config(
-#                 config_id, "delete", {}, request.user
-#             )
-#             return success_response(message="Configuration deleted")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        log_config_change(request, category, key, old_value, value)
 
+        serializer = SystemConfigurationSerializer(config)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def reset_user_password(request, user_id):
-#     """Reset user password (emergency function)"""
-#     try:
-#         new_password = request.data.get("new_password")
-#         if not new_password:
-#             return error_response(
-#                 message="New password required", status_code=status.HTTP_400_BAD_REQUEST
-#             )
+    @action(detail=False, methods=["get"])
+    def emergency_recoveries(self, request):
+        """Get emergency recovery records"""
+        recoveries = EmergencyRecovery.objects.all()[:20]
+        serializer = EmergencyRecoverySerializer(recoveries, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-#         SuperAdminDashboardService.reset_user_password(
-#             user_id, new_password, request.user
-#         )
-#         return success_response(message="Password reset successfully")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    @action(detail=False, methods=["post"])
+    def initiate_recovery(self, request):
+        """Initiate emergency recovery"""
+        recovery_type = request.data.get("recovery_type")
+        target_user_id = request.data.get("target_user_id")
+        reason = request.data.get("reason")
 
+        try:
+            target_user = (
+                User.objects.get(id=target_user_id) if target_user_id else None
+            )
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Target user not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def initiate_backup(request):
-#     """Initiate database backup"""
-#     try:
-#         backup_type = request.data.get("backup_type", "full")
-#         backup = SuperAdminDashboardService.initiate_backup(backup_type, request.user)
-#         serializer = BackupRecordSerializer(backup)
-#         return success_response(data=serializer.data, message="Backup initiated")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        recovery = EmergencyRecovery.objects.create(
+            recovery_type=recovery_type,
+            target_user=target_user,
+            performed_by=request.user,
+            reason=reason,
+            status="pending",
+        )
 
+        log_audit(
+            user=request.user,
+            action="password_reset" if recovery_type == "password_reset" else "update",
+            description=f"Emergency recovery initiated: {recovery_type}",
+            entity_type="EmergencyRecovery",
+            entity_id=str(recovery.id),
+            request=request,
+        )
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def backup_history(request):
-#     """Get backup history"""
-#     try:
-#         backups = BackupRecord.objects.all().order_by("-started_at")[:20]
-#         serializer = BackupRecordSerializer(backups, many=True)
-#         return success_response(
-#             data=serializer.data, message="Backup history retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        serializer = EmergencyRecoverySerializer(recovery)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @action(detail=False, methods=["get"])
+    def security_summary(self, request):
+        """Get security summary"""
+        days = int(request.query_params.get("days", 7))
+        start_date = timezone.now() - timedelta(days=days)
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def audit_logs(request):
-#     """Get audit logs for monitoring"""
-#     try:
-#         logs = SuperAdminDashboardService.get_audit_logs()
-#         serializer = AuditLogSerializer(logs, many=True)
-#         return success_response(data=serializer.data, message="Audit logs retrieved")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        data = {
+            "total_events": AuditLog.objects.filter(timestamp__gte=start_date).count(),
+            "failed_logins": AuditLog.objects.filter(
+                action="failed_login",
+                timestamp__gte=start_date,
+            ).count(),
+            "account_lockouts": AuditLog.objects.filter(
+                action="account_locked",
+                timestamp__gte=start_date,
+            ).count(),
+            "security_breaches": AuditLog.objects.filter(
+                action="security_breach",
+                timestamp__gte=start_date,
+            ).count(),
+            "config_changes": AuditLog.objects.filter(
+                action="config_change",
+                timestamp__gte=start_date,
+            ).count(),
+            "role_changes": AuditLog.objects.filter(
+                action="role_change",
+                timestamp__gte=start_date,
+            ).count(),
+        }
+        return Response(data, status=status.HTTP_200_OK)
