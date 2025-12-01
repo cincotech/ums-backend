@@ -10,9 +10,8 @@ class ProfessionSerializer(serializers.ModelSerializer):
 
 
 class ParentSerializer(serializers.ModelSerializer):
-    profession_id = serializers.PrimaryKeyRelatedField(
-        queryset=Profession.objects.all(), source="profession", write_only=True
-    )
+    profession = ProfessionSerializer(read_only=True)
+    profession_id = serializers.UUIDField(write_only=True)
 
     class Meta:
         model = Parent
@@ -27,4 +26,3 @@ class ParentSerializer(serializers.ModelSerializer):
             "is_alive",
             "is_contact_person",
         ]
-        read_only_fields = ["profession"]
