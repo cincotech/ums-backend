@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import json
 import os
 from datetime import date, time
@@ -134,3 +133,4 @@ print("\n=== IDs CRÉÉS ===")
 print(f"Attribution ID: {attribution.id}")
 print(f"Room ID: {room.id}")
 print(f"ScheduleSlot ID: {schedule_slot.id}")
+

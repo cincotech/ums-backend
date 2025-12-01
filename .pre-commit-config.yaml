@@ -69,13 +69,6 @@ repos:
       # Django checks (basic sanity check)
       - id: django-check
         name: Django check
-        entry: bash -c 'python manage.py check --deploy || python manage.py check'
-        language: system
-        pass_filenames: false
-
-      # Prevent committing unwanted binary data in migrations
-      - id: migrations-no-binary
-        name: Migrations no-binary
-        entry: bash -c 'git diff --cached --name-only --diff-filter=ACM | grep -E "^.+/migrations/.+\\.py$" || true'
+        entry: python manage.py check
         language: system
         pass_filenames: false
