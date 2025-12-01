@@ -4546,11 +4546,279 @@
           "response": []
         }
       ]
-    }
-  ]
-}
-,
+    },
+    {
+      "name": "Student Services ",
+      "item": [
+        {
+          "name": "Document Requests",
+          "item": [
+            { "name": "List Document Requests", "request": { "method": "GET", "url": "{{base_url}}/dashboard/student-services/document-requests/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Document Request", "request": { "method": "GET", "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
 
+            {
+              "name": "Create Document Request",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "student", "value": "<uuid>", "type": "text" },
+                    { "key": "document_type", "value": "diploma", "type": "text" },
+                    { "key": "purpose", "value": "Candidature emploi", "type": "text" },
+                    { "key": "supporting_documents", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/document-requests/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            {
+              "name": "Update Document Request (PUT)",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "student", "value": "<uuid>", "type": "text" },
+                    { "key": "document_type", "value": "attestation", "type": "text" },
+                    { "key": "purpose", "value": "Mise à jour motif", "type": "text" },
+                    { "key": "supporting_documents", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            {
+              "name": "Partial Update Document Request (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "purpose", "value": "Modification partielle", "type": "text" },
+                    { "key": "supporting_documents", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            { "name": "Delete Document Request", "request": { "method": "DELETE", "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Absence Justifications",
+          "item": [
+            { "name": "List Absence Justifications", "request": { "method": "GET", "url": "{{base_url}}/dashboard/student-services/absence-justifications/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Absence Justification", "request": { "method": "GET", "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+
+            {
+              "name": "Create Absence Justification",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "student", "value": "<uuid>", "type": "text" },
+                    { "key": "absence_type", "value": "medical", "type": "text" },
+                    { "key": "start_date", "value": "2025-01-15", "type": "text" },
+                    { "key": "end_date", "value": "2025-01-20", "type": "text" },
+                    { "key": "reason", "value": "Maladie", "type": "text" },
+                    { "key": "medical_certificate", "type": "file", "src": [] },
+                    { "key": "other_documents", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/absence-justifications/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            {
+              "name": "Update Absence Justification (PUT)",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "reason", "value": "Raison modifiée complète", "type": "text" },
+                    { "key": "medical_certificate", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            {
+              "name": "Partial Update Absence Justification (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "reason", "value": "Correction rapide", "type": "text" },
+                    { "key": "medical_certificate", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            { "name": "Delete Absence Justification", "request": { "method": "DELETE", "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Student Activities",
+          "item": [
+            {
+              "name": "Create Student Activity",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "activity_type", "value": "club", "type": "text" },
+                    { "key": "name", "value": "Club Photo 2025", "type": "text" },
+                    { "key": "description", "value": "Club photographie", "type": "text" },
+                    { "key": "organizer", "value": "<uuid>", "type": "text" },
+                    { "key": "start_date", "value": "2025-03-01T14:00:00Z", "type": "text" },
+                    { "key": "location", "value": "Salle Arts", "type": "text" },
+                    { "key": "poster", "type": "file", "src": [] },
+                    { "key": "photos", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/student-activities/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            {
+              "name": "Update Student Activity (PUT)",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "name", "value": "Club Photo & Vidéo", "type": "text" },
+                    { "key": "poster", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/student-activities/<uuid>/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            {
+              "name": "Partial Update Student Activity (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "description", "value": "Nouvelle description", "type": "text" },
+                    { "key": "poster", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/student-activities/<uuid>/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "Scholarships",
+          "item": [
+            {
+              "name": "Create Scholarship",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "student", "value": "<uuid>", "type": "text" },
+                    { "key": "scholarship_type", "value": "merit", "type": "text" },
+                    { "key": "provider", "value": "État", "type": "text" },
+                    { "key": "amount", "value": "800000", "type": "text" },
+                    { "key": "academic_year", "value": "2025-2026", "type": "text" },
+                    { "key": "application_documents", "type": "file", "src": [] },
+                    { "key": "motivation_letter", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/scholarships/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "Counseling Sessions",
+          "item": [
+            {
+              "name": "Create Counseling Session",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "session_type", "value": "orientation", "type": "text" },
+                    { "key": "title", "value": "Orientation L1", "type": "text" },
+                    { "key": "description", "value": "Session collective", "type": "text" },
+                    { "key": "counselor", "value": "<uuid>", "type": "text" },
+                    { "key": "scheduled_date", "value": "2025-09-10T09:00:00Z", "type": "text" },
+                    { "key": "duration_minutes", "value": "120", "type": "text" },
+                    { "key": "location", "value": "Amphi A", "type": "text" },
+                    { "key": "is_group_session", "value": "true", "type": "text" },
+                    { "key": "presentation_file", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/counseling-sessions/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "Status Changes",
+          "item": [
+            {
+              "name": "Create Status Change",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "student", "value": "<uuid>", "type": "text" },
+                    { "key": "inscription", "value": "<uuid>", "type": "text" },
+                    { "key": "status_type", "value": "withdrawal", "type": "text" },
+                    { "key": "reason", "value": "Raisons personnelles", "type": "text" },
+                    { "key": "effective_date", "value": "2025-06-30", "type": "text" },
+                    { "key": "requested_by", "value": "<uuid>", "type": "text" },
+                    { "key": "supporting_letter", "type": "file", "src": [] }
+                  ]
+                },
+                "url": "{{base_url}}/dashboard/student-services/status-changes/",
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "name": "Documentation API",
       "item": [
