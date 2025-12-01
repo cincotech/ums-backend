@@ -28,13 +28,13 @@ STATIC_URL = "static/"
 
 INSTALLED_APPS = [
     "unfold",
-    "unfold.contrib.filters",  # optional, if special filters are needed
-    "unfold.contrib.forms",  # optional, if special form elements are needed
-    "unfold.contrib.inlines",  # optional, if special inlines are needed
-    "unfold.contrib.import_export",  # optional, if django-import-export package is used
-    "unfold.contrib.guardian",  # optional, if django-guardian package is used
-    "unfold.contrib.simple_history",  # optional, if django-simple-history package is used
-    "unfold.contrib.location_field",  # optional, if django-location-field package is used
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
+    "unfold.contrib.inlines",
+    "unfold.contrib.import_export",
+    "unfold.contrib.guardian",
+    "unfold.contrib.simple_history",
+    "unfold.contrib.location_field",
     "unfold.contrib.constance",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "services.core_service.academic_module.module_app",
     "services.core_service.academic_module.teacher_app",
     "services.core_service.academic_module.university_app",
+    "services.core_service.academic_module.quality_app",
     "services.core_service.student_module.card_app",
     "services.core_service.student_module.highschool_info_app",
     "services.core_service.student_module.inscription_app",
@@ -117,15 +118,12 @@ CORS_ALLOW_CREDENTIALS = True
 ROOT_URLCONF = "ums.urls"
 WSGI_APPLICATION = "ums.wsgi.application"
 STATIC_URL = "/static/"
-# # Optional: Additional locations for static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-
-# Media files (optional)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -169,7 +167,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-# Email configuration with defaults
+
 EMAIL_BACKEND = get_env_variable(
     "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
 )
