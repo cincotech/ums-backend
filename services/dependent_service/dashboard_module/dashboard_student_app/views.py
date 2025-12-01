@@ -1,306 +1,317 @@
-# from rest_framework import status
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
-# from core.response_handler import error_response, success_response
-# from services.dependent_service.dashboard_module.dashboard_shared_app.models import (
-#     Message,
-#     Notification,
-# )
-# from services.dependent_service.dashboard_module.dashboard_student_services_app.models import (
-#     DocumentRequest,
-# )
+from core.response_handler import error_response, success_response
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
-# from .serializers import (
-#     AcademicProgressSerializer,
-#     StudentAttendanceSerializer,
-#     StudentDashboardStatsSerializer,
-#     StudentDocumentRequestSerializer,
-#     StudentGradesSerializer,
-#     StudentMessageSerializer,
-#     StudentNotificationSerializer,
-#     StudentProfileSerializer,
-#     StudentScheduleSerializer,
-#     StudentTranscriptSerializer,
-# )
-# from .services import StudentDashboardService
-
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def student_dashboard_overview(request):
-#     """Get student dashboard overview"""
-#     try:
-#         student = request.user.students_users
-#         stats = StudentDashboardService.get_student_dashboard_stats(student)
-#         serializer = StudentDashboardStatsSerializer(stats)
-#         return success_response(
-#             data=serializer.data, message="Student dashboard overview retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+from core.response_handler import error_response, success_response
+from core.permissions import (
+    CanRequestDocuments,
+    CanSendMessages,
+    CanViewGrades,
+    CanViewTranscript,
+    IsStudent,
+)
+from .services import StudentDashboardService
+from .serializers import (
+    StudentDashboardStatsSerializer,
+    StudentProfileSerializer,
+    StudentGradesSerializer,
+    StudentTranscriptSerializer,
+    AcademicProgressSerializer,
+    StudentScheduleSerializer,
+    StudentAttendanceSerializer,
+    StudentNotificationSerializer,
+    StudentDocumentRequestSerializer,
+    StudentMessageSerializer,
+)
 
 
-# @api_view(["GET", "PUT"])
-# @permission_classes([IsAuthenticated])
-# def student_profile(request):
-#     """Get or update student profile"""
-#     try:
-#         student = request.user.students_users
-
-#         if request.method == "GET":
-#             profile_data = StudentDashboardService.get_student_profile(student)
-#             serializer = StudentProfileSerializer(profile_data)
-#             return success_response(
-#                 data=serializer.data, message="Student profile retrieved"
-#             )
-
-#         elif request.method == "PUT":
-#             updated_student = StudentDashboardService.update_profile(
-#                 student, request.data
-#             )
-#             profile_data = StudentDashboardService.get_student_profile(updated_student)
-#             serializer = StudentProfileSerializer(profile_data)
-#             return success_response(
-#                 data=serializer.data, message="Profile updated successfully"
-#             )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_dashboard_overview(request):
+    """Get student dashboard overview"""
+    try:
+        student = request.user.students_users
+        stats = StudentDashboardService.get_student_dashboard_stats(student)
+        serializer = StudentDashboardStatsSerializer(stats)
+        return success_response(
+            data=serializer.data, message="Student dashboard overview retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def student_grades(request):
-#     """Get student grades (conditional on payment)"""
-#     try:
-#         student = request.user.students_users
-#         grades = StudentDashboardService.get_student_grades(student)
+@api_view(["GET", "PUT"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_profile(request):
+    """Get or update student profile"""
+    try:
+        student = request.user.students_users
 
-#         if isinstance(grades, dict) and "error" in grades:
-#             return error_response(
-#                 message=grades["error"], status_code=status.HTTP_403_FORBIDDEN
-#             )
+        if request.method == "GET":
+            profile_data = StudentDashboardService.get_student_profile(student)
+            serializer = StudentProfileSerializer(profile_data)
+            return success_response(
+                data=serializer.data, message="Student profile retrieved"
+            )
 
-#         serializer = StudentGradesSerializer(grades, many=True)
-#         return success_response(
-#             data=serializer.data, message="Student grades retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        elif request.method == "PUT":
+            serializer = StudentProfileSerializer(data=request.data)
+            if serializer.is_valid():
+                updated_profile = StudentDashboardService.update_profile(
+                    student, serializer.validated_data
+                )
+                serializer = StudentProfileSerializer(updated_profile)
+                return success_response(
+                    data=serializer.data, message="Student profile updated"
+                )
+            return error_response(
+                message="Invalid data", errors=serializer.errors
+            )
 
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def student_transcript(request):
-#     """Get official transcript (when year is closed)"""
-#     try:
-#         student = request.user.students_users
-#         transcript = StudentDashboardService.get_student_transcript(student)
-
-#         if isinstance(transcript, dict) and "error" in transcript:
-#             return error_response(
-#                 message=transcript["error"], status_code=status.HTTP_403_FORBIDDEN
-#             )
-
-#         serializer = StudentTranscriptSerializer(transcript, many=True)
-#         return success_response(
-#             data=serializer.data, message="Student transcript retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def academic_progress(request):
-#     """Get student academic progression and credits"""
-#     try:
-#         student = request.user.students_users
-#         progress = StudentDashboardService.get_academic_progress(student)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent, CanViewGrades])
+def student_grades(request):
+    """Get student grades with payment condition"""
+    try:
+        student = request.user.students_users
+        grades_data = StudentDashboardService.get_student_grades(student)
 
-#         if isinstance(progress, dict) and "error" in progress:
-#             return error_response(
-#                 message=progress["error"], status_code=status.HTTP_404_NOT_FOUND
-#             )
+        if isinstance(grades_data, dict) and 'error' in grades_data:
+            return error_response(
+                message=grades_data['message'],
+                status_code=status.HTTP_402_PAYMENT_REQUIRED
+            )
 
-#         serializer = AcademicProgressSerializer(progress)
-#         return success_response(
-#             data=serializer.data, message="Academic progress retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
-
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def student_schedule(request):
-#     """Get student class schedule"""
-#     try:
-#         student = request.user.students_users
-#         schedule = StudentDashboardService.get_student_schedule(student)
-#         serializer = StudentScheduleSerializer(schedule, many=True)
-#         return success_response(
-#             data=serializer.data, message="Student schedule retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        serializer = StudentGradesSerializer(grades_data, many=True)
+        return success_response(
+            data=serializer.data, message="Student grades retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def student_attendance(request):
-#     """Get student attendance record"""
-#     try:
-#         student = request.user.students_users
-#         attendance = StudentDashboardService.get_student_attendance(student)
-#         serializer = StudentAttendanceSerializer(attendance, many=True)
-#         return success_response(
-#             data=serializer.data, message="Student attendance retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent, CanViewTranscript])
+def student_transcript(request):
+    """Get student transcript"""
+    try:
+        student = request.user.students_users
+        transcript_data = StudentDashboardService.get_student_transcript(student)
+
+        if isinstance(transcript_data, dict) and 'error' in transcript_data:
+            return error_response(
+                message=transcript_data['message'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = StudentTranscriptSerializer(transcript_data)
+        return success_response(
+            data=serializer.data, message="Student transcript retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def student_notifications(request):
-#     """Get or mark notifications as read"""
-#     try:
-#         student = request.user.students_users
-
-#         if request.method == "GET":
-#             notifications = Notification.objects.filter(
-#                 recipient=student.user
-#             ).order_by("-created_at")
-#             serializer = StudentNotificationSerializer(notifications, many=True)
-#             return success_response(
-#                 data=serializer.data, message="Notifications retrieved"
-#             )
-
-#         elif request.method == "POST":
-#             notification_id = request.data.get("notification_id")
-#             notification = StudentDashboardService.mark_notification_read(
-#                 notification_id, student
-#             )
-#             serializer = StudentNotificationSerializer(notification)
-#             return success_response(
-#                 data=serializer.data, message="Notification marked as read"
-#             )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent])
+def academic_progress(request):
+    """Get student academic progress"""
+    try:
+        student = request.user.students_users
+        progress_data = StudentDashboardService.get_academic_progress(student)
+        serializer = AcademicProgressSerializer(progress_data)
+        return success_response(
+            data=serializer.data, message="Academic progress retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def document_requests(request):
-#     """Get document requests or submit new request"""
-#     try:
-#         student = request.user.students_users
-
-#         if request.method == "GET":
-#             requests_qs = DocumentRequest.objects.filter(student=student).order_by(
-#                 "-requested_at"
-#             )
-#             serializer = StudentDocumentRequestSerializer(requests_qs, many=True)
-#             return success_response(
-#                 data=serializer.data, message="Document requests retrieved"
-#             )
-
-#         elif request.method == "POST":
-#             document_type = request.data.get("document_type")
-#             purpose = request.data.get("purpose")
-#             supporting_docs = request.data.get("supporting_documents", [])
-
-#             document_request = StudentDashboardService.request_document(
-#                 student, document_type, purpose, supporting_docs
-#             )
-
-#             serializer = StudentDocumentRequestSerializer(document_request)
-#             return success_response(
-#                 data=serializer.data, message="Document request submitted"
-#             )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_schedule(request):
+    """Get student schedule"""
+    try:
+        student = request.user.students_users
+        schedule_data = StudentDashboardService.get_student_schedule(student)
+        serializer = StudentScheduleSerializer(schedule_data, many=True)
+        return success_response(
+            data=serializer.data, message="Student schedule retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def student_messages(request):
-#     """Get messages or send new message"""
-#     try:
-#         student = request.user.students_users
-
-#         if request.method == "GET":
-#             messages = Message.objects.filter(sender=student.user).order_by(
-#                 "-sent_at"
-#             ) | Message.objects.filter(recipient=student.user).order_by("-sent_at")
-#             serializer = StudentMessageSerializer(messages, many=True)
-#             return success_response(data=serializer.data, message="Messages retrieved")
-
-#         elif request.method == "POST":
-#             recipient_id = request.data.get("recipient_id")
-#             subject = request.data.get("subject")
-#             content = request.data.get("content")
-#             message_type = request.data.get("message_type", "to_teacher")
-
-#             message = StudentDashboardService.send_message(
-#                 student, recipient_id, subject, content, message_type
-#             )
-
-#             serializer = StudentMessageSerializer(message)
-#             return success_response(data=serializer.data, message="Message sent")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_attendance(request):
+    """Get student attendance"""
+    try:
+        student = request.user.students_users
+        attendance_data = StudentDashboardService.get_student_attendance(student)
+        serializer = StudentAttendanceSerializer(attendance_data, many=True)
+        return success_response(
+            data=serializer.data, message="Student attendance retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def download_documents(request):
-#     """Get available documents for download"""
-#     try:
-#         student = request.user.students_users
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_notifications(request):
+    """Get or mark notifications as read"""
+    try:
+        student = request.user.students_users
 
-#         # Generate available documents
-#         documents = {
-#             "enrollment_certificate": f"/api/documents/enrollment/{student.id}/",
-#             "payment_receipt": f"/api/documents/payment/{student.id}/",
-#             "schedule": f"/api/documents/schedule/{student.id}/",
-#             "transcript_current": f"/api/documents/transcript/{student.id}/",
-#         }
+        if request.method == "GET":
+            notifications = StudentDashboardService.get_student_notifications(student)
+            serializer = StudentNotificationSerializer(notifications, many=True)
+            return success_response(
+                data=serializer.data, message="Student notifications retrieved"
+            )
 
-#         return success_response(data=documents, message="Available documents retrieved")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        elif request.method == "POST":
+            notification_id = request.data.get('notification_id')
+            if notification_id:
+                StudentDashboardService.mark_notification_read(notification_id)
+                return success_response(message="Notification marked as read")
+            return error_response(message="Notification ID required")
+
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated, IsStudent, CanRequestDocuments])
+def document_requests(request):
+    """Get or create document requests"""
+    try:
+        student = request.user.students_users
+
+        if request.method == "GET":
+            requests = StudentDashboardService.get_document_requests(student)
+            serializer = StudentDocumentRequestSerializer(requests, many=True)
+            return success_response(
+                data=serializer.data, message="Document requests retrieved"
+            )
+
+        elif request.method == "POST":
+            serializer = StudentDocumentRequestSerializer(data=request.data)
+            if serializer.is_valid():
+                request_obj = StudentDashboardService.request_document(
+                    student, serializer.validated_data
+                )
+                serializer = StudentDocumentRequestSerializer(request_obj)
+                return success_response(
+                    data=serializer.data, message="Document request created"
+                )
+            return error_response(
+                message="Invalid data", errors=serializer.errors
+            )
+
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated, IsStudent, CanSendMessages])
+def student_messages(request):
+    """Get or send messages"""
+    try:
+        student = request.user.students_users
+
+        if request.method == "GET":
+            messages = StudentDashboardService.get_student_messages(student)
+            serializer = StudentMessageSerializer(messages, many=True)
+            return success_response(
+                data=serializer.data, message="Student messages retrieved"
+            )
+
+        elif request.method == "POST":
+            serializer = StudentMessageSerializer(data=request.data)
+            if serializer.is_valid():
+                message = StudentDashboardService.send_message(
+                    student, serializer.validated_data
+                )
+                serializer = StudentMessageSerializer(message)
+                return success_response(
+                    data=serializer.data, message="Message sent"
+                )
+            return error_response(
+                message="Invalid data", errors=serializer.errors
+            )
+
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent])
+def download_documents(request):
+    """Download available documents"""
+    try:
+        student = request.user.students_users
+        document_type = request.query_params.get('type')
+
+        if not document_type:
+            return error_response(message="Document type required")
+
+        document_data = StudentDashboardService.get_downloadable_document(
+            student, document_type
+        )
+
+        if isinstance(document_data, dict) and 'error' in document_data:
+            return error_response(
+                message=document_data['message'],
+                status_code=status.HTTP_403_FORBIDDEN
+            )
+
+        # Return document data (would typically return file response)
+        return success_response(
+            data=document_data, message="Document retrieved"
+        )
+
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
