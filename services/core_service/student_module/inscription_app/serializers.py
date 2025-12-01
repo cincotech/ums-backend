@@ -13,7 +13,6 @@ class InscriptionSerializer(serializers.ModelSerializer):
             "class_fk",
             "date_inscription",
             "regist_status",
-            "groupe",
             "withdrawal_date",
             "is_year_close",
         ]

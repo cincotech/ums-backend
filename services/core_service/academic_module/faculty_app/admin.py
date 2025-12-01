@@ -17,8 +17,8 @@ from .models import Faculty, TypeFormation
 class TypeFormationResource(resources.ModelResource):
     class Meta:
         model = TypeFormation
-        fields = ("id", "name", "description")
-        export_order = ("id", "name", "description")
+        fields = ("id", "name", "description", "code")
+        export_order = ("id", "name", "description", "code")
 
 
 # ----------------------------

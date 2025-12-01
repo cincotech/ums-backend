@@ -1,11 +1,28 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import QualityReportViewSet, AttributionValidationViewSet
+# from django.urls import path
 
-router = DefaultRouter()
-router.register('quality-reports', QualityReportViewSet, basename='quality-reports')
-router.register('attribution-validations', AttributionValidationViewSet, basename='attribution-validations')
+# from . import views
 
-urlpatterns = [
-    path('', include(router.urls)),
-]
+# urlpatterns = [
+#     path("overview/", views.dashboard_overview, name="dashboard-overview"),
+#     path(
+#         "attributions/visiting-professors/",
+#         views.visiting_professors_attributions,
+#         name="visiting-professors-attributions",
+#     ),
+#     path(
+#         "attributions/<uuid:attribution_id>/validate/",
+#         views.validate_attribution,
+#         name="validate-attribution",
+#     ),
+#     path(
+#         "performance/academic/",
+#         views.academic_performance_report,
+#         name="academic-performance-report",
+#     ),
+#     path(
+#         "reports/generate/",
+#         views.generate_quality_report,
+#         name="generate-quality-report",
+#     ),
+#     path("reports/", views.quality_reports_list, name="quality-reports-list"),
+# ]
