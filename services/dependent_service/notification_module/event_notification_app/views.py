@@ -1,16 +1,16 @@
-from rest_framework import viewsets, filters, status
+from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from django.utils import timezone
 
+from .email_service import send_notification_email
 from .models import Notification
 from .serializers import (
-    NotificationSerializer,
-    NotificationListSerializer,
     NotificationCreateSerializer,
+    NotificationListSerializer,
+    NotificationSerializer,
 )
-from .email_service import send_notification_email
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -32,7 +32,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     queryset = Notification.objects.all().order_by("-sent_at")
     serializer_class = NotificationSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
     filterset_fields = ["delivery_status", "email", "telephone"]
     search_fields = ["email", "telephone", "message"]
     ordering_fields = ["sent_at", "delivery_status"]
@@ -54,12 +58,14 @@ class NotificationViewSet(viewsets.ModelViewSet):
         """
         notification = serializer.save()
         if notification.email:
-            email_sent = send_notification_email(notification.email, notification.message)
+            email_sent = send_notification_email(
+                notification.email, notification.message
+            )
             if email_sent:
-                notification.delivery_status = 'sent'
+                notification.delivery_status = "sent"
                 notification.sent_at = timezone.now()
             else:
-                notification.delivery_status = 'failed'
+                notification.delivery_status = "failed"
             notification.save()
 
     @action(detail=False, methods=["get"], url_path="sent")
