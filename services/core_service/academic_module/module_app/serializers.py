@@ -1,17 +1,28 @@
 from rest_framework import serializers
 
-from services.core_service.academic_module.class_app.models import Class
-from services.core_service.academic_module.class_app.serializers import ClassSerializer
+from .models import Module, Semester
 
-from .models import Module
+
+class SemesterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Semester
+        fields = ["id", "number", "name"]
 
 
 class ModuleSerializer(serializers.ModelSerializer):
-    class_fk = ClassSerializer(read_only=True)
-    class_id = serializers.PrimaryKeyRelatedField(
-        queryset=Class.objects.all(), source="class_fk", write_only=True
-    )
+    # Inclure les détails du semestre dans le module
+    semester = SemesterSerializer(read_only=True)
+    semester_id = serializers.UUIDField(write_only=True)  # pour la création
 
     class Meta:
         model = Module
-        fields = ["id", "module_name", "code", "semester_id", "class_fk", "class_id"]
+        fields = [
+            "id",
+            "module_name",
+            "code",
+            "semester",
+            "semester_id",
+            "class_fk",
+            "total_credits",
+        ]
+        read_only_fields = ["total_credits"]
