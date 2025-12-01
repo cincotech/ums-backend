@@ -47,3 +47,5 @@ print(f"Room: {room.room_name} ({'created' if created else 'exists'})")
 print(f"Room ID: {room.id}")
 print(f"Building ID: {building.id}")
 print(f"University ID: {university.id}")
+
+
