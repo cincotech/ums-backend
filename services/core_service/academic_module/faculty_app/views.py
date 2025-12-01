@@ -1,5 +1,3 @@
-# Create your views here.
-
 from core.views import BaseViewSet
 
 from .models import Faculty, TypeFormation

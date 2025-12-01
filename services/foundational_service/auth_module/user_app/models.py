@@ -120,6 +120,8 @@ class User(AbstractUser):
         upload_to="profile_pictures/", blank=True, null=True
     )
     spoken_languages = models.JSONField(default=list, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
     USERNAME_FIELD = "email"

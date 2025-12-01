@@ -74,6 +74,7 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
         "role",
         "email_verified",
         "requires_2fa",
+        "university",
     )
     list_filter = ("gender", "marital_status", "email_verified", "requires_2fa")
     search_fields = ("email", "phone_number", "role__name")
@@ -82,7 +83,7 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     fieldsets = (
         (
             "Personal Info",
-            {"fields": ("email", "phone_number", "gender", "birth_date")},
+            {"fields": ("email", "phone_number", "gender", "birth_date", "university")},
         ),
         (
             "Location & Nationality",
