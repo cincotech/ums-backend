@@ -22,7 +22,7 @@ class ExamTypeViewSet(BaseViewSet):
 class ExamViewSet(BaseViewSet):
     queryset = Exam.objects.all()
     serializer_class = ExamSerializer
-    permission_classes = [IsDean]
+    permission_classes = [IsAcademicAffairs]
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
