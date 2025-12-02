@@ -1,0 +1,6 @@
+[lint]
+ignore = ["E402"]
+
+[lint.per-file-ignores]
+"create_*.py" = ["E402"]
+"simple_*.py" = ["E402"]

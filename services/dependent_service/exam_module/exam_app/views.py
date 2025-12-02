@@ -1,6 +1,6 @@
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 
+from core.permissions import IsAcademicAffairs, IsDean
 from core.response_handler import success_response, validate_serializer
 from core.views import BaseViewSet
 
@@ -16,13 +16,13 @@ from .serializers import (
 class ExamTypeViewSet(BaseViewSet):
     queryset = ExamType.objects.all()
     serializer_class = ExamTypeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsDean]
 
 
 class ExamViewSet(BaseViewSet):
     queryset = Exam.objects.all()
     serializer_class = ExamSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAcademicAffairs]
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
@@ -43,13 +43,13 @@ class ExamViewSet(BaseViewSet):
 class ExamRoomViewSet(BaseViewSet):
     queryset = ExamRoom.objects.all()
     serializer_class = ExamRoomSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAcademicAffairs]
 
 
 class ExamSupervisorViewSet(BaseViewSet):
     queryset = ExamSupervisor.objects.all()
     serializer_class = ExamSupervisorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAcademicAffairs]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

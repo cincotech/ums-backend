@@ -1,6 +1,5 @@
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 
 from core.permissions import IsSupervisor
 from core.response_handler import success_response, validate_serializer
@@ -15,7 +14,7 @@ from .serializers import ExamAttendanceSerializer
 class ExamAttendanceViewSet(BaseViewSet):
     queryset = ExamAttendance.objects.all()
     serializer_class = ExamAttendanceSerializer
-    permission_classes = [IsAuthenticated, IsSupervisor]
+    permission_classes = [IsSupervisor]
 
     def create(self, request, *args, **kwargs):
         student_id = request.data.get("student_id")
