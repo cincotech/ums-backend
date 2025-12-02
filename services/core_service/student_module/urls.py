@@ -19,6 +19,10 @@ from services.core_service.student_module.parent_app.views import (
     ParentViewSet,
     ProfessionViewSet,
 )
+from services.core_service.student_module.student_profile_app.comprehensive_views import (
+    StudentCreateAPIView,
+    StudentSiblingsAPIView,
+)
 from services.core_service.student_module.student_profile_app.views import (
     StudentGraduateInfoViewSet,
     StudentHsInfoViewSet,
@@ -53,4 +57,10 @@ router.register(
 
 urlpatterns = [
     path("student/", include(router.urls)),
+    path("student/create/", StudentCreateAPIView.as_view(), name="student-create"),
+    path(
+        "student/<str:matricule>/siblings/",
+        StudentSiblingsAPIView.as_view(),
+        name="student-siblings",
+    ),
 ]

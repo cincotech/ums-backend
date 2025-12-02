@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.response_handler import success_response
 from services.foundational_service.geo_module.country_app.models import Country
 from services.foundational_service.geo_module.serializers import ProvinceSerializer
 
@@ -18,7 +19,7 @@ class ProvinceListCreateAPIView(APIView):
         else:
             provinces = Province.objects.all()
         serializer = ProvinceSerializer(provinces, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return success_response(message="province get", data=serializer.data)
 
     def post(self, request):
         serializer = ProvinceSerializer(data=request.data)

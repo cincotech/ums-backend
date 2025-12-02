@@ -21,7 +21,6 @@ class Inscription(models.Model):
         ("Replaced", "Replaced"),
     ]
 
-    GROUPE = [(chr(65 + i), chr(65 + i)) for i in range(26)]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(
         Student, on_delete=models.RESTRICT, related_name="inscriptions"
@@ -30,7 +29,11 @@ class Inscription(models.Model):
         AcademicYear, on_delete=models.RESTRICT, related_name="inscriptions"
     )
     class_fk = models.ForeignKey(
-        Class, on_delete=models.RESTRICT, related_name="inscriptions"
+        Class,
+        on_delete=models.RESTRICT,
+        related_name="inscriptions",
+        null=True,
+        blank=True,
     )
     date_inscription = models.DateField()
     regist_status = models.CharField(

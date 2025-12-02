@@ -11,7 +11,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("dashboard_collection_agent_app", "0001_initial"),
         ("document_app", "0001_initial"),
     ]
 
@@ -50,16 +49,6 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.RESTRICT,
                         to="document_app.document",
-                    ),
-                ),
-                (
-                    "payment",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.RESTRICT,
-                        related_name="document_payment",
-                        to="dashboard_collection_agent_app.payment",
                     ),
                 ),
             ],
