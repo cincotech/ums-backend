@@ -4820,6 +4820,129 @@
       ]
     },
     {
+      "name": "Finance Services",
+      "item": [
+        {
+          "name": "Banks",
+          "item": [
+            { "name": "List Banks", "request": { "method": "GET", "url": "{{base_url}}/finance/banks/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Bank", "request": { "method": "GET", "url": "{{base_url}}/finance/banks/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Create Bank", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"bank_name\": \"Société Générale\",\n  \"bank_abreviation\": \"SG\"\n}" }, "url": "{{base_url}}/finance/banks/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Update Bank (PUT)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"bank_name\": \"Société Générale Côte d'Ivoire\",\n  \"bank_abreviation\": \"SGCI\"\n}" }, "url": "{{base_url}}/finance/banks/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Partial Update Bank (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"bank_abreviation\": \"SGCI\"\n}" }, "url": "{{base_url}}/finance/banks/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Delete Bank", "request": { "method": "DELETE", "url": "{{base_url}}/finance/banks/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Wordings",
+          "item": [
+            { "name": "List Wordings", "request": { "method": "GET", "url": "{{base_url}}/finance/wordings/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Wording", "request": { "method": "GET", "url": "{{base_url}}/finance/wordings/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Create Wording", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"wording_name\": \"Frais d'inscription\"\n}" }, "url": "{{base_url}}/finance/wordings/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Update Wording (PUT)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"wording_name\": \"Frais d'inscription 2025-2026\"\n}" }, "url": "{{base_url}}/finance/wordings/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Partial Update Wording (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"wording_name\": \"Frais initiaux\"\n}" }, "url": "{{base_url}}/finance/wordings/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Delete Wording", "request": { "method": "DELETE", "url": "{{base_url}}/finance/wordings/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Fees Sheets",
+          "item": [
+            { "name": "List Fees Sheets", "request": { "method": "GET", "url": "{{base_url}}/finance/fees-sheets/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Fees Sheet", "request": { "method": "GET", "url": "{{base_url}}/finance/fees-sheets/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Create Fees Sheet", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_fk\": \"<uuid-class>\",\n  \"academic_year\": \"<uuid-academic-year>\",\n  \"wording\": \"<uuid-wording>\",\n  \"base_amount\": 1800000\n}" }, "url": "{{base_url}}/finance/fees-sheets/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Update Fees Sheet (PUT)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"base_amount\": 2000000\n}" }, "url": "{{base_url}}/finance/fees-sheets/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Partial Update Fees Sheet (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"base_amount\": 1950000\n}" }, "url": "{{base_url}}/finance/fees-sheets/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Delete Fees Sheet", "request": { "method": "DELETE", "url": "{{base_url}}/finance/fees-sheets/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Payment Plans",
+          "item": [
+            { "name": "List Payment Plans", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-plans/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Payment Plan", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-plans/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Create Payment Plan", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"feessheet\": \"<uuid-feessheet>\",\n  \"total_amount\": 1800000,\n  \"monthly_amount\": 300000,\n  \"start_date\": \"2025-09-01\",\n  \"end_date\": \"2026-06-01\"\n}" }, "url": "{{base_url}}/finance/payment-plans/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Update Payment Plan (PUT)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"monthly_amount\": 360000,\n  \"status\": \"active\"\n}" }, "url": "{{base_url}}/finance/payment-plans/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Partial Update Payment Plan (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"defaulted\"\n}" }, "url": "{{base_url}}/finance/payment-plans/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Delete Payment Plan", "request": { "method": "DELETE", "url": "{{base_url}}/finance/payment-plans/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Payments",
+          "item": [
+            { "name": "List Payments", "request": { "method": "GET", "url": "{{base_url}}/finance/payments/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Payment", "request": { "method": "GET", "url": "{{base_url}}/finance/payments/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            {
+              "name": "Create Payment + Bordereau",
+              "request": {
+                "method": "POST",
+                "url": "{{base_url}}/finance/payments/",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    { "key": "paymentplan", "value": "<uuid-paymentplan>", "type": "text" },
+                    { "key": "amount_paid", "value": "500000", "type": "text" },
+                    { "key": "payment_date", "value": "2025-12-02", "type": "text" },
+                    { "key": "reception_date", "value": "2025-12-02", "type": "text" },
+                    { "key": "payment_method", "value": "mobile_money", "type": "text" },
+                    { "key": "transaction_code", "value": "OM123456789", "type": "text" },
+                    { "key": "inscription", "value": "<uuid-inscription>", "type": "text" },
+                    { "key": "user", "value": "<uuid-user>", "type": "text" },
+                    { "key": "remittance_slip_uri", "type": "file", "src": [] }
+                  ]
+                },
+                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+              }
+            },
+            { "name": "Verify Payment (PATCH)", "request": { "method": "PATCH", "body": { "mode": "formdata", "formdata": [{ "key": "payment_status", "value": "verified", "type": "text" }] }, "url": "{{base_url}}/finance/payments/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Reject Payment (PATCH)", "request": { "method": "PATCH", "body": { "mode": "formdata", "formdata": [{ "key": "payment_status", "value": "rejected", "type": "text" }] }, "url": "{{base_url}}/finance/payments/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Delete Payment", "request": { "method": "DELETE", "url": "{{base_url}}/finance/payments/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Payment Promises",
+          "item": [
+            { "name": "List Payment Promises", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-promises/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Promise", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-promises/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Create Promise", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"promised_amount\": 400000,\n  \"promised_date\": \"2025-12-25\",\n  \"notes\": \"Promis verbalement\"\n}" }, "url": "{{base_url}}/finance/payment-promises/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Mark as Kept (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"kept\"\n}" }, "url": "{{base_url}}/finance/payment-promises/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Mark as Broken (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"broken\"\n}" }, "url": "{{base_url}}/finance/payment-promises/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Delete Promise", "request": { "method": "DELETE", "url": "{{base_url}}/finance/payment-promises/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Payment Reminders",
+          "item": [
+            { "name": "List Reminders", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-reminders/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Reminder", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-reminders/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Send Reminder", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"reminder_type\": \"reminder_30\",\n  \"amount_due\": 750000,\n  \"message\": \"Rappel aimable de règlement\"\n}" }, "url": "{{base_url}}/finance/payment-reminders/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Collection Correspondence",
+          "item": [
+            { "name": "List Correspondence", "request": { "method": "GET", "url": "{{base_url}}/finance/collection-correspondence/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Correspondence", "request": { "method": "GET", "url": "{{base_url}}/finance/collection-correspondence/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Log Email/SMS/Call", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"correspondence_type\": \"sms\",\n  \"subject\": \"Rappel paiement\",\n  \"content\": \"Bonjour, solde de 750000 FCFA à régulariser avant le 31/12\"\n}" }, "url": "{{base_url}}/finance/collection-correspondence/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        },
+
+        {
+          "name": "Payment Installments",
+          "item": [
+            { "name": "List Installments", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-installements/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            { "name": "Retrieve Installment", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-installements/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Documentation API",
       "item": [
         {
