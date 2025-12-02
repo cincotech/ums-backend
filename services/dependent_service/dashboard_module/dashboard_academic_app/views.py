@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 
@@ -41,3 +41,39 @@ class AttributionValidationViewSet(viewsets.ModelViewSet):
         validation.save()
 
         return Response(AttributionValidationSerializer(validation).data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsDean])
+def dashboard_overview(request):
+    return Response({'message': 'Dashboard overview'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsDean])
+def visiting_professors_attributions(request):
+    return Response({'message': 'Visiting professors attributions'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsDean])
+def validate_attribution(request, attribution_id):
+    return Response({'message': 'Attribution validated'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsDean])
+def academic_performance_report(request):
+    return Response({'message': 'Academic performance report'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsDean])
+def generate_quality_report(request):
+    return Response({'message': 'Quality report generated'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsDean])
+def quality_reports_list(request):
+    return Response({'message': 'Quality reports list'})

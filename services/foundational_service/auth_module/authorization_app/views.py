@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from services.foundational_service.auth_module.user_app.models import Role
 
-from .serializers import RoleSerializer
+from services.foundational_service.auth_module.authentication_app.serializers import RoleSerializer
 
 
 class AvailableRoleView(viewsets.ReadOnlyModelViewSet):
