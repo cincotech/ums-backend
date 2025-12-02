@@ -10,8 +10,10 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("geo/", include("services.foundational_service.geo_module.urls")),
-    path("scheduling/", include("services.dependent_service.scheduling_module.urls")),
+    path("api/geo/", include("services.foundational_service.geo_module.urls")),
+    path(
+        "api/scheduling/", include("services.dependent_service.scheduling_module.urls")
+    ),
     path("api/", include("services.dependent_service.notification_module.urls")),
     # Raw OpenAPI schema
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

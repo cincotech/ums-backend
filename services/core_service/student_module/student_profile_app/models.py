@@ -33,6 +33,48 @@ class Student(models.Model):
         return f"{self.user.get_full_name()} ({self.matricule})"
 
 
+class StudentFile(models.Model):
+    """
+    Model for storing student files/documents that universities can request
+    during inscription process.
+    """
+
+    FILE_TYPES = [
+        ("birth_certificate", "Birth Certificate"),
+        ("highschool_diploma", "Highschool Diploma"),
+        ("transcript", "Transcript/Report Card"),
+        ("id_copy", "Copy of ID/Passport"),
+        ("medical_certificate", "Medical Certificate"),
+        ("photo", "Passport Photo"),
+        ("parent_id_copy", "Parent ID Copy"),
+        ("other", "Other Document"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="files")
+    file_type = models.CharField(max_length=30, choices=FILE_TYPES)
+    file_name = models.CharField(max_length=255)
+    file = models.FileField(upload_to="student_files/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="verified_student_files",
+    )
+    notes = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = "student_files"
+        unique_together = ("student", "file_type")
+
+    def __str__(self):
+        return f"{self.student.matricule} - {self.get_file_type_display()}"
+
+
 class Training(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     domaine = models.CharField(max_length=255)
