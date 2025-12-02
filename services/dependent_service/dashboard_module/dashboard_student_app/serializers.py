@@ -15,6 +15,15 @@ from services.dependent_service.scheduling_module.scheduling_app.models import (
 )
 
 
+class StudentDashboardStatsSerializer(serializers.Serializer):
+    unread_notifications = serializers.IntegerField()
+    pending_documents = serializers.IntegerField()
+    current_gpa = serializers.FloatField()
+    attendance_rate = serializers.FloatField()
+    payment_status = serializers.CharField()
+    credits_earned = serializers.IntegerField()
+
+
 class StudentProfileSerializer(serializers.Serializer):
     student_id = serializers.UUIDField()
     matricule = serializers.CharField()
@@ -28,12 +37,33 @@ class StudentProfileSerializer(serializers.Serializer):
 
 
 
+class StudentGradesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Result
+        fields = ["id", "course", "mark", "grade"]
+
+
 class StudentTranscriptSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompiledResult
         fields = ["id", "results", "average_mark", "status", "is_promoted"]
 
 
+
+
+class StudentScheduleSerializer(serializers.Serializer):
+    course_name = serializers.CharField()
+    teacher_name = serializers.CharField()
+    day_of_week = serializers.CharField()
+    start_time = serializers.CharField()
+    end_time = serializers.CharField()
+    room = serializers.CharField()
+
+
+class StudentAttendanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attendance
+        fields = ["id", "date", "status"]
 
 
 class StudentNotificationSerializer(serializers.ModelSerializer):
@@ -51,6 +81,12 @@ class StudentNotificationSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at"]
 
 
+
+
+class StudentDocumentRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Request
+        fields = ["id", "document", "request_date", "request_status"]
 
 
 class StudentMessageSerializer(serializers.ModelSerializer):

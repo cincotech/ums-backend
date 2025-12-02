@@ -33,6 +33,6 @@ class Request(models.Model):
         blank=True,
         related_name="document_payment",
     )
-
+ 
     class Meta:
         db_table = "requests"
