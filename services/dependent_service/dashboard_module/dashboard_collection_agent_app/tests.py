@@ -1,27 +1,56 @@
-# from django.contrib.auth import get_user_model
-# from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from rest_framework import status
+from rest_framework.test import APIClient
 
-# from .services import CollectionAgentService
+from .models import Bank, Wording
 
-# User = get_user_model()
+User = get_user_model()
 
 
-# class CollectionAgentServiceTest(TestCase):
-#     def setUp(self):
-#         self.collection_agent = User.objects.create_user(
-#             email="collection@example.com", password="collectionpass123"
-#         )
+class BankAPITestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(email="test@test.com", password="test123")
+        self.client.force_authenticate(user=self.user)
+        self.bank = Bank.objects.create(bank_name="BCB", bank_abreviation="BCB")
 
-#     def test_get_dashboard_stats(self):
-#         """Test collection dashboard statistics"""
-#         stats = CollectionAgentService.get_dashboard_stats()
+    def test_list_banks(self):
+        response = self.client.get("/dashboard/collection-agent/banks/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-#         self.assertIn("total_debtors", stats)
-#         self.assertIn("total_debt_amount", stats)
-#         self.assertIn("overdue_cases", stats)
+    def test_create_bank(self):
+        data = {"bank_name": "Ecobank", "bank_abreviation": "ECO"}
+        response = self.client.post("/dashboard/collection-agent/banks/", data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-#     def test_extract_debtor_data(self):
-#         """Test debtor data extraction"""
-#         debtor_data = CollectionAgentService.extract_debtor_data()
 
-#         self.assertIsInstance(debtor_data, list)
+class WordingAPITestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(email="test@test.com", password="test123")
+        self.client.force_authenticate(user=self.user)
+
+    def test_list_wordings(self):
+        Wording.objects.create(wording_name="Frais inscription")
+        response = self.client.get("/dashboard/collection-agent/wordings/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class PaymentAPITestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(email="test@test.com", password="test123")
+        self.client.force_authenticate(user=self.user)
+
+    def test_filter_payment_by_status(self):
+        response = self.client.get(
+            "/dashboard/collection-agent/payments/?payment_status=unverified"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_filter_payment_by_method(self):
+        response = self.client.get(
+            "/dashboard/collection-agent/payments/?payment_method=mobile_money"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
