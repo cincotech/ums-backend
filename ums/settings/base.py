@@ -72,9 +72,6 @@ INSTALLED_APPS = [
     "services.dependent_service.infrastructure_module.room_app",
     "services.dependent_service.notification_module.event_notification_app",
     "services.dependent_service.scheduling_module.scheduling_app",
-    "services.dependent_service.dashboard_module.dashboard_academic_app",
-    "services.dependent_service.dashboard_module.dashboard_doyen_app",
-    "services.dependent_service.dashboard_module.dashboard_shared_app",
     "services.dependent_service.dashboard_module.dashboard_super_admin_app",
     "services.dependent_service.dashboard_module.dashboard_recteur_app",
     "services.dependent_service.dashboard_module.dashboard_quality_director_app",
@@ -95,7 +92,6 @@ INSTALLED_APPS = [
     "simple_history",
     "drf_spectacular",
     "drf_spectacular_sidecar",
-    "dbbackup",
     "core",
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
@@ -187,27 +183,11 @@ EMAIL_HOST_USER = get_env_variable("EMAIL_HOST_USER", "testcomlab24@gmail.com")
 EMAIL_HOST_PASSWORD = get_env_variable("EMAIL_HOST_PASSWORD", "nyhbfgzcvhsadrpp")
 COMPANY_NAME = get_env_variable("COMPANY_NAME", "Upg")
 
-# Django Storage Configuration
 STORAGES = {
-    # 1. Add the 'default' storage (fixes an implicit dependency issue)
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
-    # 2. Add the 'staticfiles' storage (Fixes the SystemCheckError: staticfiles.E005)
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
-    # 3. Your 'dbbackup' configuration
-    "dbbackup": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-        "OPTIONS": {
-            "location": os.path.join(BASE_DIR, "backups"),
-        },
-    },
 }
-
-# Keep your existing django-dbbackup specific settings:
-DBBACKUP_CLEANUP_KEEP = 10
-DBBACKUP_CLEANUP_BATCH_SIZE = 100
-DBBACKUP_FILENAME_TEMPLATE = "backup_{datetime}.dump"
-DBBACKUP_ENCRYPTION_KEY = os.getenv("BACKUP_ENCRYPTION_KEY", None)
