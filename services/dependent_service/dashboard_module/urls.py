@@ -59,6 +59,12 @@ urlpatterns = [
         "dashboard/admin/",
         include("services.dependent_service.dashboard_module.dashboard_admin_app.urls"),
     ),
+    path(
+        "dashboard/finance/",
+        include(
+            "services.dependent_service.dashboard_module.dashboard_collection_agent_app.urls"
+        ),
+    ),
     # path(
     #     "dashboard/doyen/",
     #     include("services.dependent_service.dashboard_module.dashboard_doyen_app.urls"),
