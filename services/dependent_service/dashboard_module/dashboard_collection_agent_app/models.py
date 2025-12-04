@@ -28,6 +28,9 @@ class Wording(models.Model):
         db_table = "wordings"
 
 
+3
+
+
 class FeesSheet(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     class_fk = models.ForeignKey(
@@ -181,7 +184,9 @@ class Payment(models.Model):
         User, on_delete=models.RESTRICT, related_name="payments_user"
     )
     description = models.CharField(max_length=250, null=True)
-    remittance_slip_uri = models.CharField(max_length=255, null=True)
+    remittance_slip_uri = models.ImageField(
+        upload_to="payment_slips/", null=True, blank=True
+    )
     payment_status = models.CharField(
         max_length=20, choices=STATUS, default="unverified"
     )

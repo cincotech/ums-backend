@@ -83,6 +83,7 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
             "created_by",
             "created_at",
         ]
+        read_only_fields = ["created_by", "created_at"]
 
 
 class PaymentPromiseSerializer(serializers.ModelSerializer):
@@ -101,6 +102,22 @@ class PaymentPromiseSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    inscription = serializers.UUIDField(required=False, allow_null=True)
+    remittance_slip_uri = serializers.ImageField(required=False, allow_null=True)
+
+    def validate_inscription(self, value):
+        if value == "" or value == "<uuid-inscription>" or value is None:
+            return None
+        return value
+
+    def to_internal_value(self, data):
+        if "inscription" in data and (
+            data["inscription"] == "" or data["inscription"] == "<uuid-inscription>"
+        ):
+            data = data.copy()
+            data["inscription"] = None
+        return super().to_internal_value(data)
+
     class Meta:
         model = Payment
         fields = [
@@ -119,6 +136,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             "remittance_slip_uri",
             "payment_status",
         ]
+        read_only_fields = ["user"]
 
 
 class CollectionCorrespondenceSerializer(serializers.ModelSerializer):
