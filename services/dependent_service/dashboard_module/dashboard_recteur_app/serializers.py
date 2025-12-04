@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from services.core_service.academic_module.quality_app.serializers import QualityReportSerializer
 from .models import PaymentDerogation, VisitorCourseAttribution
 
 

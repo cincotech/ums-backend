@@ -1,12 +1,7 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
-from core.response_handler import error_response, success_response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from core.response_handler import error_response, success_response
 from core.permissions import (
     CanRequestDocuments,
     CanSendMessages,
@@ -14,19 +9,21 @@ from core.permissions import (
     CanViewTranscript,
     IsStudent,
 )
-from .services import StudentDashboardService
+from core.response_handler import error_response, success_response
+
 from .serializers import (
-    StudentDashboardStatsSerializer,
-    StudentProfileSerializer,
-    StudentGradesSerializer,
-    StudentTranscriptSerializer,
     AcademicProgressSerializer,
-    StudentScheduleSerializer,
     StudentAttendanceSerializer,
-    StudentNotificationSerializer,
+    StudentDashboardStatsSerializer,
     StudentDocumentRequestSerializer,
+    StudentGradesSerializer,
     StudentMessageSerializer,
+    StudentNotificationSerializer,
+    StudentProfileSerializer,
+    StudentScheduleSerializer,
+    StudentTranscriptSerializer,
 )
+from .services import StudentDashboardService
 
 
 @api_view(["GET"])
@@ -71,9 +68,7 @@ def student_profile(request):
                 return success_response(
                     data=serializer.data, message="Student profile updated"
                 )
-            return error_response(
-                message="Invalid data", errors=serializer.errors
-            )
+            return error_response(message="Invalid data", errors=serializer.errors)
 
     except Exception as e:
         return error_response(
@@ -90,10 +85,10 @@ def student_grades(request):
         student = request.user.students_users
         grades_data = StudentDashboardService.get_student_grades(student)
 
-        if isinstance(grades_data, dict) and 'error' in grades_data:
+        if isinstance(grades_data, dict) and "error" in grades_data:
             return error_response(
-                message=grades_data['message'],
-                status_code=status.HTTP_402_PAYMENT_REQUIRED
+                message=grades_data["message"],
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
             )
 
         serializer = StudentGradesSerializer(grades_data, many=True)
@@ -115,10 +110,10 @@ def student_transcript(request):
         student = request.user.students_users
         transcript_data = StudentDashboardService.get_student_transcript(student)
 
-        if isinstance(transcript_data, dict) and 'error' in transcript_data:
+        if isinstance(transcript_data, dict) and "error" in transcript_data:
             return error_response(
-                message=transcript_data['message'],
-                status_code=status.HTTP_403_FORBIDDEN
+                message=transcript_data["message"],
+                status_code=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = StudentTranscriptSerializer(transcript_data)
@@ -201,7 +196,7 @@ def student_notifications(request):
             )
 
         elif request.method == "POST":
-            notification_id = request.data.get('notification_id')
+            notification_id = request.data.get("notification_id")
             if notification_id:
                 StudentDashboardService.mark_notification_read(notification_id)
                 return success_response(message="Notification marked as read")
@@ -238,9 +233,7 @@ def document_requests(request):
                 return success_response(
                     data=serializer.data, message="Document request created"
                 )
-            return error_response(
-                message="Invalid data", errors=serializer.errors
-            )
+            return error_response(message="Invalid data", errors=serializer.errors)
 
     except Exception as e:
         return error_response(
@@ -270,12 +263,8 @@ def student_messages(request):
                     student, serializer.validated_data
                 )
                 serializer = StudentMessageSerializer(message)
-                return success_response(
-                    data=serializer.data, message="Message sent"
-                )
-            return error_response(
-                message="Invalid data", errors=serializer.errors
-            )
+                return success_response(data=serializer.data, message="Message sent")
+            return error_response(message="Invalid data", errors=serializer.errors)
 
     except Exception as e:
         return error_response(
@@ -290,7 +279,7 @@ def download_documents(request):
     """Download available documents"""
     try:
         student = request.user.students_users
-        document_type = request.query_params.get('type')
+        document_type = request.query_params.get("type")
 
         if not document_type:
             return error_response(message="Document type required")
@@ -299,16 +288,13 @@ def download_documents(request):
             student, document_type
         )
 
-        if isinstance(document_data, dict) and 'error' in document_data:
+        if isinstance(document_data, dict) and "error" in document_data:
             return error_response(
-                message=document_data['message'],
-                status_code=status.HTTP_403_FORBIDDEN
+                message=document_data["message"], status_code=status.HTTP_403_FORBIDDEN
             )
 
         # Return document data (would typically return file response)
-        return success_response(
-            data=document_data, message="Document retrieved"
-        )
+        return success_response(data=document_data, message="Document retrieved")
 
     except Exception as e:
         return error_response(

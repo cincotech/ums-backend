@@ -1,5 +1,3 @@
-from django.db.models import Avg, Count
-
 class RectorAnalyticsService:
     @staticmethod
     def payment_overview():

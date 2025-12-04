@@ -35,8 +35,6 @@ class StudentProfileSerializer(serializers.Serializer):
     payment_status = serializers.CharField()
 
 
-
-
 class StudentGradesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Result
@@ -47,8 +45,6 @@ class StudentTranscriptSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompiledResult
         fields = ["id", "results", "average_mark", "status", "is_promoted"]
-
-
 
 
 class StudentScheduleSerializer(serializers.Serializer):
@@ -79,8 +75,6 @@ class StudentNotificationSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]
-
-
 
 
 class StudentDocumentRequestSerializer(serializers.ModelSerializer):
@@ -114,14 +108,11 @@ class StudentMessageSerializer(serializers.ModelSerializer):
         return f"{obj.sender.first_name} {obj.sender.last_name}"
 
 
-
 class StudentPaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = ["id", "amount_paid", "payment_date", "payment_method", "reference"]
         read_only_fields = ["id", "payment_date"]
-
-
 
 
 class AcademicProgressSerializer(serializers.Serializer):

@@ -8,8 +8,9 @@ class Country(models.Model):
     code = models.CharField(max_length=3, null=True, blank=True)
     country_name = models.CharField(max_length=100, unique=True)
 
-    def __str__(self):
-        return self.country_name
+    
 
     class Meta:
         db_table = "countries"
+    def __str__(self):
+        return self.country_name

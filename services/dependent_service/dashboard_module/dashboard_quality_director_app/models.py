@@ -86,7 +86,13 @@ class StudentRetentionAudit(models.Model):
 
 
 class CourseSatisfactionSurvey(models.Model):
-    RATING_CHOICES = ((1, "Poor"), (2, "Fair"), (3, "Good"), (4, "Very Good"), (5, "Excellent"))
+    RATING_CHOICES = (
+        (1, "Poor"),
+        (2, "Fair"),
+        (3, "Good"),
+        (4, "Very Good"),
+        (5, "Excellent"),
+    )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course_name = models.CharField(max_length=255)

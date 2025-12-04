@@ -1,8 +1,9 @@
 from celery import shared_task
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 
 User = get_user_model()
+
 
 @shared_task
 def notify_derogation_decision(student_email, status):
@@ -13,13 +14,15 @@ def notify_derogation_decision(student_email, status):
         from_email="no-reply@ums.bi",
         recipient_list=[student_email],
     )
-    
+
     # Notifier l'Agent de Recouvrement et le Comptable
-    recovery_agents = User.objects.filter(role='agent_recouvrement')
-    accountants = User.objects.filter(role='comptable')
-    
-    recipient_list = list(recovery_agents.values_list('email', flat=True)) + list(accountants.values_list('email', flat=True))
-    
+    recovery_agents = User.objects.filter(role="agent_recouvrement")
+    accountants = User.objects.filter(role="comptable")
+
+    recipient_list = list(recovery_agents.values_list("email", flat=True)) + list(
+        accountants.values_list("email", flat=True)
+    )
+
     if recipient_list:
         send_mail(
             subject="Notification: Décision de Dérogation de Paiement",

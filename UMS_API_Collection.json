@@ -51,12 +51,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/overview/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "overview", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "overview",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -73,12 +87,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/profile/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "profile", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "profile",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -87,16 +115,38 @@
               "name": "Update Student Profile",
               "request": {
                 "method": "PUT",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
-                "body": {"mode": "raw", "raw": "{\"phone\": \"+25712345678\", \"address\": \"123 Main St, Bujumbura\"}"},
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"phone\": \"+25712345678\", \"address\": \"123 Main St, Bujumbura\"}"
+                },
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/profile/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "profile", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "profile",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -113,12 +163,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/grades/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "grades", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "grades",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -130,12 +194,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/transcript/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "transcript", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "transcript",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -147,12 +225,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/progress/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "progress", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "progress",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -169,12 +261,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/schedule/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "schedule", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "schedule",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -186,12 +292,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/attendance/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "attendance", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "attendance",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -208,12 +328,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/notifications/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "notifications", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "notifications",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -222,16 +356,38 @@
               "name": "Mark Notification as Read",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
-                "body": {"mode": "raw", "raw": "{\"notification_id\": 1}"},
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"notification_id\": 1}"
+                },
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/notifications/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "notifications", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "notifications",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -243,12 +399,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/messages/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "messages", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "messages",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -257,16 +427,38 @@
               "name": "Send Message",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
-                "body": {"mode": "raw", "raw": "{\"recipient_id\": 2, \"subject\": \"Question about grades\", \"message\": \"I have a question about my recent grades.\"}"},
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"recipient_id\": 2, \"subject\": \"Question about grades\", \"message\": \"I have a question about my recent grades.\"}"
+                },
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/messages/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "messages", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "messages",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -283,12 +475,27 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/documents/requests/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "documents", "requests", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "documents",
+                    "requests",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -297,16 +504,39 @@
               "name": "Create Document Request",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
-                "body": {"mode": "raw", "raw": "{\"document_type\": \"transcript\", \"purpose\": \"Job application\", \"copies\": 2}"},
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"document_type\": \"transcript\", \"purpose\": \"Job application\", \"copies\": 2}"
+                },
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/documents/requests/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "documents", "requests", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "documents",
+                    "requests",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -318,13 +548,33 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/student/documents/download/?type=transcript",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "student", "documents", "download", ""],
-                  "query": [{"key": "type", "value": "transcript"}]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "student",
+                    "documents",
+                    "download",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "transcript"
+                    }
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -346,12 +596,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/quality-standards/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "quality-standards", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "quality-standards",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -360,16 +624,38 @@
               "name": "Create Standard",
               "request": {
                 "method": "POST",
-                "header": [{"key": "Content-Type", "value": "application/json"}],
-                "body": {"mode": "raw", "raw": "{\"title\": \"Academic Excellence\", \"description\": \"Standards for academic quality\", \"compliance_criteria\": {\"min_pass_rate\": 70}}"},
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"title\": \"Academic Excellence\", \"description\": \"Standards for academic quality\", \"compliance_criteria\": {\"min_pass_rate\": 70}}"
+                },
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/quality-standards/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "quality-standards", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "quality-standards",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -386,12 +672,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/compliance-audits/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "compliance-audits", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "compliance-audits",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -403,13 +703,33 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/compliance-audits/by_status/?status=compliant",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "compliance-audits", "by_status", ""],
-                  "query": [{"key": "status", "value": "compliant"}]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "compliance-audits",
+                    "by_status",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "compliant"
+                    }
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -426,12 +746,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/academic-performance/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "academic-performance", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "academic-performance",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -443,13 +777,37 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/academic-performance/by_year_semester/?academic_year=2024-2025&semester=1",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "academic-performance", "by_year_semester", ""],
-                  "query": [{"key": "academic_year", "value": "2024-2025"}, {"key": "semester", "value": "1"}]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "academic-performance",
+                    "by_year_semester",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "academic_year",
+                      "value": "2024-2025"
+                    },
+                    {
+                      "key": "semester",
+                      "value": "1"
+                    }
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -466,12 +824,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/program-execution/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "program-execution", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "program-execution",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -483,13 +855,33 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/program-execution/underperforming/?threshold=70",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "program-execution", "underperforming", ""],
-                  "query": [{"key": "threshold", "value": "70"}]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "program-execution",
+                    "underperforming",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "threshold",
+                      "value": "70"
+                    }
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -506,12 +898,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/student-retention/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "student-retention", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "student-retention",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -528,12 +934,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/satisfaction-surveys/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "satisfaction-surveys", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "satisfaction-surveys",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -545,13 +965,33 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/satisfaction-surveys/by_course/?course_name=Mathematics",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "satisfaction-surveys", "by_course", ""],
-                  "query": [{"key": "course_name", "value": "Mathematics"}]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "satisfaction-surveys",
+                    "by_course",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "course_name",
+                      "value": "Mathematics"
+                    }
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -568,12 +1008,26 @@
                 "header": [],
                 "url": {
                   "raw": "{{base_url}}/api/dashboard/quality-director/quality-reports/",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "dashboard", "quality-director", "quality-reports", ""]
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "dashboard",
+                    "quality-director",
+                    "quality-reports",
+                    ""
+                  ]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -891,7 +1345,7 @@
       ]
     },
     {
-      "name": "\ud83d\udc68\u200d\ud83c\udf93 Student Module",
+      "name": "👨‍🎓 Student Module",
       "item": [
         {
           "name": "Students",
@@ -1580,7 +2034,7 @@
       ]
     },
     {
-      "name": "\ud83d\udcb0 Finance Module",
+      "name": "💰 Finance Module",
       "item": [
         {
           "name": "Fees",
@@ -1927,7 +2381,7 @@
       ]
     },
     {
-      "name": "\ud83d\udcca Dashboard Module",
+      "name": "📊 Dashboard Module",
       "item": [
         {
           "name": "Liste des Zones",
@@ -1936,8 +2390,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/zones/",
-              "host": ["{{base_url}}"],
-              "path": ["zones", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "zones",
+                ""
+              ]
             }
           },
           "response": []
@@ -1946,15 +2405,25 @@
           "name": "Créer une Zone",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Zone 1\",\n  \"commune\": \"<commune_uuid>\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/zones/",
-              "host": ["{{base_url}}"],
-              "path": ["zones", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "zones",
+                ""
+              ]
             }
           },
           "response": []
@@ -1971,8 +2440,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/collines/",
-              "host": ["{{base_url}}"],
-              "path": ["collines", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collines",
+                ""
+              ]
             }
           },
           "response": []
@@ -1981,15 +2455,25 @@
           "name": "Créer une Colline",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Collines Test\",\n  \"zone\": \"<zone_uuid>\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/collines/",
-              "host": ["{{base_url}}"],
-              "path": ["collines", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collines",
+                ""
+              ]
             }
           },
           "response": []
@@ -2002,9 +2486,40 @@
         {
           "name": "Document Requests",
           "item": [
-            { "name": "List Document Requests", "request": { "method": "GET", "url": "{{base_url}}/dashboard/student-services/document-requests/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Document Request", "request": { "method": "GET", "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-
+            {
+              "name": "List Document Requests",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/dashboard/student-services/document-requests/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Document Request",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
             {
               "name": "Create Document Request",
               "request": {
@@ -2013,14 +2528,39 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "student", "value": "<uuid>", "type": "text" },
-                    { "key": "document_type", "value": "diploma", "type": "text" },
-                    { "key": "purpose", "value": "Candidature emploi", "type": "text" },
-                    { "key": "supporting_documents", "type": "file", "src": [] }
+                    {
+                      "key": "student",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "document_type",
+                      "value": "diploma",
+                      "type": "text"
+                    },
+                    {
+                      "key": "purpose",
+                      "value": "Candidature emploi",
+                      "type": "text"
+                    },
+                    {
+                      "key": "supporting_documents",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/document-requests/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -2031,14 +2571,39 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "student", "value": "<uuid>", "type": "text" },
-                    { "key": "document_type", "value": "attestation", "type": "text" },
-                    { "key": "purpose", "value": "Mise à jour motif", "type": "text" },
-                    { "key": "supporting_documents", "type": "file", "src": [] }
+                    {
+                      "key": "student",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "document_type",
+                      "value": "attestation",
+                      "type": "text"
+                    },
+                    {
+                      "key": "purpose",
+                      "value": "Mise à jour motif",
+                      "type": "text"
+                    },
+                    {
+                      "key": "supporting_documents",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -2049,24 +2614,87 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "purpose", "value": "Modification partielle", "type": "text" },
-                    { "key": "supporting_documents", "type": "file", "src": [] }
+                    {
+                      "key": "purpose",
+                      "value": "Modification partielle",
+                      "type": "text"
+                    },
+                    {
+                      "key": "supporting_documents",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
-            { "name": "Delete Document Request", "request": { "method": "DELETE", "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "Delete Document Request",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/dashboard/student-services/document-requests/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Absence Justifications",
           "item": [
-            { "name": "List Absence Justifications", "request": { "method": "GET", "url": "{{base_url}}/dashboard/student-services/absence-justifications/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Absence Justification", "request": { "method": "GET", "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-
+            {
+              "name": "List Absence Justifications",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/dashboard/student-services/absence-justifications/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Absence Justification",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
             {
               "name": "Create Absence Justification",
               "request": {
@@ -2075,17 +2703,54 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "student", "value": "<uuid>", "type": "text" },
-                    { "key": "absence_type", "value": "medical", "type": "text" },
-                    { "key": "start_date", "value": "2025-01-15", "type": "text" },
-                    { "key": "end_date", "value": "2025-01-20", "type": "text" },
-                    { "key": "reason", "value": "Maladie", "type": "text" },
-                    { "key": "medical_certificate", "type": "file", "src": [] },
-                    { "key": "other_documents", "type": "file", "src": [] }
+                    {
+                      "key": "student",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "absence_type",
+                      "value": "medical",
+                      "type": "text"
+                    },
+                    {
+                      "key": "start_date",
+                      "value": "2025-01-15",
+                      "type": "text"
+                    },
+                    {
+                      "key": "end_date",
+                      "value": "2025-01-20",
+                      "type": "text"
+                    },
+                    {
+                      "key": "reason",
+                      "value": "Maladie",
+                      "type": "text"
+                    },
+                    {
+                      "key": "medical_certificate",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "other_documents",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/absence-justifications/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -2096,12 +2761,29 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "reason", "value": "Raison modifiée complète", "type": "text" },
-                    { "key": "medical_certificate", "type": "file", "src": [] }
+                    {
+                      "key": "reason",
+                      "value": "Raison modifiée complète",
+                      "type": "text"
+                    },
+                    {
+                      "key": "medical_certificate",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -2112,18 +2794,50 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "reason", "value": "Correction rapide", "type": "text" },
-                    { "key": "medical_certificate", "type": "file", "src": [] }
+                    {
+                      "key": "reason",
+                      "value": "Correction rapide",
+                      "type": "text"
+                    },
+                    {
+                      "key": "medical_certificate",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
-            { "name": "Delete Absence Justification", "request": { "method": "DELETE", "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "Delete Absence Justification",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/dashboard/student-services/absence-justifications/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Student Activities",
           "item": [
@@ -2135,18 +2849,59 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "activity_type", "value": "club", "type": "text" },
-                    { "key": "name", "value": "Club Photo 2025", "type": "text" },
-                    { "key": "description", "value": "Club photographie", "type": "text" },
-                    { "key": "organizer", "value": "<uuid>", "type": "text" },
-                    { "key": "start_date", "value": "2025-03-01T14:00:00Z", "type": "text" },
-                    { "key": "location", "value": "Salle Arts", "type": "text" },
-                    { "key": "poster", "type": "file", "src": [] },
-                    { "key": "photos", "type": "file", "src": [] }
+                    {
+                      "key": "activity_type",
+                      "value": "club",
+                      "type": "text"
+                    },
+                    {
+                      "key": "name",
+                      "value": "Club Photo 2025",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Club photographie",
+                      "type": "text"
+                    },
+                    {
+                      "key": "organizer",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "start_date",
+                      "value": "2025-03-01T14:00:00Z",
+                      "type": "text"
+                    },
+                    {
+                      "key": "location",
+                      "value": "Salle Arts",
+                      "type": "text"
+                    },
+                    {
+                      "key": "poster",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "photos",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/student-activities/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -2157,12 +2912,29 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "name", "value": "Club Photo & Vidéo", "type": "text" },
-                    { "key": "poster", "type": "file", "src": [] }
+                    {
+                      "key": "name",
+                      "value": "Club Photo & Vidéo",
+                      "type": "text"
+                    },
+                    {
+                      "key": "poster",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/student-activities/<uuid>/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -2173,17 +2945,33 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "description", "value": "Nouvelle description", "type": "text" },
-                    { "key": "poster", "type": "file", "src": [] }
+                    {
+                      "key": "description",
+                      "value": "Nouvelle description",
+                      "type": "text"
+                    },
+                    {
+                      "key": "poster",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/student-activities/<uuid>/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             }
           ]
         },
-
         {
           "name": "Scholarships",
           "item": [
@@ -2195,22 +2983,58 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "student", "value": "<uuid>", "type": "text" },
-                    { "key": "scholarship_type", "value": "merit", "type": "text" },
-                    { "key": "provider", "value": "État", "type": "text" },
-                    { "key": "amount", "value": "800000", "type": "text" },
-                    { "key": "academic_year", "value": "2025-2026", "type": "text" },
-                    { "key": "application_documents", "type": "file", "src": [] },
-                    { "key": "motivation_letter", "type": "file", "src": [] }
+                    {
+                      "key": "student",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "scholarship_type",
+                      "value": "merit",
+                      "type": "text"
+                    },
+                    {
+                      "key": "provider",
+                      "value": "État",
+                      "type": "text"
+                    },
+                    {
+                      "key": "amount",
+                      "value": "800000",
+                      "type": "text"
+                    },
+                    {
+                      "key": "academic_year",
+                      "value": "2025-2026",
+                      "type": "text"
+                    },
+                    {
+                      "key": "application_documents",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "motivation_letter",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/scholarships/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             }
           ]
         },
-
         {
           "name": "Counseling Sessions",
           "item": [
@@ -2222,24 +3046,68 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "session_type", "value": "orientation", "type": "text" },
-                    { "key": "title", "value": "Orientation L1", "type": "text" },
-                    { "key": "description", "value": "Session collective", "type": "text" },
-                    { "key": "counselor", "value": "<uuid>", "type": "text" },
-                    { "key": "scheduled_date", "value": "2025-09-10T09:00:00Z", "type": "text" },
-                    { "key": "duration_minutes", "value": "120", "type": "text" },
-                    { "key": "location", "value": "Amphi A", "type": "text" },
-                    { "key": "is_group_session", "value": "true", "type": "text" },
-                    { "key": "presentation_file", "type": "file", "src": [] }
+                    {
+                      "key": "session_type",
+                      "value": "orientation",
+                      "type": "text"
+                    },
+                    {
+                      "key": "title",
+                      "value": "Orientation L1",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Session collective",
+                      "type": "text"
+                    },
+                    {
+                      "key": "counselor",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "scheduled_date",
+                      "value": "2025-09-10T09:00:00Z",
+                      "type": "text"
+                    },
+                    {
+                      "key": "duration_minutes",
+                      "value": "120",
+                      "type": "text"
+                    },
+                    {
+                      "key": "location",
+                      "value": "Amphi A",
+                      "type": "text"
+                    },
+                    {
+                      "key": "is_group_session",
+                      "value": "true",
+                      "type": "text"
+                    },
+                    {
+                      "key": "presentation_file",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/counseling-sessions/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             }
           ]
         },
-
         {
           "name": "Status Changes",
           "item": [
@@ -2251,17 +3119,54 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "student", "value": "<uuid>", "type": "text" },
-                    { "key": "inscription", "value": "<uuid>", "type": "text" },
-                    { "key": "status_type", "value": "withdrawal", "type": "text" },
-                    { "key": "reason", "value": "Raisons personnelles", "type": "text" },
-                    { "key": "effective_date", "value": "2025-06-30", "type": "text" },
-                    { "key": "requested_by", "value": "<uuid>", "type": "text" },
-                    { "key": "supporting_letter", "type": "file", "src": [] }
+                    {
+                      "key": "student",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "inscription",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "status_type",
+                      "value": "withdrawal",
+                      "type": "text"
+                    },
+                    {
+                      "key": "reason",
+                      "value": "Raisons personnelles",
+                      "type": "text"
+                    },
+                    {
+                      "key": "effective_date",
+                      "value": "2025-06-30",
+                      "type": "text"
+                    },
+                    {
+                      "key": "requested_by",
+                      "value": "<uuid>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "supporting_letter",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
                 "url": "{{base_url}}/dashboard/student-services/status-changes/",
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             }
           ]
@@ -2274,56 +3179,588 @@
         {
           "name": "Banks",
           "item": [
-            { "name": "List Banks", "request": { "method": "GET", "url": "{{base_url}}/finance/banks/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Bank", "request": { "method": "GET", "url": "{{base_url}}/finance/banks/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Create Bank", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"bank_name\": \"Société Générale\",\n  \"bank_abreviation\": \"SG\"\n}" }, "url": "{{base_url}}/finance/banks/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Update Bank (PUT)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"bank_name\": \"Société Générale Côte d'Ivoire\",\n  \"bank_abreviation\": \"SGCI\"\n}" }, "url": "{{base_url}}/finance/banks/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Partial Update Bank (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"bank_abreviation\": \"SGCI\"\n}" }, "url": "{{base_url}}/finance/banks/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Delete Bank", "request": { "method": "DELETE", "url": "{{base_url}}/finance/banks/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "List Banks",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/banks/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Bank",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/banks/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Bank",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bank_name\": \"Société Générale\",\n  \"bank_abreviation\": \"SG\"\n}"
+                },
+                "url": "{{base_url}}/finance/banks/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Bank (PUT)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bank_name\": \"Société Générale Côte d'Ivoire\",\n  \"bank_abreviation\": \"SGCI\"\n}"
+                },
+                "url": "{{base_url}}/finance/banks/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Partial Update Bank (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"bank_abreviation\": \"SGCI\"\n}"
+                },
+                "url": "{{base_url}}/finance/banks/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Bank",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/finance/banks/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Wordings",
           "item": [
-            { "name": "List Wordings", "request": { "method": "GET", "url": "{{base_url}}/finance/wordings/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Wording", "request": { "method": "GET", "url": "{{base_url}}/finance/wordings/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Create Wording", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"wording_name\": \"Frais d'inscription\"\n}" }, "url": "{{base_url}}/finance/wordings/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Update Wording (PUT)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"wording_name\": \"Frais d'inscription 2025-2026\"\n}" }, "url": "{{base_url}}/finance/wordings/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Partial Update Wording (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"wording_name\": \"Frais initiaux\"\n}" }, "url": "{{base_url}}/finance/wordings/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Delete Wording", "request": { "method": "DELETE", "url": "{{base_url}}/finance/wordings/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "List Wordings",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/wordings/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Wording",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/wordings/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Wording",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"wording_name\": \"Frais d'inscription\"\n}"
+                },
+                "url": "{{base_url}}/finance/wordings/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Wording (PUT)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"wording_name\": \"Frais d'inscription 2025-2026\"\n}"
+                },
+                "url": "{{base_url}}/finance/wordings/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Partial Update Wording (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"wording_name\": \"Frais initiaux\"\n}"
+                },
+                "url": "{{base_url}}/finance/wordings/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Wording",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/finance/wordings/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Fees Sheets",
           "item": [
-            { "name": "List Fees Sheets", "request": { "method": "GET", "url": "{{base_url}}/finance/fees-sheets/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Fees Sheet", "request": { "method": "GET", "url": "{{base_url}}/finance/fees-sheets/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Create Fees Sheet", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"class_fk\": \"<uuid-class>\",\n  \"academic_year\": \"<uuid-academic-year>\",\n  \"wording\": \"<uuid-wording>\",\n  \"base_amount\": 1800000\n}" }, "url": "{{base_url}}/finance/fees-sheets/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Update Fees Sheet (PUT)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"base_amount\": 2000000\n}" }, "url": "{{base_url}}/finance/fees-sheets/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Partial Update Fees Sheet (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"base_amount\": 1950000\n}" }, "url": "{{base_url}}/finance/fees-sheets/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Delete Fees Sheet", "request": { "method": "DELETE", "url": "{{base_url}}/finance/fees-sheets/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "List Fees Sheets",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/fees-sheets/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Fees Sheet",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/fees-sheets/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Fees Sheet",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"class_fk\": \"<uuid-class>\",\n  \"academic_year\": \"<uuid-academic-year>\",\n  \"wording\": \"<uuid-wording>\",\n  \"base_amount\": 1800000\n}"
+                },
+                "url": "{{base_url}}/finance/fees-sheets/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Fees Sheet (PUT)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"base_amount\": 2000000\n}"
+                },
+                "url": "{{base_url}}/finance/fees-sheets/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Partial Update Fees Sheet (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"base_amount\": 1950000\n}"
+                },
+                "url": "{{base_url}}/finance/fees-sheets/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Fees Sheet",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/finance/fees-sheets/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Payment Plans",
           "item": [
-            { "name": "List Payment Plans", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-plans/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Payment Plan", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-plans/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Create Payment Plan", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"feessheet\": \"<uuid-feessheet>\",\n  \"total_amount\": 1800000,\n  \"monthly_amount\": 300000,\n  \"start_date\": \"2025-09-01\",\n  \"end_date\": \"2026-06-01\"\n}" }, "url": "{{base_url}}/finance/payment-plans/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Update Payment Plan (PUT)", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"monthly_amount\": 360000,\n  \"status\": \"active\"\n}" }, "url": "{{base_url}}/finance/payment-plans/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Partial Update Payment Plan (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"defaulted\"\n}" }, "url": "{{base_url}}/finance/payment-plans/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Delete Payment Plan", "request": { "method": "DELETE", "url": "{{base_url}}/finance/payment-plans/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "List Payment Plans",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payment-plans/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Payment Plan",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payment-plans/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Payment Plan",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"feessheet\": \"<uuid-feessheet>\",\n  \"total_amount\": 1800000,\n  \"monthly_amount\": 300000,\n  \"start_date\": \"2025-09-01\",\n  \"end_date\": \"2026-06-01\"\n}"
+                },
+                "url": "{{base_url}}/finance/payment-plans/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Payment Plan (PUT)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"monthly_amount\": 360000,\n  \"status\": \"active\"\n}"
+                },
+                "url": "{{base_url}}/finance/payment-plans/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Partial Update Payment Plan (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"defaulted\"\n}"
+                },
+                "url": "{{base_url}}/finance/payment-plans/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Payment Plan",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/finance/payment-plans/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Payments",
           "item": [
-            { "name": "List Payments", "request": { "method": "GET", "url": "{{base_url}}/finance/payments/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Payment", "request": { "method": "GET", "url": "{{base_url}}/finance/payments/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
+            {
+              "name": "List Payments",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payments/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Payment",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payments/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
             {
               "name": "Create Payment + Bordereau",
               "request": {
@@ -2332,61 +3769,745 @@
                 "body": {
                   "mode": "formdata",
                   "formdata": [
-                    { "key": "paymentplan", "value": "<uuid-paymentplan>", "type": "text" },
-                    { "key": "amount_paid", "value": "500000", "type": "text" },
-                    { "key": "payment_date", "value": "2025-12-02", "type": "text" },
-                    { "key": "reception_date", "value": "2025-12-02", "type": "text" },
-                    { "key": "payment_method", "value": "mobile_money", "type": "text" },
-                    { "key": "transaction_code", "value": "OM123456789", "type": "text" },
-                    { "key": "inscription", "value": "<uuid-inscription>", "type": "text" },
-                    { "key": "user", "value": "<uuid-user>", "type": "text" },
-                    { "key": "remittance_slip_uri", "type": "file", "src": [] }
+                    {
+                      "key": "paymentplan",
+                      "value": "<uuid-paymentplan>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "amount_paid",
+                      "value": "500000",
+                      "type": "text"
+                    },
+                    {
+                      "key": "payment_date",
+                      "value": "2025-12-02",
+                      "type": "text"
+                    },
+                    {
+                      "key": "reception_date",
+                      "value": "2025-12-02",
+                      "type": "text"
+                    },
+                    {
+                      "key": "payment_method",
+                      "value": "mobile_money",
+                      "type": "text"
+                    },
+                    {
+                      "key": "transaction_code",
+                      "value": "OM123456789",
+                      "type": "text"
+                    },
+                    {
+                      "key": "inscription",
+                      "value": "<uuid-inscription>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "user",
+                      "value": "<uuid-user>",
+                      "type": "text"
+                    },
+                    {
+                      "key": "remittance_slip_uri",
+                      "type": "file",
+                      "src": []
+                    }
                   ]
                 },
-                "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] }
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
               }
             },
-            { "name": "Verify Payment (PATCH)", "request": { "method": "PATCH", "body": { "mode": "formdata", "formdata": [{ "key": "payment_status", "value": "verified", "type": "text" }] }, "url": "{{base_url}}/finance/payments/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Reject Payment (PATCH)", "request": { "method": "PATCH", "body": { "mode": "formdata", "formdata": [{ "key": "payment_status", "value": "rejected", "type": "text" }] }, "url": "{{base_url}}/finance/payments/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Delete Payment", "request": { "method": "DELETE", "url": "{{base_url}}/finance/payments/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "Verify Payment (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "payment_status",
+                      "value": "verified",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{base_url}}/finance/payments/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Reject Payment (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "payment_status",
+                      "value": "rejected",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{base_url}}/finance/payments/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Payment",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/finance/payments/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Payment Promises",
           "item": [
-            { "name": "List Payment Promises", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-promises/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Promise", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-promises/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Create Promise", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"promised_amount\": 400000,\n  \"promised_date\": \"2025-12-25\",\n  \"notes\": \"Promis verbalement\"\n}" }, "url": "{{base_url}}/finance/payment-promises/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Mark as Kept (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"kept\"\n}" }, "url": "{{base_url}}/finance/payment-promises/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Mark as Broken (PATCH)", "request": { "method": "PATCH", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"status\": \"broken\"\n}" }, "url": "{{base_url}}/finance/payment-promises/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Delete Promise", "request": { "method": "DELETE", "url": "{{base_url}}/finance/payment-promises/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "List Payment Promises",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payment-promises/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Promise",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payment-promises/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Promise",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"promised_amount\": 400000,\n  \"promised_date\": \"2025-12-25\",\n  \"notes\": \"Promis verbalement\"\n}"
+                },
+                "url": "{{base_url}}/finance/payment-promises/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mark as Kept (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"kept\"\n}"
+                },
+                "url": "{{base_url}}/finance/payment-promises/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Mark as Broken (PATCH)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"broken\"\n}"
+                },
+                "url": "{{base_url}}/finance/payment-promises/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Delete Promise",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/finance/payment-promises/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Payment Reminders",
           "item": [
-            { "name": "List Reminders", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-reminders/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Reminder", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-reminders/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Send Reminder", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"reminder_type\": \"reminder_30\",\n  \"amount_due\": 750000,\n  \"message\": \"Rappel aimable de règlement\"\n}" }, "url": "{{base_url}}/finance/payment-reminders/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "List Reminders",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payment-reminders/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Reminder",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payment-reminders/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Send Reminder",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"reminder_type\": \"reminder_30\",\n  \"amount_due\": 750000,\n  \"message\": \"Rappel aimable de règlement\"\n}"
+                },
+                "url": "{{base_url}}/finance/payment-reminders/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Collection Correspondence",
           "item": [
-            { "name": "List Correspondence", "request": { "method": "GET", "url": "{{base_url}}/finance/collection-correspondence/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Correspondence", "request": { "method": "GET", "url": "{{base_url}}/finance/collection-correspondence/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Log Email/SMS/Call", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"correspondence_type\": \"sms\",\n  \"subject\": \"Rappel paiement\",\n  \"content\": \"Bonjour, solde de 750000 FCFA à régulariser avant le 31/12\"\n}" }, "url": "{{base_url}}/finance/collection-correspondence/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "List Correspondence",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/collection-correspondence/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Correspondence",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/collection-correspondence/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Log Email/SMS/Call",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"student\": \"<uuid-student>\",\n  \"correspondence_type\": \"sms\",\n  \"subject\": \"Rappel paiement\",\n  \"content\": \"Bonjour, solde de 750000 FCFA à régulariser avant le 31/12\"\n}"
+                },
+                "url": "{{base_url}}/finance/collection-correspondence/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
           ]
         },
-
         {
           "name": "Payment Installments",
           "item": [
-            { "name": "List Installments", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-installements/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } },
-            { "name": "Retrieve Installment", "request": { "method": "GET", "url": "{{base_url}}/finance/payment-installements/<uuid>/", "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] } } }
+            {
+              "name": "List Installments",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payment-installements/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Retrieve Installment",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/finance/payment-installements/<uuid>/",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📅 Scheduling Module",
+      "item": [
+        {
+          "name": "Schedule Slots",
+          "item": [
+            {
+              "name": "List Schedule Slots",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/slots/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "scheduling",
+                    "slots",
+                    ""
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Schedule Slot",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"start_time\": \"09:00:00\", \"end_time\": \"10:30:00\", \"day_of_week\": \"Monday\", \"schedule_name\": \"Slot 1\"}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/slots/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "scheduling",
+                    "slots",
+                    ""
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Timetables",
+          "item": [
+            {
+              "name": "List Timetables",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/timetables/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "scheduling",
+                    "timetables",
+                    ""
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Timetable",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"class_group\": \"<uuid>\", \"attribution\": \"<uuid>\", \"room\": \"<uuid>\", \"slot_ids\": [\"<uuid>\", \"<uuid>\"], \"start_date\": \"2025-01-15\", \"end_date\": \"2025-06-30\", \"status\": \"Planned\", \"created_by\": \"<uuid>\"}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/timetables/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "scheduling",
+                    "timetables",
+                    ""
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Attendances",
+          "item": [
+            {
+              "name": "List Attendances",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/attendances/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "scheduling",
+                    "attendances",
+                    ""
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Record Attendance",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"student\": \"<uuid>\", \"timetable\": \"<uuid>\", \"status\": \"Present\", \"remarks\": \"Present\"}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/attendances/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "scheduling",
+                    "attendances",
+                    ""
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Activity Reports",
+          "item": [
+            {
+              "name": "List Activity Reports",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/reports/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "scheduling",
+                    "reports",
+                    ""
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Activity Report",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"timetable\": \"<uuid>\", \"planned_hours\": 30, \"delivered_hours\": 28, \"completion_rate\": 93.33, \"observations\": \"Cours bien déroulé\"}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/reports/",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "scheduling",
+                    "reports",
+                    ""
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
           ]
         }
       ]
@@ -2401,8 +4522,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/schema/",
-              "host": ["{{base_url}}"],
-              "path": ["api", "schema", ""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "schema",
+                ""
+              ]
             },
             "description": "Récupère le schéma OpenAPI de l'API."
           },
@@ -2429,7 +4556,13 @@
                 "description": "Get my notifications",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
                 }
               },
               "response": []
@@ -2444,7 +4577,9 @@
       "listen": "prerequest",
       "script": {
         "type": "text/javascript",
-        "exec": ["console.log('Exécution de la requête:', pm.info.requestName);"]
+        "exec": [
+          "console.log('Exécution de la requête:', pm.info.requestName);"
+        ]
       }
     },
     {

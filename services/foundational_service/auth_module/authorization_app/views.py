@@ -5,9 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+from services.foundational_service.auth_module.authentication_app.serializers import (
+    RoleSerializer,
+)
 from services.foundational_service.auth_module.user_app.models import Role
-
-from services.foundational_service.auth_module.authentication_app.serializers import RoleSerializer
 
 
 class AvailableRoleView(viewsets.ReadOnlyModelViewSet):
