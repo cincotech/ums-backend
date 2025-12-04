@@ -1,8 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import IsFinanceService
+from core.permissions import IsFinanceService, IsStudent
 from core.views import BaseViewSet
 
 from .models import (
@@ -32,7 +31,7 @@ from .serializers import (
 class BankViewSet(BaseViewSet):
     queryset = Bank.objects.all()
     serializer_class = BankSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsFinanceService]
     filter_backends = [SearchFilter]
     search_fields = ["bank_name", "bank_abreviation"]
 
@@ -48,7 +47,7 @@ class WordingViewSet(BaseViewSet):
 class FeesSheetViewSet(BaseViewSet):
     queryset = FeesSheet.objects.all()
     serializer_class = FeesSheetSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["class_fk", "academic_year", "wording"]
     ordering_fields = ["base_amount"]
@@ -57,7 +56,7 @@ class FeesSheetViewSet(BaseViewSet):
 class PaymentInstallementViewSet(BaseViewSet):
     queryset = PaymentInstallement.objects.all()
     serializer_class = PaymentInstallementSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["student", "status", "due_date"]
     ordering_fields = ["due_date", "amount"]
@@ -75,7 +74,7 @@ class PaymentReminderViewSet(BaseViewSet):
 class PaymentPlanViewSet(BaseViewSet):
     queryset = PaymentPlan.objects.all()
     serializer_class = PaymentPlanSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["feessheet", "status", "created_by"]
     ordering_fields = ["start_date", "total_amount"]
@@ -84,7 +83,7 @@ class PaymentPlanViewSet(BaseViewSet):
 class PaymentPromiseViewSet(BaseViewSet):
     queryset = PaymentPromise.objects.all()
     serializer_class = PaymentPromiseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["student", "status", "promised_date"]
     ordering_fields = ["promised_date", "promised_amount"]
@@ -93,7 +92,7 @@ class PaymentPromiseViewSet(BaseViewSet):
 class PaymentViewSet(BaseViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = [
         "paymentplan",
