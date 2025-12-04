@@ -1,0 +1,230 @@
+{
+  "info": {
+    "name": "UMS - University Management System API",
+    "description": "Collection complète des APIs du système de gestion universitaire avec authentification JWT et 2FA",
+    "version": "1.2.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "test@example.com",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "📅 Scheduling Module",
+      "item": [
+        {
+          "name": "Schedule Slots",
+          "item": [
+            {
+              "name": "List Schedule Slots",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/slots/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "scheduling", "slots", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Schedule Slot",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"start_time\": \"09:00:00\", \"end_time\": \"10:30:00\", \"day_of_week\": \"Monday\", \"schedule_name\": \"Slot 1\"}"},
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/slots/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "scheduling", "slots", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Timetables",
+          "item": [
+            {
+              "name": "List Timetables",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/timetables/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "scheduling", "timetables", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Timetable",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"class_group\": \"<uuid>\", \"attribution\": \"<uuid>\", \"room\": \"<uuid>\", \"slot_ids\": [\"<uuid>\", \"<uuid>\"], \"start_date\": \"2025-01-15\", \"end_date\": \"2025-06-30\", \"status\": \"Planned\", \"created_by\": \"<uuid>\"}"},
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/timetables/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "scheduling", "timetables", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Attendances",
+          "item": [
+            {
+              "name": "List Attendances",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/attendances/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "scheduling", "attendances", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Record Attendance",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"student\": \"<uuid>\", \"timetable\": \"<uuid>\", \"status\": \"Present\", \"remarks\": \"Present\"}"},
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/attendances/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "scheduling", "attendances", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Activity Reports",
+          "item": [
+            {
+              "name": "List Activity Reports",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/reports/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "scheduling", "reports", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Activity Report",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"timetable\": \"<uuid>\", \"planned_hours\": 30, \"delivered_hours\": 28, \"completion_rate\": 93.33, \"observations\": \"Cours bien déroulé\"}"},
+                "url": {
+                  "raw": "{{base_url}}/api/scheduling/reports/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "scheduling", "reports", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": ["console.log('Exécution de la requête:', pm.info.requestName);"]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Status code is not 500', function () {",
+          "    pm.expect(pm.response.code).to.not.equal(500);",
+          "});",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

@@ -4,7 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from core.response_handler import error_response, success_response
 from services.core_service.academic_module.quality_app.models import QualityReport
-from services.core_service.academic_module.quality_app.serializers import QualityReportSerializer
+from services.core_service.academic_module.quality_app.serializers import (
+    QualityReportSerializer,
+)
 
 from .models import (
     AcademicPerformanceReport,
@@ -42,7 +44,9 @@ class ComplianceAuditViewSet(viewsets.ModelViewSet):
             audits = self.queryset.filter(compliance_status=status_filter)
             serializer = self.get_serializer(audits, many=True)
             return success_response(data=serializer.data)
-        return error_response(message="Status parameter required", status_code=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message="Status parameter required", status_code=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class AcademicPerformanceReportViewSet(viewsets.ModelViewSet):
@@ -58,7 +62,10 @@ class AcademicPerformanceReportViewSet(viewsets.ModelViewSet):
             reports = self.queryset.filter(academic_year=year, semester=sem)
             serializer = self.get_serializer(reports, many=True)
             return success_response(data=serializer.data)
-        return error_response(message="academic_year and semester required", status_code=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message="academic_year and semester required",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class ProgramExecutionTrackingViewSet(viewsets.ModelViewSet):
@@ -92,7 +99,9 @@ class CourseSatisfactionSurveyViewSet(viewsets.ModelViewSet):
             surveys = self.queryset.filter(course_name=course)
             serializer = self.get_serializer(surveys, many=True)
             return success_response(data=serializer.data)
-        return error_response(message="course_name required", status_code=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message="course_name required", status_code=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class QualityReportViewSet(viewsets.ModelViewSet):
