@@ -1,8 +1,8 @@
 {
   "info": {
     "name": "UMS - University Management System API",
-    "description": "Collection compl\u00e8te des APIs du syst\u00e8me de gestion universitaire avec authentification JWT et 2FA",
-    "version": "1.1.0",
+    "description": "Collection complète des APIs du système de gestion universitaire avec authentification JWT et 2FA",
+    "version": "1.2.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -35,1347 +35,28 @@
       "key": "user_email",
       "value": "test@example.com",
       "type": "string"
-    },
-    {
-      "key": "room_id",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "equipment_id",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "building_id",
-      "value": "1",
-      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "Authentication",
+      "name": "🎓 Student Dashboard",
       "item": [
         {
-          "name": "Inscription utilisateur",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"motdepasse123\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Dupont\",\n  \"birth_date\": \"1990-01-01\",\n  \"spoken_languages\": [\"fr\", \"en\"],\n  \"gender\": \"M\",\n  \"marital_status\": \"single\",\n  \"phone_number\": \"+25761234567\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/register/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "register",
-                ""
-              ]
-            },
-            "description": "Inscription d'un nouvel utilisateur. Envoie automatiquement un OTP par email."
-          },
-          "response": []
-        },
-        {
-          "name": "Envoyer OTP Email",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"email\": \"{{user_email}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/send-email-otp/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "send-email-otp",
-                ""
-              ]
-            },
-            "description": "Envoie un code OTP \u00e0 l'email sp\u00e9cifi\u00e9 pour v\u00e9rification."
-          },
-          "response": []
-        },
-        {
-          "name": "V\u00e9rifier Email avec OTP",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/verify-email/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "verify-email",
-                ""
-              ]
-            },
-            "description": "V\u00e9rifie l'email de l'utilisateur avec le code OTP re\u00e7u."
-          },
-          "response": []
-        },
-        {
-          "name": "Connexion",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  " const response = pm.response.json();",
-                  " if (response.data && response.data.access) {",
-                  " pm.collectionVariables.set('access_token', response.data.access);",
-                  " pm.collectionVariables.set('refresh_token', response.data.refresh);",
-                  " }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"email\": \"{{user_email}}\",\n \"password\": \"motdepasse123\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/login/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "login",
-                ""
-              ]
-            },
-            "description": "Connexion utilisateur. Retourne les tokens JWT si 2FA non requis."
-          },
-          "response": []
-        },
-        {
-          "name": "R\u00e9initialiser mot de passe avec OTP",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"123456\",\n \"new_password\": \"nouveaumotdepasse123\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/password/reset/verify/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "password",
-                "reset",
-                "verify",
-                ""
-              ]
-            },
-            "description": "R\u00e9initialise le mot de passe avec un code OTP."
-          },
-          "response": []
-        },
-        {
-          "name": "Actualiser Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  " const response = pm.response.json();",
-                  " if (response.data && response.data.access) {",
-                  " pm.collectionVariables.set('access_token', response.data.access);",
-                  " }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"refresh\": \"{{refresh_token}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/token/refresh/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "token",
-                "refresh",
-                ""
-              ]
-            },
-            "description": "Actualise le token d'acc\u00e8s avec le refresh token."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Authentification 2FA",
-      "item": [
-        {
-          "name": "Configuration 2FA Email",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/2fa/set/email/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "set",
-                "email",
-                ""
-              ]
-            },
-            "description": "Configure l'authentification 2FA par email. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "Configuration 2FA TOTP (QR Code)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/2fa/set/totp/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "set",
-                "totp",
-                ""
-              ]
-            },
-            "description": "G\u00e9n\u00e8re un QR code pour configurer l'authentification TOTP. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "Configuration 2FA Statique",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/2fa/set/static/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "set",
-                "static",
-                ""
-              ]
-            },
-            "description": "Configure l'authentification 2FA avec codes statiques. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "V\u00e9rifier 2FA Email",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"otp\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/2fa/verify/email/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "verify",
-                "email",
-                ""
-              ]
-            },
-            "description": "V\u00e9rifie le code 2FA par email. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "V\u00e9rifier 2FA TOTP",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"otp\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/2fa/verify/totp/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "verify",
-                "totp",
-                ""
-              ]
-            },
-            "description": "V\u00e9rifie le code TOTP. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "V\u00e9rifier 2FA Statique",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"otp\": \"backup-code-123\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/2fa/verify/static/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "verify",
-                "static",
-                ""
-              ]
-            },
-            "description": "V\u00e9rifie un code de sauvegarde statique. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "Connexion 2FA Email",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  " const response = pm.response.json();",
-                  " if (response.data && response.data.access) {",
-                  " pm.collectionVariables.set('access_token', response.data.access);",
-                  " pm.collectionVariables.set('refresh_token', response.data.refresh);",
-                  " }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/login/email/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "login",
-                "email",
-                ""
-              ]
-            },
-            "description": "Finalise la connexion avec 2FA par email."
-          },
-          "response": []
-        },
-        {
-          "name": "Connexion 2FA TOTP",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  " const response = pm.response.json();",
-                  " if (response.data && response.data.access) {",
-                  " pm.collectionVariables.set('access_token', response.data.access);",
-                  " pm.collectionVariables.set('refresh_token', response.data.refresh);",
-                  " }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/login/totp/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "login",
-                "totp",
-                ""
-              ]
-            },
-            "description": "Finalise la connexion avec 2FA TOTP."
-          },
-          "response": []
-        },
-        {
-          "name": "Connexion 2FA Statique",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  " const response = pm.response.json();",
-                  " if (response.data && response.data.access) {",
-                  " pm.collectionVariables.set('access_token', response.data.access);",
-                  " pm.collectionVariables.set('refresh_token', response.data.refresh);",
-                  " }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"email\": \"{{user_email}}\",\n \"otp\": \"backup-code-123\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/login/static/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "login",
-                "static",
-                ""
-              ]
-            },
-            "description": "Finalise la connexion avec code de sauvegarde statique."
-          },
-          "response": []
-        },
-        {
-          "name": "D\u00e9sactiver 2FA Email",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"otp\": \"123456\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/2fa/disable/email/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "disable",
-                "email",
-                ""
-              ]
-            },
-            "description": "D\u00e9sactive l'authentification 2FA par email. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "D\u00e9sactiver 2FA TOTP",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"secret_key\": \"ABCDEFGHIJKLMNOP\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/2fa/disable/totp/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "disable",
-                "totp",
-                ""
-              ]
-            },
-            "description": "D\u00e9sactive l'authentification TOTP avec la cl\u00e9 secr\u00e8te. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "D\u00e9sactiver 2FA Statique",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/2fa/disable/static/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "2fa",
-                "disable",
-                "static",
-                ""
-              ]
-            },
-            "description": "D\u00e9sactive l'authentification 2FA statique. N\u00e9cessite une authentification."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Gestion Utilisateurs",
-      "item": [
-        {
-          "name": "Liste des utilisateurs",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/users/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "users",
-                ""
-              ]
-            },
-            "description": "R\u00e9cup\u00e8re la liste des utilisateurs (utilisateur connect\u00e9 uniquement). N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "D\u00e9tails utilisateur",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/users/1/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "users",
-                "1",
-                ""
-              ]
-            },
-            "description": "R\u00e9cup\u00e8re les d\u00e9tails d'un utilisateur sp\u00e9cifique. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "Modifier utilisateur",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"first_name\": \"Jean\",\n \"last_name\": \"Dupont\",\n \"phone_number\": \"+33123456789\",\n \"birth_date\": \"1990-01-01\",\n \"gender\": \"M\",\n \"marital_status\": \"single\",\n \"spoken_languages\": [\"fr\", \"en\"]\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/users/1/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "users",
-                "1",
-                ""
-              ]
-            },
-            "description": "Modifie les informations d'un utilisateur. N\u00e9cessite une authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "V\u00e9rifier mot de passe",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"password\": \"motdepasse123\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/users/1/verify-password/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "users",
-                "1",
-                "verify-password",
-                ""
-              ]
-            },
-            "description": "V\u00e9rifie si le mot de passe fourni correspond \u00e0 celui de l'utilisateur. N\u00e9cessite une authentification."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Gestion des R\u00f4les",
-      "item": [
-        {
-          "name": "R\u00f4les disponibles",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/available-roles/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "available-roles",
-                ""
-              ]
-            },
-            "description": "R\u00e9cup\u00e8re tous les r\u00f4les actifs disponibles. Accessible sans authentification."
-          },
-          "response": []
-        },
-        {
-          "name": "Liste des r\u00f4les (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/roles/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "roles",
-                ""
-              ]
-            },
-            "description": "R\u00e9cup\u00e8re tous les r\u00f4les. N\u00e9cessite des privil\u00e8ges administrateur."
-          },
-          "response": []
-        },
-        {
-          "name": "Cr\u00e9er r\u00f4le (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"name\": \"Professeur\",\n \"description\": \"R\u00f4le pour les enseignants\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/roles/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "roles",
-                ""
-              ]
-            },
-            "description": "Cr\u00e9e un nouveau r\u00f4le. N\u00e9cessite des privil\u00e8ges administrateur."
-          },
-          "response": []
-        },
-        {
-          "name": "D\u00e9tails r\u00f4le (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/roles/1/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "roles",
-                "1",
-                ""
-              ]
-            },
-            "description": "R\u00e9cup\u00e8re les d\u00e9tails d'un r\u00f4le sp\u00e9cifique. N\u00e9cessite des privil\u00e8ges administrateur."
-          },
-          "response": []
-        },
-        {
-          "name": "Modifier r\u00f4le (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"name\": \"Professeur Senior\",\n \"description\": \"R\u00f4le pour les enseignants exp\u00e9riment\u00e9s\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/roles/1/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "roles",
-                "1",
-                ""
-              ]
-            },
-            "description": "Modifie un r\u00f4le existant. N\u00e9cessite des privil\u00e8ges administrateur."
-          },
-          "response": []
-        },
-        {
-          "name": "Supprimer r\u00f4le (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/roles/1/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "roles",
-                "1",
-                ""
-              ]
-            },
-            "description": "Supprime un r\u00f4le. N\u00e9cessite des privil\u00e8ges administrateur."
-          },
-          "response": []
-        },
-        {
-          "name": "R\u00e9assigner utilisateurs (Admin)",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"new_role_id\": 2\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/roles/1/reassign/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "roles",
-                "1",
-                "reassign",
-                ""
-              ]
-            },
-            "description": "R\u00e9assigne tous les utilisateurs d'un r\u00f4le vers un autre. N\u00e9cessite des privil\u00e8ges administrateur."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Documentation API",
-      "item": [
-        {
-          "name": "Sch\u00e9ma OpenAPI",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/schema/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "schema",
-                ""
-              ]
-            },
-            "description": "R\u00e9cup\u00e8re le sch\u00e9ma OpenAPI de l'API."
-          },
-          "response": []
-        },
-        {
-          "name": "Documentation Swagger",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/docs/swagger/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "docs",
-                "swagger",
-                ""
-              ]
-            },
-            "description": "Interface Swagger pour tester l'API."
-          },
-          "response": []
-        },
-        {
-          "name": "Documentation ReDoc",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/docs/redoc/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "docs",
-                "redoc",
-                ""
-              ]
-            },
-            "description": "Documentation ReDoc de l'API."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Administration Django",
-      "item": [
-        {
-          "name": "Interface Admin Django",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/admin/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "admin",
-                ""
-              ]
-            },
-            "description": "Interface d'administration Django. N\u00e9cessite des privil\u00e8ges administrateur."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "\ud83c\udf0d Geo Module",
-      "item": [
-        {
-          "name": "Countries",
+          "name": "Dashboard Overview",
           "item": [
             {
-              "name": "List Countrys",
+              "name": "Get Dashboard Overview",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/countries/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "countries"
-                  ]
-                },
-                "description": "Get list of Countrys",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Create Country",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/geo/countries/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "countries"
-                  ]
-                },
-                "description": "Create a new Country",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"country_name\": \"Burundi\",\n  \"code\": \"BI\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/student/overview/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "overview", ""]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Country",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/geo/countries/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "countries",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a Country",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Country",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/geo/countries/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "countries",
-                    "1"
-                  ]
-                },
-                "description": "Update a Country",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"country_name\": \"Burundi\",\n  \"code\": \"BI\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Country",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/geo/countries/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "countries",
-                    "1"
-                  ]
-                },
-                "description": "Delete a Country",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -1383,170 +64,39 @@
           ]
         },
         {
-          "name": "Provinces",
+          "name": "Profile Management",
           "item": [
             {
-              "name": "List Provinces",
+              "name": "Get Student Profile",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/provinces/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "provinces"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/student/profile/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "profile", ""]
                 },
-                "description": "Get list of Provinces",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create Province",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/geo/provinces/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "provinces"
-                  ]
-                },
-                "description": "Create a new Province",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"province_name\": \"Bujumbura\",\n  \"country\": \"<uuid>\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Province",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/geo/provinces/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "provinces",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a Province",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Province",
+              "name": "Update Student Profile",
               "request": {
                 "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"phone\": \"+25712345678\", \"address\": \"123 Main St, Bujumbura\"}"},
                 "url": {
-                  "raw": "{{base_url}}/geo/provinces/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "provinces",
-                    "1"
-                  ]
-                },
-                "description": "Update a Province",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"province_name\": \"Bujumbura\",\n  \"country\": \"<uuid>\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/student/profile/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "profile", ""]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Province",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/geo/provinces/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "provinces",
-                    "1"
-                  ]
-                },
-                "description": "Delete a Province",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -1554,170 +104,55 @@
           ]
         },
         {
-          "name": "Communes",
+          "name": "Academic Records",
           "item": [
             {
-              "name": "List Communes",
+              "name": "Get Student Grades",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/communes/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "communes"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/student/grades/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "grades", ""]
                 },
-                "description": "Get list of Communes",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create Commune",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/geo/communes/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "communes"
-                  ]
-                },
-                "description": "Create a new Commune",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"commune_name\": \"Gihosha\",\n  \"province\": \"<uuid>\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Commune",
+              "name": "Get Student Transcript",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/communes/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "communes",
-                    "1"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/student/transcript/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "transcript", ""]
                 },
-                "description": "Get details of a Commune",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Update Commune",
+              "name": "Get Academic Progress",
               "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/geo/communes/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "communes",
-                    "1"
-                  ]
-                },
-                "description": "Update a Commune",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"commune_name\": \"Gihosha\",\n  \"province\": \"<uuid>\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Commune",
-              "request": {
-                "method": "DELETE",
+                "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/communes/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "communes",
-                    "1"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/student/progress/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "progress", ""]
                 },
-                "description": "Delete a Commune",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -1725,170 +160,38 @@
           ]
         },
         {
-          "name": "Zones",
+          "name": "Schedule & Attendance",
           "item": [
             {
-              "name": "List Zones",
+              "name": "Get Student Schedule",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/zones/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "zones"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/student/schedule/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "schedule", ""]
                 },
-                "description": "Get list of Zones",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create Zone",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/geo/zones/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "zones"
-                  ]
-                },
-                "description": "Create a new Zone",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"zone_name\": \"Zone 1\",\n  \"commune\": \"<uuid>\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Zone",
+              "name": "Get Student Attendance",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/zones/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "zones",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a Zone",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Zone",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/geo/zones/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "zones",
-                    "1"
-                  ]
-                },
-                "description": "Update a Zone",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"zone_name\": \"Zone 1\",\n  \"commune\": \"<uuid>\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/student/attendance/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "attendance", ""]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Zone",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/geo/zones/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "zones",
-                    "1"
-                  ]
-                },
-                "description": "Delete a Zone",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -1896,170 +199,132 @@
           ]
         },
         {
-          "name": "Collines",
+          "name": "Notifications & Messages",
           "item": [
             {
-              "name": "List Collines",
+              "name": "Get Student Notifications",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/collines/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "collines"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/student/notifications/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "notifications", ""]
                 },
-                "description": "Get list of Collines",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create Colline",
+              "name": "Mark Notification as Read",
               "request": {
                 "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"notification_id\": 1}"},
                 "url": {
-                  "raw": "{{base_url}}/geo/collines/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "collines"
-                  ]
-                },
-                "description": "Create a new Colline",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"colline_name\": \"Kigobe\",\n  \"zone\": \"<uuid>\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/student/notifications/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "notifications", ""]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Get Colline",
+              "name": "Get Student Messages",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/collines/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "collines",
-                    "1"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/student/messages/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "messages", ""]
                 },
-                "description": "Get details of a Colline",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Update Colline",
+              "name": "Send Message",
               "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"recipient_id\": 2, \"subject\": \"Question about grades\", \"message\": \"I have a question about my recent grades.\"}"},
                 "url": {
-                  "raw": "{{base_url}}/geo/collines/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "collines",
-                    "1"
-                  ]
-                },
-                "description": "Update a Colline",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"colline_name\": \"Kigobe\",\n  \"zone\": \"<uuid>\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/student/messages/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "messages", ""]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
-            },
+            }
+          ]
+        },
+        {
+          "name": "Document Management",
+          "item": [
             {
-              "name": "Delete Colline",
+              "name": "Get Document Requests",
               "request": {
-                "method": "DELETE",
+                "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/geo/collines/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "geo",
-                    "collines",
-                    "1"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/student/documents/requests/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "documents", "requests", ""]
                 },
-                "description": "Delete a Colline",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create Document Request",
+              "request": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"document_type\": \"transcript\", \"purpose\": \"Job application\", \"copies\": 2}"},
+                "url": {
+                  "raw": "{{base_url}}/api/dashboard/student/documents/requests/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "documents", "requests", ""]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Download Documents",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/dashboard/student/documents/download/?type=transcript",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "student", "documents", "download", ""],
+                  "query": [{"key": "type", "value": "transcript"}]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -2069,173 +334,42 @@
       ]
     },
     {
-      "name": "\ud83c\udf93 Academic Module",
+      "name": "🔍 Quality Director Dashboard",
       "item": [
         {
-          "name": "Universities",
+          "name": "Quality Standards",
           "item": [
             {
-              "name": "List Universitys",
+              "name": "List Standards",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/universities/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "universities"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/quality-director/quality-standards/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "quality-standards", ""]
                 },
-                "description": "Get list of Universitys",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create University",
+              "name": "Create Standard",
               "request": {
                 "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\"title\": \"Academic Excellence\", \"description\": \"Standards for academic quality\", \"compliance_criteria\": {\"min_pass_rate\": 70}}"},
                 "url": {
-                  "raw": "{{base_url}}/api/universities/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "universities"
-                  ]
-                },
-                "description": "Create a new University",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"university_name\": \"University of Burundi\",\n  \"university_abrev\": \"UB\",\n  \"country\": \"<uuid>\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/quality-director/quality-standards/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "quality-standards", ""]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get University",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/universities/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "universities",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a University",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update University",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/universities/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "universities",
-                    "1"
-                  ]
-                },
-                "description": "Update a University",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"university_name\": \"University of Burundi\",\n  \"university_abrev\": \"UB\",\n  \"country\": \"<uuid>\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete University",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/universities/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "universities",
-                    "1"
-                  ]
-                },
-                "description": "Delete a University",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -2243,170 +377,39 @@
           ]
         },
         {
-          "name": "Faculties",
+          "name": "Compliance Audits",
           "item": [
             {
-              "name": "List Facultys",
+              "name": "List Audits",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/faculties/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "faculties"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/quality-director/compliance-audits/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "compliance-audits", ""]
                 },
-                "description": "Get list of Facultys",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create Faculty",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/faculties/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "faculties"
-                  ]
-                },
-                "description": "Create a new Faculty",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"faculty_name\": \"Faculty of Science\",\n  \"faculty_abreviation\": \"FSc\",\n  \"university\": \"<uuid>\",\n  \"types\": \"<uuid>\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Faculty",
+              "name": "Filter by Status",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/faculties/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "faculties",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a Faculty",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Faculty",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/faculties/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "faculties",
-                    "1"
-                  ]
-                },
-                "description": "Update a Faculty",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"faculty_name\": \"Faculty of Science\",\n  \"faculty_abreviation\": \"FSc\",\n  \"university\": \"<uuid>\",\n  \"types\": \"<uuid>\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/quality-director/compliance-audits/by_status/?status=compliant",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "compliance-audits", "by_status", ""],
+                  "query": [{"key": "status", "value": "compliant"}]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Faculty",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/faculties/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "faculties",
-                    "1"
-                  ]
-                },
-                "description": "Delete a Faculty",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -2414,170 +417,39 @@
           ]
         },
         {
-          "name": "Departments",
+          "name": "Academic Performance Reports",
           "item": [
             {
-              "name": "List Departments",
+              "name": "List Reports",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/departments/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "departments"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/quality-director/academic-performance/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "academic-performance", ""]
                 },
-                "description": "Get list of Departments",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create Department",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/departments/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "departments"
-                  ]
-                },
-                "description": "Create a new Department",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"department_name\": \"Computer Science\",\n  \"abreviation\": \"CS\",\n  \"faculty\": \"<uuid>\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Department",
+              "name": "Filter by Year/Semester",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/departments/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "departments",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a Department",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Department",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/departments/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "departments",
-                    "1"
-                  ]
-                },
-                "description": "Update a Department",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"department_name\": \"Computer Science\",\n  \"abreviation\": \"CS\",\n  \"faculty\": \"<uuid>\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/quality-director/academic-performance/by_year_semester/?academic_year=2024-2025&semester=1",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "academic-performance", "by_year_semester", ""],
+                  "query": [{"key": "academic_year", "value": "2024-2025"}, {"key": "semester", "value": "1"}]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Department",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/departments/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "departments",
-                    "1"
-                  ]
-                },
-                "description": "Delete a Department",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -2585,170 +457,39 @@
           ]
         },
         {
-          "name": "Classes",
+          "name": "Program Execution Tracking",
           "item": [
             {
-              "name": "List Classs",
+              "name": "List Programs",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/classes/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "classes"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/quality-director/program-execution/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "program-execution", ""]
                 },
-                "description": "Get list of Classs",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create Class",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/classes/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "classes"
-                  ]
-                },
-                "description": "Create a new Class",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"class_name\": \"BAC 1\",\n  \"department\": \"<uuid>\",\n  \"class_group\": [\n    \"A\",\n    \"B\"\n  ]\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Class",
+              "name": "Underperforming Programs",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/classes/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "classes",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a Class",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Class",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/classes/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "classes",
-                    "1"
-                  ]
-                },
-                "description": "Update a Class",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"class_name\": \"BAC 1\",\n  \"department\": \"<uuid>\",\n  \"class_group\": [\n    \"A\",\n    \"B\"\n  ]\n}"
+                  "raw": "{{base_url}}/api/dashboard/quality-director/program-execution/underperforming/?threshold=70",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "program-execution", "underperforming", ""],
+                  "query": [{"key": "threshold", "value": "70"}]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Class",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/classes/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "classes",
-                    "1"
-                  ]
-                },
-                "description": "Delete a Class",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -2756,170 +497,21 @@
           ]
         },
         {
-          "name": "Modules",
+          "name": "Student Retention Audits",
           "item": [
             {
-              "name": "List Modules",
+              "name": "List Audits",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/modules/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "modules"
-                  ]
-                },
-                "description": "Get list of Modules",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Create Module",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/modules/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "modules"
-                  ]
-                },
-                "description": "Create a new Module",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"module_name\": \"Programming I\",\n  \"code\": \"CSC101\",\n  \"class_fk\": \"<uuid>\",\n  \"semester_id\": \"S1\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/quality-director/student-retention/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "student-retention", ""]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Module",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/modules/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "modules",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a Module",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Module",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/modules/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "modules",
-                    "1"
-                  ]
-                },
-                "description": "Update a Module",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"module_name\": \"Programming I\",\n  \"code\": \"CSC101\",\n  \"class_fk\": \"<uuid>\",\n  \"semester_id\": \"S1\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Module",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/modules/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "modules",
-                    "1"
-                  ]
-                },
-                "description": "Delete a Module",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -2927,170 +519,39 @@
           ]
         },
         {
-          "name": "Courses",
+          "name": "Course Satisfaction Surveys",
           "item": [
             {
-              "name": "List Courses",
+              "name": "List Surveys",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/courses/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "courses"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/quality-director/satisfaction-surveys/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "satisfaction-surveys", ""]
                 },
-                "description": "Get list of Courses",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
             },
             {
-              "name": "Create Course",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/courses/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "courses"
-                  ]
-                },
-                "description": "Create a new Course",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"course_name\": \"Intro to Python\",\n  \"cm\": 30,\n  \"td\": 15,\n  \"tp\": 15,\n  \"module_id\": \"<uuid>\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Course",
+              "name": "Filter by Course",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/courses/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "courses",
-                    "1"
-                  ]
-                },
-                "description": "Get details of a Course",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Course",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/courses/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "courses",
-                    "1"
-                  ]
-                },
-                "description": "Update a Course",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"course_name\": \"Intro to Python\",\n  \"cm\": 30,\n  \"td\": 15,\n  \"tp\": 15,\n  \"module_id\": \"<uuid>\"\n}"
+                  "raw": "{{base_url}}/api/dashboard/quality-director/satisfaction-surveys/by_course/?course_name=Mathematics",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "satisfaction-surveys", "by_course", ""],
+                  "query": [{"key": "course_name", "value": "Mathematics"}]
                 },
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Delete Course",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/api/courses/1/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "courses",
-                    "1"
-                  ]
-                },
-                "description": "Delete a Course",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -3098,33 +559,21 @@
           ]
         },
         {
-          "name": "Teachers",
+          "name": "Quality Reports",
           "item": [
             {
-              "name": "List Teachers",
+              "name": "List Reports",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{base_url}}/api/teachers/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "teachers"
-                  ]
+                  "raw": "{{base_url}}/api/dashboard/quality-director/quality-reports/",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "dashboard", "quality-director", "quality-reports", ""]
                 },
-                "description": "Get list of Teachers",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -4980,80 +2429,7 @@
                 "description": "Get my notifications",
                 "auth": {
                   "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "My Messages",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{base_url}}/dashboard/messages/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "dashboard",
-                    "messages"
-                  ]
-                },
-                "description": "Get my messages",
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Send Message",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/dashboard/messages/",
-                  "host": [
-                    "{{base_url}}"
-                  ],
-                  "path": [
-                    "dashboard",
-                    "messages"
-                  ]
-                },
-                "description": "Send a message",
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"recipient\": \"<uuid>\",\n  \"subject\": \"Hello\",\n  \"content\": \"Message content\",\n  \"message_type\": \"internal\"\n}"
-                },
-                "auth": {
-                  "type": "bearer",
-                  "bearer": [
-                    {
-                      "key": "token",
-                      "value": "{{access_token}}",
-                      "type": "string"
-                    }
-                  ]
+                  "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
                 }
               },
               "response": []
@@ -5068,10 +2444,7 @@
       "listen": "prerequest",
       "script": {
         "type": "text/javascript",
-        "exec": [
-          "// Script pr\u00e9-requ\u00eate global",
-          "console.log('Ex\u00e9cution de la requ\u00eate:', pm.info.requestName);"
-        ]
+        "exec": ["console.log('Exécution de la requête:', pm.info.requestName);"]
       }
     },
     {
@@ -5079,13 +2452,11 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Tests globaux",
           "pm.test('Status code is not 500', function () {",
-          " pm.expect(pm.response.code).to.not.equal(500);",
+          "    pm.expect(pm.response.code).to.not.equal(500);",
           "});",
-          "",
           "pm.test('Response time is less than 5000ms', function () {",
-          " pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
           "});"
         ]
       }

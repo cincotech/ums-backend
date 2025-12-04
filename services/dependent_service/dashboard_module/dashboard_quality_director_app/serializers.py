@@ -1,98 +1,54 @@
-# from rest_framework import serializers
+from rest_framework import serializers
 
-# from .models import ComplianceAudit, QualityStandard, StudentSurvey
-
-
-# class AcademicPerformanceSerializer(serializers.Serializer):
-#     course_id = serializers.UUIDField()
-#     course_name = serializers.CharField()
-#     success_rate = serializers.FloatField()
-#     failure_rate = serializers.FloatField()
-#     average_grade = serializers.FloatField()
-#     total_students = serializers.IntegerField()
-
-
-# class ProgramProgressSerializer(serializers.Serializer):
-#     program_name = serializers.CharField()
-#     completion_rate = serializers.FloatField()
-#     on_schedule = serializers.BooleanField()
-#     covered_topics = serializers.IntegerField()
-#     total_topics = serializers.IntegerField()
+from services.core_service.academic_module.quality_app.models import QualityReport
+from services.core_service.academic_module.quality_app.serializers import QualityReportSerializer
+from .models import (
+    AcademicPerformanceReport,
+    ComplianceAudit,
+    CourseSatisfactionSurvey,
+    ProgramExecutionTracking,
+    QualityStandard,
+    StudentRetentionAudit,
+)
 
 
-# class StudentDemographicsSerializer(serializers.Serializer):
-#     total_enrolled = serializers.IntegerField()
-#     retention_rate = serializers.FloatField()
-#     dropout_rate = serializers.FloatField()
-#     by_program = serializers.DictField()
-#     by_level = serializers.DictField()
+class QualityStandardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QualityStandard
+        fields = ["id", "title", "description", "compliance_criteria", "is_active", "created_by", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
 
-# class StudentSurveySerializer(serializers.ModelSerializer):
-#     student_name = serializers.SerializerMethodField()
-#     course_name = serializers.CharField(source="course.course_name", read_only=True)
-#     teacher_name = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = StudentSurvey
-#         fields = [
-#             "id",
-#             "survey_type",
-#             "student_name",
-#             "course_name",
-#             "teacher_name",
-#             "rating",
-#             "comments",
-#             "submitted_at",
-#         ]
-
-#     def get_student_name(self, obj):
-#         return f"{obj.student.user.first_name} {obj.student.user.last_name}"
-
-#     def get_teacher_name(self, obj):
-#         if obj.teacher:
-#             return f"{obj.teacher.user.first_name} {obj.teacher.user.last_name}"
-#         return None
+class ComplianceAuditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComplianceAudit
+        fields = ["id", "standard", "audit_period", "compliance_status", "findings", "recommendations", "audited_by", "audit_date"]
+        read_only_fields = ["id", "audit_date"]
 
 
-# class QualityStandardSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = QualityStandard
-#         fields = [
-#             "id",
-#             "standard_type",
-#             "title",
-#             "description",
-#             "compliance_criteria",
-#             "is_active",
-#             "created_at",
-#         ]
+class AcademicPerformanceReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AcademicPerformanceReport
+        fields = ["id", "academic_year", "semester", "success_rate", "failure_rate", "average_grade", "underperforming_courses", "generated_by", "generated_at"]
+        read_only_fields = ["id", "generated_at"]
 
 
-# class ComplianceAuditSerializer(serializers.ModelSerializer):
-#     standard_title = serializers.CharField(source="standard.title", read_only=True)
-#     audited_by_name = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = ComplianceAudit
-#         fields = [
-#             "id",
-#             "standard_title",
-#             "audit_period",
-#             "compliance_status",
-#             "findings",
-#             "recommendations",
-#             "audited_by_name",
-#             "audit_date",
-#         ]
-
-#     def get_audited_by_name(self, obj):
-#         return f"{obj.audited_by.first_name} {obj.audited_by.last_name}"
+class ProgramExecutionTrackingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProgramExecutionTracking
+        fields = ["id", "program_name", "academic_year", "planned_coverage", "actual_coverage", "progress_percentage", "objectives_met", "last_updated"]
+        read_only_fields = ["id", "last_updated"]
 
 
-# class QualityDashboardStatsSerializer(serializers.Serializer):
-#     total_courses_analyzed = serializers.IntegerField()
-#     average_course_rating = serializers.FloatField()
-#     compliance_rate = serializers.FloatField()
-#     pending_audits = serializers.IntegerField()
-#     recent_surveys = serializers.IntegerField()
+class StudentRetentionAuditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentRetentionAudit
+        fields = ["id", "academic_year", "total_enrolled", "retained_students", "retention_rate", "dropout_rate", "dropout_reasons", "audited_at"]
+        read_only_fields = ["id", "audited_at"]
+
+
+class CourseSatisfactionSurveySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseSatisfactionSurvey
+        fields = ["id", "course_name", "teacher_name", "academic_year", "course_quality_rating", "teacher_rating", "environment_rating", "comments", "survey_date"]
+        read_only_fields = ["id", "survey_date"]
