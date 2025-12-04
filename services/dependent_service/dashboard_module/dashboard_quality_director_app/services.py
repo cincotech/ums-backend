@@ -1,4 +1,4 @@
-from django.db.models import Avg, Count
+from django.db.models import Avg
 
 from .models import (
     AcademicPerformanceReport,

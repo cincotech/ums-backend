@@ -1,6 +1,7 @@
 import uuid
-from django.db import models
+
 from django.conf import settings
+from django.db import models
 
 
 class QualityReport(models.Model):
@@ -18,7 +19,11 @@ class QualityReport(models.Model):
     data = models.JSONField(default=dict)
     summary = models.TextField(null=True, blank=True)
     generated_date = models.DateTimeField(auto_now_add=True)
-    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.RESTRICT, related_name="generated_reports")
+    generated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.RESTRICT,
+        related_name="generated_reports",
+    )
 
     class Meta:
         db_table = "quality_reports"

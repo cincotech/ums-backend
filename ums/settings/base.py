@@ -98,7 +98,6 @@ INSTALLED_APPS = [
     "simple_history",
     "drf_spectacular",
     "drf_spectacular_sidecar",
-    "dbbackup",
     "core",
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",

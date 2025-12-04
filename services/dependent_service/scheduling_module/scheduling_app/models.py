@@ -30,7 +30,7 @@ class ScheduleSlot(models.Model):
         db_table = "schedule_slots"
 
     def __str__(self):
-        return f"{self.name} ({self.day_of_week} {self.start_time}-{self.end_time})"
+        return f"{self.schedule_name} ({self.day_of_week} {self.start_time}-{self.end_time})"
 
 
 class Timetable(models.Model):

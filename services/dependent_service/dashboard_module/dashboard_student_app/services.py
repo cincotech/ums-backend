@@ -244,7 +244,6 @@ class StudentDashboardService:
     @staticmethod
     def request_document(student, document_id, request_date, payment=None):
         """Request official document"""
-        from django.utils import timezone
 
         from services.dependent_service.document_module.document_app.models import (
             Document,
@@ -313,7 +312,6 @@ class StudentDashboardService:
         - Student has paid at least the minimum required installment
         - Payment is verified
         """
-        from django.db.models import Sum
         from django.utils import timezone
 
         # Get active inscription
