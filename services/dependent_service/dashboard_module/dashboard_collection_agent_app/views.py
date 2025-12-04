@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
@@ -26,6 +27,8 @@ from .serializers import (
     PaymentSerializer,
     WordingSerializer,
 )
+
+User = get_user_model()
 
 
 class BankViewSet(BaseViewSet):
@@ -79,6 +82,22 @@ class PaymentPlanViewSet(BaseViewSet):
     filterset_fields = ["feessheet", "status", "created_by"]
     ordering_fields = ["start_date", "total_amount"]
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        from rest_framework import status
+
+        from core.response_handler import success_response, validate_serializer
+
+        validation_error = validate_serializer(serializer)
+        if validation_error:
+            return validation_error
+        serializer.save(created_by=request.user)
+        return success_response(
+            data=serializer.data,
+            message=f"{self.queryset.model.__name__} created successfully",
+            status_code=status.HTTP_201_CREATED,
+        )
+
 
 class PaymentPromiseViewSet(BaseViewSet):
     queryset = PaymentPromise.objects.all()
@@ -92,7 +111,6 @@ class PaymentPromiseViewSet(BaseViewSet):
 class PaymentViewSet(BaseViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes = [IsStudent]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = [
         "paymentplan",
@@ -103,6 +121,27 @@ class PaymentViewSet(BaseViewSet):
         "user",
     ]
     ordering_fields = ["payment_date", "amount_paid"]
+
+    def get_permissions(self):
+        if self.action in ["update", "partial_update"]:
+            return [IsFinanceService()]
+        return [IsStudent()]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        from rest_framework import status
+
+        from core.response_handler import success_response, validate_serializer
+
+        validation_error = validate_serializer(serializer)
+        if validation_error:
+            return validation_error
+        serializer.save(user=request.user)
+        return success_response(
+            data=serializer.data,
+            message=f"{self.queryset.model.__name__} created successfully",
+            status_code=status.HTTP_201_CREATED,
+        )
 
 
 class CollectionCorrespondenceViewSet(BaseViewSet):
