@@ -1,6 +1,5 @@
-
-from django.db import models
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
 
 
@@ -11,11 +10,24 @@ class PaymentDerogation(models.Model):
         ("rejected", "Rejetée"),
     ]
 
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="derogations")
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="derogations"
+    )
     reason = models.TextField()
-    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="derogation_requests")
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="derogation_requests",
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    rector_decision_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="rector_derogations")
+    rector_decision_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="rector_derogations",
+    )
     decision_comment = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     decision_date = models.DateTimeField(null=True, blank=True)

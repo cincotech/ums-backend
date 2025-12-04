@@ -1,6 +1,6 @@
 from celery import shared_task
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 
 User = get_user_model()
 
@@ -9,11 +9,11 @@ User = get_user_model()
 def notify_attribution_validation(attribution_id, validation_status):
     """Notifier les parties prenantes de la validation d'attribution."""
     from .models import AttributionValidation
-    
+
     try:
         validation = AttributionValidation.objects.get(id=attribution_id)
         teacher = validation.attribution.user
-        
+
         # Notifier l'enseignant
         send_mail(
             subject="Attribution de Cours - Décision",
@@ -21,11 +21,11 @@ def notify_attribution_validation(attribution_id, validation_status):
             from_email="no-reply@ums.bi",
             recipient_list=[teacher.email],
         )
-        
+
         # Notifier les doyens
-        deans = User.objects.filter(role='doyen')
-        dean_emails = list(deans.values_list('email', flat=True))
-        
+        deans = User.objects.filter(role="doyen")
+        dean_emails = list(deans.values_list("email", flat=True))
+
         if dean_emails:
             send_mail(
                 subject="Attribution de Cours Validée",
@@ -41,7 +41,7 @@ def notify_attribution_validation(attribution_id, validation_status):
 def generate_quality_report(report_type, title, data):
     """Générer un rapport de qualité."""
     from .models import QualityReport
-    
+
     QualityReport.objects.create(
         report_type=report_type,
         title=title,
