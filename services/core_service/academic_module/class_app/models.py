@@ -18,7 +18,7 @@ class Class(models.Model):
         unique_together = ("class_name", "department")
 
     def __str__(self):
-        return f"{self.name} - {self.department.name}"
+        return f"{self.class_name} - {self.department.department_name}"
 
 
 class ClassGroup(models.Model):

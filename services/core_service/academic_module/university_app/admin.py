@@ -93,6 +93,7 @@ class AcademicYearAdmin(ImportExportModelAdmin, ModelAdmin):
                     "academic_year",
                     "description",
                     "civil_year",
+                    "university",
                     "start_date",
                     "end_date",
                 )
