@@ -21,6 +21,7 @@ from services.core_service.student_module.parent_app.views import (
 )
 from services.core_service.student_module.student_profile_app.comprehensive_views import (
     StudentCreateAPIView,
+    StudentFileViewSet,
     StudentSiblingsAPIView,
 )
 from services.core_service.student_module.student_profile_app.views import (
@@ -43,6 +44,7 @@ router.register(r"training-centers", TrainingCenterViewSet, basename="trainingce
 router.register(r"students", StudentViewSet, basename="student")
 router.register(r"trainings", TrainingViewSet, basename="training")
 router.register(r"student-hs-info", StudentHsInfoViewSet, basename="studenthsinfo")
+router.register(r"student-file", StudentFileViewSet, basename="studentfile")
 router.register(
     r"student-graduate-info", StudentGraduateInfoViewSet, basename="studentgraduateinfo"
 )

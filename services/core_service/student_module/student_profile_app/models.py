@@ -51,7 +51,9 @@ class StudentFile(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="files")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="files", null=True, blank=True
+    )
     file_type = models.CharField(max_length=30, choices=FILE_TYPES)
     file_name = models.CharField(max_length=255)
     file = models.FileField(upload_to="student_files/")
@@ -69,7 +71,6 @@ class StudentFile(models.Model):
 
     class Meta:
         db_table = "student_files"
-        unique_together = ("student", "file_type")
 
     def __str__(self):
         return f"{self.student.matricule} - {self.get_file_type_display()}"
