@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from core.permissions import IsAcademicAffairs, IsDean
+from core.permissions import IsAcademicAffairs
 from core.response_handler import success_response, validate_serializer
 from core.views import BaseViewSet
 
@@ -16,7 +16,7 @@ from .serializers import (
 class ExamTypeViewSet(BaseViewSet):
     queryset = ExamType.objects.all()
     serializer_class = ExamTypeSerializer
-    permission_classes = [IsDean]
+    permission_classes = [IsAcademicAffairs]
 
 
 class ExamViewSet(BaseViewSet):

@@ -1,5 +1,3 @@
-# Generated migration for StudentFile model
-
 import uuid
 
 import django.db.models.deletion

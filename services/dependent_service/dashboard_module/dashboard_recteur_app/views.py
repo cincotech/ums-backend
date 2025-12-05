@@ -1,171 +1,75 @@
-# from rest_framework import status
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-# from core.response_handler import error_response, success_response
+from services.core_service.academic_module.quality_app.models import QualityReport
+from services.core_service.academic_module.quality_app.serializers import (
+    QualityReportSerializer,
+)
 
-# from .serializers import (
-#     AttributionValidationSerializer,
-#     PaymentDerogationSerializer,
-#     PaymentOverviewSerializer,
-#     RecteurDashboardStatsSerializer,
-# )
-# from .services import RecteurDashboardService
-
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def recteur_dashboard_overview(request):
-#     """Get recteur dashboard overview with key statistics"""
-#     try:
-#         stats = RecteurDashboardService.get_dashboard_stats()
-#         serializer = RecteurDashboardStatsSerializer(stats)
-#         return success_response(
-#             data=serializer.data, message="Dashboard overview retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+from .models import PaymentDerogation, VisitorCourseAttribution
+from .permissions import IsRector
+from .serializers import (
+    PaymentDerogationDecisionSerializer,
+    PaymentDerogationSerializer,
+    VisitorCourseAttributionSerializer,
+)
+from .services import RectorAnalyticsService
+from .tasks import notify_derogation_decision
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def payment_derogations(request):
-#     """Get payment derogation requests"""
-#     try:
-#         status_filter = request.GET.get("status", "pending")
-#         derogations = RecteurDashboardService.get_payment_derogations(status_filter)
-#         serializer = PaymentDerogationSerializer(derogations, many=True)
-#         return success_response(
-#             data=serializer.data, message="Payment derogations retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+class PaymentDerogationViewSet(viewsets.ModelViewSet):
+    queryset = PaymentDerogation.objects.all()
+    serializer_class = PaymentDerogationSerializer
+    permission_classes = [IsAuthenticated, IsRector]
+
+    @action(detail=True, methods=["POST"])
+    def decide(self, request, pk=None):
+        derog = self.get_object()
+        serializer = PaymentDerogationDecisionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        derog.status = serializer.validated_data["status"]
+        derog.rector_decision_by = request.user
+        derog.decision_comment = serializer.validated_data.get("comment", "")
+        derog.decision_date = timezone.now()
+        derog.save()
+
+        notify_derogation_decision.delay(derog.student.email, derog.status)
+
+        return Response(PaymentDerogationSerializer(derog).data)
 
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def process_payment_derogation(request, derogation_id):
-#     """Process payment derogation decision (approve/reject)"""
-#     try:
-#         decision = request.data.get("decision")  # 'approved' or 'rejected'
-#         notes = request.data.get("notes", "")
+class VisitorCourseAttributionViewSet(viewsets.ModelViewSet):
+    queryset = VisitorCourseAttribution.objects.all()
+    serializer_class = VisitorCourseAttributionSerializer
+    permission_classes = [IsAuthenticated, IsRector]
 
-#         if decision not in ["approved", "rejected"]:
-#             return error_response(
-#                 message="Invalid decision. Must be 'approved' or 'rejected'",
-#                 status_code=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         derogation = RecteurDashboardService.process_derogation(
-#             derogation_id, decision, notes, request.user
-#         )
-
-#         serializer = PaymentDerogationSerializer(derogation)
-#         return success_response(data=serializer.data, message=f"Derogation {decision}")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    @action(detail=True, methods=["POST"])
+    def validate(self, request, pk=None):
+        attrib = self.get_object()
+        attrib.rector_validation = True
+        attrib.validation_date = timezone.now()
+        attrib.save()
+        return Response(VisitorCourseAttributionSerializer(attrib).data)
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def visiting_professor_attributions(request):
-#     """Get course attributions for visiting professors pending validation"""
-#     try:
-#         attributions = RecteurDashboardService.get_visiting_professor_attributions()
-#         serializer = AttributionValidationSerializer(attributions, many=True)
-#         return success_response(data=serializer.data, message="Attributions retrieved")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+class QualityReportViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = QualityReport.objects.all()
+    serializer_class = QualityReportSerializer
+    permission_classes = [IsAuthenticated, IsRector]
 
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def validate_course_attribution(request, attribution_id):
-#     """Validate course attribution for visiting professor"""
-#     try:
-#         decision = request.data.get("decision")  # 'approved' or 'rejected'
-#         notes = request.data.get("notes", "")
+class RectorDashboardAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsRector]
 
-#         if decision not in ["approved", "rejected"]:
-#             return error_response(
-#                 message="Invalid decision. Must be 'approved' or 'rejected'",
-#                 status_code=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         attribution = RecteurDashboardService.validate_course_attribution(
-#             attribution_id, decision, notes, request.user
-#         )
-
-#         serializer = AttributionValidationSerializer(attribution)
-#         return success_response(data=serializer.data, message=f"Attribution {decision}")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
-
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def payment_tracking_overview(request):
-#     """Get global payment tracking and collection rates"""
-#     try:
-#         overview = RecteurDashboardService.get_payment_overview()
-#         serializer = PaymentOverviewSerializer(overview)
-#         return success_response(
-#             data=serializer.data, message="Payment overview retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
-
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def academic_performance_supervision(request):
-#     """Get academic performance supervision data"""
-#     try:
-#         performance = RecteurDashboardService.get_academic_performance_overview()
-#         return success_response(
-#             data=performance, message="Academic performance data retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
-
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def quality_reports_consultation(request):
-#     """Get quality assurance reports for recteur consultation"""
-#     try:
-#         from services.dependent_service.dashboard_module.dashboard_app.serializers import (
-#             QualityReportSerializer,
-#         )
-
-#         reports = RecteurDashboardService.get_quality_reports_summary()
-#         serializer = QualityReportSerializer(reports, many=True)
-#         return success_response(
-#             data=serializer.data, message="Quality reports retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    def get(self, request):
+        return Response(
+            {
+                "payment": RectorAnalyticsService.payment_overview(),
+                "academic": RectorAnalyticsService.academic_performance(),
+            }
+        )

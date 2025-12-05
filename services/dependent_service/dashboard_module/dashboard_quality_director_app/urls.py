@@ -1,48 +1,39 @@
-urlpatterns = []
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-# from django.urls import path
+from . import views
 
-# from . import views
+router = DefaultRouter()
+router.register(
+    r"quality-standards", views.QualityStandardViewSet, basename="quality-standard"
+)
+router.register(
+    r"compliance-audits", views.ComplianceAuditViewSet, basename="compliance-audit"
+)
+router.register(
+    r"academic-performance",
+    views.AcademicPerformanceReportViewSet,
+    basename="academic-performance",
+)
+router.register(
+    r"program-execution",
+    views.ProgramExecutionTrackingViewSet,
+    basename="program-execution",
+)
+router.register(
+    r"student-retention",
+    views.StudentRetentionAuditViewSet,
+    basename="student-retention",
+)
+router.register(
+    r"satisfaction-surveys",
+    views.CourseSatisfactionSurveyViewSet,
+    basename="satisfaction-survey",
+)
+router.register(
+    r"quality-reports", views.QualityReportViewSet, basename="quality-report"
+)
 
-# urlpatterns = [
-#     path(
-#         "quality-director/overview/",
-#         views.quality_dashboard_overview,
-#         name="quality-dashboard-overview",
-#     ),
-#     path(
-#         "quality-director/academic-performance/",
-#         views.academic_performance_analysis,
-#         name="academic-performance-analysis",
-#     ),
-#     path(
-#         "quality-director/program-execution/",
-#         views.program_execution_tracking,
-#         name="program-execution-tracking",
-#     ),
-#     path(
-#         "quality-director/demographics/",
-#         views.student_demographics_audit,
-#         name="student-demographics-audit",
-#     ),
-#     path(
-#         "quality-director/evaluations/",
-#         views.course_teacher_evaluations,
-#         name="course-teacher-evaluations",
-#     ),
-#     path(
-#         "quality-director/compliance/",
-#         views.compliance_standards_audit,
-#         name="compliance-standards-audit",
-#     ),
-#     path(
-#         "quality-director/reports/generate/",
-#         views.generate_quality_report,
-#         name="generate-quality-report",
-#     ),
-#     path(
-#         "quality-director/metrics/",
-#         views.quality_metrics_summary,
-#         name="quality-metrics-summary",
-#     ),
-# ]
+urlpatterns = [
+    path("", include(router.urls)),
+]

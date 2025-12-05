@@ -86,6 +86,29 @@ class IsAlumni(RolePermission):
 
 
 # -----------------------------
+# Feature-Based Permissions
+# -----------------------------
+class CanViewGrades(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+
+class CanViewTranscript(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+
+class CanRequestDocuments(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+
+class CanSendMessages(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+
+# -----------------------------
 # Combined Role Permissions
 # -----------------------------
 class IsSuperAdminOrRector(RolePermission):

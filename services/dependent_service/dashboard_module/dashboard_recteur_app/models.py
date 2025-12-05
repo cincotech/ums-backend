@@ -1,63 +1,47 @@
-# import uuid
-
-# from django.db import models
-
-# from services.core_service.student_module.student_profile_app.models import Student
-# from services.foundational_service.auth_module.user_app.models import User
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
 
 
-# class PaymentDerogation(models.Model):
-#     DEROGATION_TYPES = (
-#         ("exemption", "Exemption"),
-#         ("postponement", "Report"),
-#         ("arrangement", "Aménagement"),
-#     )
+class PaymentDerogation(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "En attente"),
+        ("approved", "Approuvée"),
+        ("rejected", "Rejetée"),
+    ]
 
-#     STATUS_CHOICES = (
-#         ("pending", "En Attente"),
-#         ("approved", "Approuvé"),
-#         ("rejected", "Rejeté"),
-#     )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="derogations"
+    )
+    reason = models.TextField()
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="derogation_requests",
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    rector_decision_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="rector_derogations",
+    )
+    decision_comment = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    decision_date = models.DateTimeField(null=True, blank=True)
 
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     student = models.ForeignKey(Student, on_delete=models.RESTRICT)
-#     derogation_type = models.CharField(max_length=20, choices=DEROGATION_TYPES)
-#     amount = models.DecimalField(max_digits=10, decimal_places=2)
-#     reason = models.TextField()
-#     supporting_documents = models.JSONField(default=list)
-#     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-#     requested_by = models.ForeignKey(
-#         User, on_delete=models.RESTRICT, related_name="requested_derogations"
-#     )
-#     reviewed_by = models.ForeignKey(
-#         User,
-#         on_delete=models.RESTRICT,
-#         null=True,
-#         blank=True,
-#         related_name="reviewed_derogations",
-#     )
-#     decision_notes = models.TextField(null=True, blank=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     reviewed_at = models.DateTimeField(null=True, blank=True)
-
-#     class Meta:
-#         db_table = "payment_derogations"
+    def __str__(self):
+        return f"Derogation {self.id} - {self.student}"
 
 
-# class RecteurDecision(models.Model):
-#     DECISION_TYPES = (
-#         ("payment_derogation", "Dérogation de Paiement"),
-#         ("course_attribution", "Attribution de Cours"),
-#         ("exceptional_authorization", "Autorisation Exceptionnelle"),
-#     )
+class VisitorCourseAttribution(models.Model):
+    professor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    course_name = models.CharField(max_length=255)
+    recommended_by = models.CharField(max_length=255)
+    rector_validation = models.BooleanField(default=False)
+    validation_date = models.DateTimeField(null=True, blank=True)
 
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     decision_type = models.CharField(max_length=50, choices=DECISION_TYPES)
-#     reference_id = models.CharField(max_length=255)  # ID of related object
-#     decision = models.CharField(max_length=20)  # approved/rejected
-#     notes = models.TextField(null=True, blank=True)
-#     decided_by = models.ForeignKey(User, on_delete=models.RESTRICT)
-#     decided_at = models.DateTimeField(auto_now_add=True)
-
-#     class Meta:
-#         db_table = "recteur_decisions"
+    def __str__(self):
+        return self.course_name
