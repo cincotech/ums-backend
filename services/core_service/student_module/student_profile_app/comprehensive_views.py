@@ -3,9 +3,17 @@ from rest_framework import permissions, status
 from rest_framework.views import APIView
 
 from core.response_handler import error_response, success_response, validate_serializer
-from services.core_service.student_module.student_profile_app.models import Student
+from core.views import BaseViewSet
+from services.core_service.student_module.student_profile_app.models import (
+    Student,
+    StudentFile,
+)
 
-from .comprehensive_serializers import StudentCreateSerializer, StudentSerializer
+from .comprehensive_serializers import (
+    StudentCreateSerializer,
+    StudentFileSerializer,
+    StudentSerializer,
+)
 
 
 class StudentCreateAPIView(APIView):
@@ -92,3 +100,8 @@ class StudentSiblingsAPIView(APIView):
                 errors={"detail": str(e)},
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class StudentFileViewSet(BaseViewSet):
+    queryset = StudentFile.objects.all()
+    serializer_class = StudentFileSerializer
