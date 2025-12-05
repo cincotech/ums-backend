@@ -1,4 +1,4 @@
-from django.urls import include, path
+from django.urls import include, path, re_path
 from rest_framework.routers import DefaultRouter
 
 from services.core_service.student_module.card_app.views import (
@@ -58,8 +58,8 @@ router.register(
 urlpatterns = [
     path("student/", include(router.urls)),
     path("student/create/", StudentCreateAPIView.as_view(), name="student-create"),
-    path(
-        "student/<str:matricule>/siblings/",
+    re_path(
+        r"^student/(?P<matricule>.+)/siblings/$",
         StudentSiblingsAPIView.as_view(),
         name="student-siblings",
     ),

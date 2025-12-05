@@ -23,8 +23,8 @@ class ClassResource(resources.ModelResource):
 
     class Meta:
         model = Class
-        fields = ("id", "class_name", "department", "department_name", "class_group")
-        export_order = ("id", "class_name", "department_name", "class_group")
+        fields = ("id", "class_name", "department", "department_name")
+        export_order = ("id", "class_name", "department_name")
 
 
 # ----------------------------
@@ -33,14 +33,12 @@ class ClassResource(resources.ModelResource):
 @admin.register(Class)
 class ClassAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = ClassResource
-    list_display = ("class_name", "department", "display_class_group")
+    list_display = ("class_name", "department")
     list_filter = ("department",)
     search_fields = ("class_name", "department__department_name")
     ordering = ("class_name",)
 
-    fieldsets = (
-        ("Class Information", {"fields": ("class_name", "department", "class_group")}),
-    )
+    fieldsets = (("Class Information", {"fields": ("class_name", "department")}),)
 
     formfield_overrides = {
         models.CharField: {
@@ -50,9 +48,3 @@ class ClassAdmin(ImportExportModelAdmin, ModelAdmin):
             "widget": admin.widgets.AdminTextareaWidget(attrs={"rows": 3, "cols": 40})
         },
     }
-
-    # Optional: Display class_group in a readable way
-    def display_class_group(self, obj):
-        return ", ".join(obj.class_group)
-
-    display_class_group.short_description = "Class Groups"
