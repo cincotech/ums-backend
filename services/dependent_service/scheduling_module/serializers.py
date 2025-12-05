@@ -15,7 +15,7 @@ class ScheduleSlotSerializer(serializers.ModelSerializer):
 
 
 class TimetableSerializer(serializers.ModelSerializer):
-    slot = ScheduleSlotSerializer(many=True, read_only=True)
+    slots = ScheduleSlotSerializer(many=True, read_only=True)
     slot_ids = serializers.ListField(
         child=serializers.UUIDField(), write_only=True, required=False
     )
@@ -23,13 +23,13 @@ class TimetableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Timetable
         fields = "__all__"
-        extra_kwargs = {"slot": {"read_only": True}}
+        extra_kwargs = {"slots": {"read_only": True}}
 
     def create(self, validated_data):
         slot_ids = validated_data.pop("slot_ids", [])
         timetable = Timetable.objects.create(**validated_data)
         if slot_ids:
-            timetable.slot.set(slot_ids)
+            timetable.slots.set(slot_ids)
         return timetable
 
     def update(self, instance, validated_data):
@@ -38,7 +38,7 @@ class TimetableSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         if slot_ids is not None:
-            instance.slot.set(slot_ids)
+            instance.slots.set(slot_ids)
         return instance
 
 

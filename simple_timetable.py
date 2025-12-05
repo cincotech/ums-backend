@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-import json
-import os
-from datetime import time
 
+import os
 from datetime import time
 
 import django
@@ -50,7 +48,6 @@ if slots.count() == 0:
         start_time=time(8, 0),
         end_time=time(10, 0),
         schedule_name="Cours du matin",
-        schedule_name="Cours du matin",
     )
     print(f"\nScheduleSlot créé: {slot.id}")
 
@@ -58,7 +55,6 @@ if slots.count() == 0:
 if rooms.exists() and attributions.exists():
     first_room = rooms.first()
     first_attribution = attributions.first()
-
 
     print("\n=== JSON POUR TIMETABLE ===")
     import json
@@ -69,10 +65,8 @@ if rooms.exists() and attributions.exists():
         "start_date": "2025-11-15",
         "end_date": "2026-03-15",
         "status": "Planned",
-        "status": "Planned",
     }
     print(json.dumps(json_data, indent=2))
 else:
     print("\n❌ Pas assez d'objets pour créer un Timetable")
     print("Vous devez d'abord créer des objets Attribution et Room")
-
