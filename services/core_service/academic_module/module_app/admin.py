@@ -8,7 +8,7 @@ from unfold.admin import ModelAdmin
 
 from services.core_service.academic_module.class_app.models import Class
 
-from .models import Module
+from .models import Module, Semester
 
 
 # ----------------------------
@@ -23,8 +23,8 @@ class ModuleResource(resources.ModelResource):
 
     class Meta:
         model = Module
-        fields = ("id", "module_name", "code", "semester_id", "class_fk", "class_name")
-        export_order = ("id", "module_name", "code", "semester_id", "class_name")
+        fields = ("id", "module_name", "code", "semester", "class_fk", "class_name")
+        export_order = ("id", "module_name", "code", "semester", "class_name")
 
 
 # ----------------------------
@@ -33,15 +33,15 @@ class ModuleResource(resources.ModelResource):
 @admin.register(Module)
 class ModuleAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = ModuleResource
-    list_display = ("module_name", "code", "semester_id", "class_fk")
-    list_filter = ("semester_id", "class_fk")
+    list_display = ("module_name", "code", "semester", "class_fk")
+    list_filter = ("semester", "class_fk")
     search_fields = ("module_name", "code", "class_fk__class_name")
     ordering = ("module_name",)
 
     fieldsets = (
         (
             "Module Information",
-            {"fields": ("module_name", "code", "semester_id", "class_fk")},
+            {"fields": ("module_name", "code", "semester", "class_fk")},
         ),
     )
 
@@ -50,3 +50,10 @@ class ModuleAdmin(ImportExportModelAdmin, ModelAdmin):
             "widget": admin.widgets.AdminTextInputWidget(attrs={"class": "vTextField"})
         },
     }
+
+
+@admin.register(Semester)
+class SemesterAdmin(ModelAdmin):
+    list_display = ("number", "name")
+    search_fields = ("name",)
+    ordering = ("number",)
