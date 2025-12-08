@@ -213,16 +213,14 @@ class Migration(migrations.Migration):
                 ("file", models.FileField(upload_to="student_files/")),
                 ("uploaded_at", models.DateTimeField(auto_now_add=True)),
                 ("is_verified", models.BooleanField(default=False)),
-                ("verified_at", models.DateTimeField(null=True, blank=True)),
-                ("notes", models.TextField(null=True, blank=True)),
+                ("verified_at", models.DateTimeField(blank=True, null=True)),
+                ("notes", models.TextField(blank=True, null=True)),
                 (
-                    "user",
+                    "student",
                     models.ForeignKey(
-                        blank=True,
-                        null=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="files",
-                        to=settings.AUTH_USER_MODEL,
+                        to="student_profile_app.student",
                     ),
                 ),
                 (
@@ -243,7 +241,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="studentfile",
             constraint=models.UniqueConstraint(
-                fields=("user", "file_type"), name="unique_student_file_type"
+                fields=("student", "file_type"), name="unique_student_file_type"
             ),
         ),
     ]
