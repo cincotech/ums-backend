@@ -120,6 +120,7 @@ class PaymentViewSet(BaseViewSet):
         "inscription",
         "user",
     ]
+
     ordering_fields = ["payment_date", "amount_paid"]
 
     def get_permissions(self):
