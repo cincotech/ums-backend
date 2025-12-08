@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 
 from core.permissions import IsAcademicAffairs
@@ -23,6 +24,8 @@ class ExamViewSet(BaseViewSet):
     queryset = Exam.objects.all()
     serializer_class = ExamSerializer
     permission_classes = [IsAcademicAffairs]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["course", "exam_type", "academic_year", "status", "exam_date"]
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
