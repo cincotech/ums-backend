@@ -18,6 +18,9 @@ class Highschool(models.Model):
     class Meta:
         db_table = "highschools"
 
+    def __str__(self):
+        return self.hs_name
+
 
 class Section(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -25,6 +28,9 @@ class Section(models.Model):
 
     class Meta:
         db_table = "sections"
+
+    def __str__(self):
+        return self.section_name
 
 
 class Certificate(models.Model):
@@ -37,6 +43,9 @@ class Certificate(models.Model):
     class Meta:
         db_table = "certificates"
 
+    def __str__(self):
+        return self.certificate_name
+
 
 class Option(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -44,6 +53,9 @@ class Option(models.Model):
     section = models.ForeignKey(
         Section, on_delete=models.RESTRICT, related_name="options"
     )
+
+    def __str__(self):
+        return self.option_name
 
     class Meta:
         db_table = "options"
@@ -58,3 +70,6 @@ class TrainingCenter(models.Model):
 
     class Meta:
         db_table = "training_centers"
+
+    def __str__(self):
+        return self.name

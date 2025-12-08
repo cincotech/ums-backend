@@ -5,6 +5,7 @@ from django.core.validators import validate_email
 from drf_spectacular.utils import OpenApiExample, extend_schema_serializer
 from rest_framework import serializers
 
+from services.core_service.academic_module.university_app.models import University
 from services.foundational_service.auth_module.user_app.models import Role, User
 from services.foundational_service.geo_module.colline_app.models import Colline
 from services.foundational_service.geo_module.country_app.models import Country
@@ -58,6 +59,31 @@ class UserSerializer(serializers.ModelSerializer):
             "requires_2fa_static",
             "totp_secret_key",
         ]
+
+    def create(self, validated_data):
+        residence_data = validated_data.pop("residence", [])
+
+        user = User.objects.create(**validated_data)
+
+        # Set the many-to-many field
+        if residence_data:
+            user.residence.set(residence_data)
+
+        # 2. Assign default role
+        guest_role, _ = Role.objects.get_or_create(name="guest")
+
+        # 3. Assign university
+        upg, _ = University.objects.get_or_create(
+            university_name="Université Polytechnique de Gitega", university_abrev="UPG"
+        )
+
+        user.role = guest_role
+        user.university = upg
+
+        # 4. Save final user
+        user.save()
+
+        return user
 
 
 @extend_schema_serializer(
