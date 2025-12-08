@@ -13,9 +13,174 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("parent_app", "0001_initial"),
         ("highschool_info_app", "0001_initial"),
+        ("colline_app", "0001_initial"),
+        ("department_app", "0002_initial"),
+        ("university_app", "0002_initial"),
     ]
 
     operations = [
+        migrations.CreateModel(
+            name="Student",
+            fields=[
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "matricule",
+                    models.CharField(
+                        blank=True, max_length=120, null=True, unique=True
+                    ),
+                ),
+                ("cam", models.PositiveSmallIntegerField(blank=True, null=True)),
+                (
+                    "colline",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        related_name="birthplaces",
+                        to="colline_app.colline",
+                    ),
+                ),
+                (
+                    "parent",
+                    models.ManyToManyField(
+                        related_name="students_parents", to="parent_app.parent"
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        related_name="students_users",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+            ],
+            options={
+                "db_table": "students",
+            },
+        ),
+        migrations.CreateModel(
+            name="Training",
+            fields=[
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("domaine", models.CharField(max_length=255)),
+                ("certificate", models.CharField(max_length=255)),
+                (
+                    "training_center",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        to="highschool_info_app.trainingcenter",
+                    ),
+                ),
+            ],
+            options={
+                "db_table": "trainings",
+            },
+        ),
+        migrations.CreateModel(
+            name="StudentHsInfo",
+            fields=[
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("se_mark", models.CharField(blank=True, max_length=6, null=True)),
+                ("date_of_obtention", models.PositiveSmallIntegerField()),
+                (
+                    "certificate",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        to="highschool_info_app.certificate",
+                    ),
+                ),
+                (
+                    "highschool",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        to="highschool_info_app.highschool",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        related_name="hs_infos",
+                        to="student_profile_app.student",
+                    ),
+                ),
+                (
+                    "formation",
+                    models.ManyToManyField(
+                        related_name="formations", to="student_profile_app.training"
+                    ),
+                ),
+            ],
+            options={
+                "db_table": "student_hs_info",
+            },
+        ),
+        migrations.CreateModel(
+            name="StudentGraduateInfo",
+            fields=[
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("option", models.CharField(blank=True, max_length=127, null=True)),
+                ("mention", models.CharField(max_length=45)),
+                (
+                    "degree",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        to="university_app.universitydegree",
+                    ),
+                ),
+                (
+                    "department",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        to="department_app.department",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.RESTRICT,
+                        related_name="graduate_infos",
+                        to="student_profile_app.student",
+                    ),
+                ),
+            ],
+            options={
+                "db_table": "student_graduate_info",
+            },
+        ),
         migrations.CreateModel(
             name="StudentFile",
             fields=[
@@ -51,11 +216,13 @@ class Migration(migrations.Migration):
                 ("verified_at", models.DateTimeField(null=True, blank=True)),
                 ("notes", models.TextField(null=True, blank=True)),
                 (
-                    "student",
+                    "user",
                     models.ForeignKey(
+                        blank=True,
+                        null=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="files",
-                        to="student_profile_app.student",
+                        to=settings.AUTH_USER_MODEL,
                     ),
                 ),
                 (
@@ -76,7 +243,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="studentfile",
             constraint=models.UniqueConstraint(
-                fields=("student", "file_type"), name="unique_student_file_type"
+                fields=("user", "file_type"), name="unique_student_file_type"
             ),
         ),
     ]
