@@ -12,7 +12,11 @@ class University(models.Model):
     university_name = models.CharField(max_length=255)
     university_abrev = models.CharField(max_length=15, null=True, blank=True)
     country = models.ForeignKey(
-        Country, on_delete=models.RESTRICT, related_name="universities"
+        Country,
+        on_delete=models.RESTRICT,
+        related_name="universities",
+        null=True,
+        blank=True,
     )
 
     def __str__(self):

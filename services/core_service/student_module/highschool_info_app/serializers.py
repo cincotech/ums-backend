@@ -1,12 +1,20 @@
 from rest_framework import serializers
 
+from services.foundational_service.geo_module.serializers import ZoneSerializer
+from services.foundational_service.geo_module.zone_app.models import Zone
+
 from .models import Certificate, Highschool, Option, Section, TrainingCenter
 
 
 class HighschoolSerializer(serializers.ModelSerializer):
+    zone = ZoneSerializer(read_only=True)
+    zone_id = serializers.PrimaryKeyRelatedField(
+        queryset=Zone.objects.all(), source="zone", write_only=True
+    )
+
     class Meta:
         model = Highschool
-        fields = ["id", "hs_name", "zone", "code"]
+        fields = ["id", "hs_name", "zone", "code", "zone_id"]
 
 
 class SectionSerializer(serializers.ModelSerializer):
