@@ -18,6 +18,7 @@ class Semester(models.Model):
         return self.name or f"Semester {self.number}"
 
 
+# objet pour module
 class Module(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     class_fk = models.ForeignKey(
