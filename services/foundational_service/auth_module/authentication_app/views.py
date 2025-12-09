@@ -3,7 +3,7 @@ import logging
 
 from django.contrib.auth import authenticate
 from django_otp.plugins.otp_email.models import EmailDevice
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -17,6 +17,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.audit import log_login, log_security_event
 from core.response_handler import error_response, success_response, validate_serializer
+from core.views import BaseViewSet
+from services.core_service.academic_module.university_app.models import University
 from services.foundational_service.auth_module.user_app.models import Role, User
 
 from .email_service import TwoFactorEmailService
@@ -90,8 +92,13 @@ class RegisterView(APIView):
         password = request.data.get("password")
         user.set_password(password)
         guest_role, _ = Role.objects.get_or_create(name="guest")
+        upg, created = University.objects.get_or_create(
+            university_name="Université Polytechnique de Gitega", university_abrev="UPG"
+        )
+        user.university = upg
         user.role = guest_role
         user.save()
+
         # log_user_action(user, "create", f"User registered: {email}", "User", user.id)
         try:
             # Setup email 2FA device
@@ -740,15 +747,21 @@ class TokenRefreshView(APIView):
 
 
 # ViewSet for managing user data
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(BaseViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]  # Only authenticated users can access
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def get_queryset(self):
-        # Return only the current user's data
-        return User.objects.filter(id=self.request.user.id)
+        user = self.request.user
+
+        # Case 1: student_service → return student + guest
+        if user.role.name == "student_service":
+            return User.objects.filter(role__name__in=["student", "guest"])
+
+        # Case 2: everyone else → return only their own data
+        return User.objects.filter(id=user.id)
 
     @action(detail=False, methods=["get"])
     def me(self, request):

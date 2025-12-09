@@ -15,6 +15,10 @@ class StudentViewSet(BaseViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
 
+    def perform_create(self, serializer):
+
+        return serializer.save()
+
 
 class TrainingViewSet(BaseViewSet):
     queryset = Training.objects.all()
