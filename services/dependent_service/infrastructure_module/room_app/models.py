@@ -22,6 +22,7 @@ class Room(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     room_name = models.CharField(max_length=100)
     capacity = models.PositiveIntegerField()
+    room_code = models.CharField(max_length=100, null=True, blank=True)
     room_type = models.CharField(max_length=10, choices=ROOM_TYPE, default="classroom")
     is_available = models.BooleanField(default=True)
 

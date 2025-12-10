@@ -1,5 +1,8 @@
 from rest_framework import serializers
 
+from services.foundational_service.auth_module.authentication_app.serializers import (
+    UserSerializer,
+)
 from services.foundational_service.auth_module.user_app.models import User
 
 from .models import Student, StudentGraduateInfo, StudentHsInfo, Training
@@ -19,14 +22,24 @@ class StudentSerializer(serializers.ModelSerializer):
         source="parent",
     )
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user_obj = UserSerializer(source="user", read_only=True)
 
     class Meta:
         model = Student
-        fields = ["id", "user", "matricule", "colline", "cam", "parent", "parent_ids"]
+        fields = [
+            "id",
+            "user",
+            "matricule",
+            "colline",
+            "cam",
+            "parent",
+            "parent_ids",
+            "user_obj",
+        ]
         read_only_fields = ["parent"]
 
     def create(self, validated_data):
-        parents = validated_data.pop("parent_ids", [])
+        parents = validated_data.pop("parent", [])
         print(parents)
 
         # Check if student already exists
