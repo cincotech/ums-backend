@@ -27,6 +27,7 @@ class CertificateSerializer(serializers.ModelSerializer):
     section_id = serializers.PrimaryKeyRelatedField(
         queryset=Section.objects.all(), source="section", write_only=True
     )
+    section = SectionSerializer(read_only=True)
 
     class Meta:
         model = Certificate
