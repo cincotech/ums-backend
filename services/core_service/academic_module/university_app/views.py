@@ -22,6 +22,15 @@ class UniversityViewSet(BaseViewSet):
     serializer_class = UniversitySerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        qs = University.objects.all()
+        country_id = self.request.query_params.get("country_id")
+
+        if country_id:
+            qs = qs.filter(country_id=country_id)
+
+        return qs
+
 
 class UniversityDegreeViewSet(BaseViewSet):
     queryset = UniversityDegree.objects.all()

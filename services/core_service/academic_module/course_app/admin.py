@@ -41,7 +41,10 @@ class CourseAdmin(ImportExportModelAdmin, ModelAdmin):
     formats = [base_formats.CSV, base_formats.JSON, base_formats.XLSX]
 
     fieldsets = (
-        ("Course Information", {"fields": ("course_name", "module", "cm", "td", "tp")}),
+        (
+            "Course Information",
+            {"fields": ("course_name", "module", "cm", "td", "tp", "credits")},
+        ),
     )
 
     formfield_overrides = {

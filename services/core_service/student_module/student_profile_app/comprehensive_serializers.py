@@ -105,20 +105,80 @@ class StudentSerializer(serializers.ModelSerializer):
         ]
 
 
-# -------------------- Inscription Serializer --------------------
 class InscriptionSerializer(serializers.ModelSerializer):
+    faculty_id = serializers.UUIDField(required=False, allow_null=True)
+    degree_id = serializers.UUIDField(required=False, allow_null=True)
+    option = serializers.CharField(required=False, allow_blank=True)
+    mention = serializers.CharField(required=False, allow_blank=True)
+
     class Meta:
         model = Inscription
         fields = [
             "id",
             "student",
+            "faculty_id",
             "academic_year",
             "class_fk",
             "date_inscription",
             "regist_status",
             "withdrawal_date",
             "is_year_close",
+            "degree_id",
+            "option",
+            "mention",
         ]
+
+    def create(self, validated_data):
+
+        # ---------------------------
+        # Extract essential fields
+        # ---------------------------
+        student = validated_data.get("student")
+        faculty_id = validated_data.pop("faculty_id", None)
+        degree_id = validated_data.pop("degree_id", None)
+        option = validated_data.pop("option", "")
+        mention = validated_data.pop("mention", "")
+
+        # ---------------------------
+        # Create StudentGraduateInfo
+        # ---------------------------
+        if faculty_id and degree_id:
+            faculty = Faculty.objects.get(id=faculty_id)
+            first_department = faculty.departments.order_by("id").first()
+
+            StudentGraduateInfo.objects.create(
+                student=student,
+                department=first_department,
+                option=option,
+                mention=mention,
+                degree_id=degree_id,
+            )
+
+        # ---------------------------
+        # Resolve class_fk if missing
+        # ---------------------------
+        class_fk = validated_data.get("class_fk")
+
+        if not class_fk and faculty_id:
+            faculty = Faculty.objects.get(id=faculty_id)
+            first_department = faculty.departments.order_by("id").first()
+            if first_department:
+                class_fk = first_department.classes.order_by("id").first()
+
+        # ---------------------------
+        # Create Inscription
+        # ---------------------------
+        inscription = Inscription.objects.create(
+            student=student,
+            academic_year=validated_data.get("academic_year"),
+            class_fk=class_fk,
+            date_inscription=validated_data.get("date_inscription"),
+            regist_status=validated_data.get("regist_status", None),
+            withdrawal_date=validated_data.get("withdrawal_date", None),
+            is_year_close=validated_data.get("is_year_close", False),
+        )
+
+        return inscription
 
 
 # -------------------- Full Student Create Serializer --------------------
