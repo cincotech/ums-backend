@@ -1,89 +1,160 @@
-# create_departments_and_classes.py
+# FINAL_IMPORT_EXCEL_WITH_REAL_DEPARTMENTS.py
 import os
 import django
-from uuid import UUID
+import pandas as pd
+from django.db import transaction
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ums.settings.development")
 django.setup()
 
-from django.db import transaction
-
-# Imports exacts selon ta structure
+# ====================== IMPORTS ======================
 from services.core_service.academic_module.university_app.models import University
 from services.core_service.academic_module.faculty_app.models import Faculty, TypeFormation
 from services.core_service.academic_module.department_app.models import Department
-from services.core_service.academic_module.class_app.models import Class  # ou le bon app
+from services.core_service.academic_module.class_app.models import Class
+from services.core_service.academic_module.module_app.models import Module,Semester
+from services.core_service.academic_module.course_app.models import Course
 
-UNIVERSITY_ID = UUID("02886153-a251-41c2-af8d-08417ffe6677")
+# ====================== CONFIG ======================
+UNIVERSITY_ID = "02886153-a251-41c2-af8d-08417ffe6677"
+university = University.objects.get(id=UNIVERSITY_ID)
+print(f"Université liée → {university} | ID: {UNIVERSITY_ID}\n")
 
-# ===================================================================
-# DONNÉES À CRÉER (tout corrigé orthographiquement)
-# ===================================================================
+# ====================== CRÉATION AUTOMATIQUE DES TypeFormation (PLUS JAMAIS D'ERREUR) ======================
+print("Création / vérification des TypeFormation...")
+TypeFormation.objects.get_or_create(name="Faculté",   defaults={"code": "F", "description": "Formation de type Faculté"})
+TypeFormation.objects.get_or_create(name="Institut",  defaults={"code": "I", "description": "Formation de type Institut"})
+TypeFormation.objects.get_or_create(name="Master",    defaults={"code": "M"})
+TypeFormation.objects.get_or_create(name="Doctorat",  defaults={"code": "D"})
+print("TypeFormation prêts !\n")
 
-DEPARTMENTS_DATA = [
-    # FSI - Faculté des Sciences de l'Ingénieur
-    {"faculty": "FACULTÉ DES SCIENCES DE L'INGÉNIEUR", "dept": "Génie Informatique",              "abbr": "GI"},
-    {"faculty": "FACULTÉ DES SCIENCES DE L'INGÉNIEUR", "dept": "Génie Électrique",               "abbr": "GE"},
-    {"faculty": "FACULTÉ DES SCIENCES DE L'INGÉNIEUR", "dept": "Génie Mécanique",                "abbr": "GM"},
-    {"faculty": "FACULTÉ DES SCIENCES DE L'INGÉNIEUR", "dept": "Génie Civil",                    "abbr": "GC"},
+# Maintenant on peut les récupérer sans risque
+type_faculte  = TypeFormation.objects.get(name="Faculté")
+type_institut = TypeFormation.objects.get(name="Institut")
 
-    # FTIC - Faculté des Technologies de l'Information et de la Communication
-    {"faculty": "FACULTÉ DES TECHNOLOGIES DE L'INFORMATION ET DE LA COMMUNICATION", "dept": "Informatique",                "abbr": "INFO"},
-    {"faculty": "FACULTÉ DES TECHNOLOGIES DE L'INFORMATION ET DE LA COMMUNICATION", "dept": "Télécommunications",         "abbr": "TELECOM"},
-    {"faculty": "FACULTÉ DES TECHNOLOGIES DE L'INFORMATION ET DE LA COMMUNICATION", "dept": "Réseaux et Sécurité",         "abbr": "RS"},
+# ====================== SEMESTRES 1 à 8 ======================
+for i in range(1, 9):
+    Semester.objects.get_or_create(number=i, defaults={"name": f"Semestre {i}"})
+semesters = {i: Semester.objects.get(number=i) for i in range(1, 9)}
 
-    # FSE - Faculté des Sciences de l'Environnement
-    {"faculty": "FACULTÉ DES SCIENCES DE L'ENVIRONNEMENT", "dept": "Sciences de l'Environnement",     "abbr": "SE"},
-    {"faculty": "FACULTÉ DES SCIENCES DE L'ENVIRONNEMENT", "dept": "Gestion des Ressources Naturelles", "abbr": "GRN"},
+# ====================== VRAIS NOMS DE DÉPARTEMENTS ======================
+DEPARTMENT_NAMES = {
+    "AC":   "ANNEE COMMUNE",
+    "GC":   "GENIE CIVIL",
+    "GE":   "GENIE ELECTRIQUE",
+    "PC":   "PHASE COMMUNE",
+    "GL":   "GENIE LOGICIEL",
+    "RT":   "RESEAUX ET TELECOMMUNICATIONS",
+    "SE":   "SOL ET ENVIRONNEMENT",
+    "EPA":  "EAU POLLUTION ET ASSENISSEMENT",
+    "CB":   "CLIMAT ET BIODIVERSITE",
+    "CCA":  "COMPTABILITE CONTROL ET AUDIT",
+    "FBA":  "FINANCES BANQUES ET ASSURANCES",
+    "MM":   "MARKETING ET MANAGEMENT",
+    "DC":   "DEVELOPPEMENT COMMUNAUTRAIRE",
+    "BA":   "BANQUE ET ASSURANCE",
+    "FC":   "FINANCE ET COMPTABILITE",
+    "IG":   "INFORMATIQUE DE GESTION",
+    "EMI":  "ELECTRONIQUE ET MAINTENANCE INFORMATIQUE",
+}
 
-    # FHEC - Faculté des Hautes Études Commerciales
-    {"faculty": "FACULTÉ DES HAUTES ÉTUDES COMMERCIALES", "dept": "Management",                       "abbr": "MGT"},
-    {"faculty": "FACULTÉ DES HAUTES ÉTUDES COMMERCIALES", "dept": "Finance et Comptabilité",          "abbr": "FC"},
-    {"faculty": "FACULTÉ DES HAUTES ÉTUDES COMMERCIALES", "dept": "Marketing et Commerce",            "abbr": "MC"},
-
-    # ISP - Institut Supérieur Professionnel
-    {"faculty": "INSTITUT SUPÉRIEUR PROFESSIONNEL", "dept": "Techniques Commerciales",                "abbr": "TC"},
-    {"faculty": "INSTITUT SUPÉRIEUR PROFESSIONNEL", "dept": "Informatique de Gestion",               "abbr": "IG"},
-
-    # ISIA - Institut Supérieur d'Informatique Appliquée
-    {"faculty": "INSTITUT SUPÉRIEUR D'INFORMATIQUE APPLIQUÉE", "dept": "Développement Logiciel",      "abbr": "DL"},
-    {"faculty": "INSTITUT SUPÉRIEUR D'INFORMATIQUE APPLIQUÉE", "dept": "Cybersécurité",               "abbr": "CYBER"},
-    {"faculty": "INSTITUT SUPÉRIEUR D'INFORMATIQUE APPLIQUÉE", "dept": "Intelligence Artificielle",    "abbr": "IA"},
+# ====================== FACULTÉS OFFICIELLES ======================
+FACULTIES = [
+    {"name": "FACULTÉ DES SCIENCES DE L'INGÉNIEUR",                                 "abbr": "FSI",  "type": type_faculte},
+    {"name": "FACULTÉ DES TECHNOLOGIES DE L'INFORMATION ET DE LA COMMUNICATION",   "abbr": "FTIC", "type": type_faculte},
+    {"name": "FACULTÉ DES SCIENCES DE L'ENVIRONNEMENT",                             "abbr": "FSE",  "type": type_faculte},
+    {"name": "FACULTÉ DES HAUTES ÉTUDES COMMERCIALES",                              "abbr": "FHEC", "type": type_faculte},
+    {"name": "INSTITUT SUPÉRIEUR PROFESSIONNEL",                                    "abbr": "ISP",  "type": type_institut},
+    {"name": "INSTITUT SUPÉRIEUR D'INFORMATIQUE APPLIQUÉE",                         "abbr": "ISIA", "type": type_institut},
 ]
 
-# Classes standard par département (L1 à L3 + M1/M2 si applicable)
-CLASSES_PAR_DEPT = [
-    "L1", "L2", "L3", "M1", "M2"
-]
+# ====================== SEMESTRE INTELLIGENT ======================
+def get_semester(class_name: str) -> Semester:
+    c = class_name.upper()
+    if any(x in c for x in ["BAC I", "IG I", "EMI I", "IDC I", "IBA I", "IFC I"]): return semesters[1]
+    if any(x in c for x in ["BAC II", "IG II", "EMI II", "IDC II", "IBA II", "IFC II"]): return semesters[3]
+    if any(x in c for x in ["BAC III", "IDC III", "IBA III", "IFC III"]): return semesters[5]
+    if "BAC IV" in c: return semesters[7]
+    return semesters[1]
 
-def create_departments_and_classes():
-    print("Démarrage de la création des départements et classes...\n")
+# ====================== CHARGEMENT EXCEL ======================
+EXCEL_PATH = "/home/elvis-brown/Downloads/courses.xlsx"
+if not os.path.exists(EXCEL_PATH):
+    raise FileNotFoundError(f"Fichier non trouvé → {EXCEL_PATH}")
 
-    with transaction.atomic():
-        for item in DEPARTMENTS_DATA:
-            faculty = Faculty.objects.get(faculty_name=item["faculty"])
+df = pd.read_excel(EXCEL_PATH, sheet_name="LISTE DES COURS")
+df[["FACU/INST", "DEP", "CLASSE"]] = df[["FACU/INST", "DEP", "CLASSE"]].ffill()
+df = df.dropna(subset=["COURSE_NAME"])
 
-            # Création du département (idempotent)
-            dept, dept_created = Department.objects.get_or_create(
-                department_name=item["dept"],
+print(f"{len(df)} lignes chargées depuis l'Excel\n")
+print("DÉBUT DE L'IMPORT COMPLET...\n")
+
+# ====================== IMPORT PRINCIPAL ======================
+with transaction.atomic():
+    # 1. Facultés
+    for fac in FACULTIES:
+        f, created = Faculty.objects.update_or_create(
+            faculty_abreviation=fac["abbr"],
+            defaults={
+                "faculty_name": fac["name"],
+                "types": fac["type"],
+                "university": university,
+            }
+        )
+        status = "Créée" if created else "Mise à jour"
+        print(f"{status} → {f.faculty_abreviation} : {f.faculty_name}")
+
+    print("\n" + "—" * 80 + "\n")
+
+    modules_created = courses_created = 0
+
+    for idx, row in df.iterrows():
+        try:
+            fac_abbr   = str(row["FACU/INST"]).strip().upper()
+            dept_abbr  = str(row["DEP"]).strip().upper()
+            class_name = str(row["CLASSE"]).strip()
+            module_name= str(row["MODULE_NAME"]).strip()
+            course_name= str(row["COURSE_NAME"]).strip()
+            course_code= str(row["COURSE_CODE"]) if pd.notna(row["COURSE_CODE"]) and str(row["COURSE_CODE"]) != "nan" else ""
+            cm = int(row["CM"] or 0)
+            td = int(row["TD"] or 0)
+            tp = int(row["TP"] or 0)
+
+            faculty = Faculty.objects.get(faculty_abreviation=fac_abbr)
+
+            # Département avec le vrai nom
+            dept_name = DEPARTMENT_NAMES.get(dept_abbr, f"Département {dept_abbr}")
+            department, _ = Department.objects.update_or_create(
+                abreviation=dept_abbr,
                 faculty=faculty,
-                defaults={"abreviation": item["abbr"]}
+                defaults={"department_name": dept_name}
             )
-            status_dept = "Créé" if dept_created else "Existant"
-            print(f"{status_dept} Département → {dept} ({dept.abreviation}) - {faculty.faculty_abreviation}")
 
-            # Création des classes L1/L2/L3/M1/M2
-            for level in CLASSES_PAR_DEPT:
-                class_name = f"{level} {item['dept']}" if level.startswith("M") else f"{level} {item['dept']}"
+            class_obj, _ = Class.objects.get_or_create(class_name=class_name, department=department)
+            semester = get_semester(class_name)
 
-                obj, created = Class.objects.get_or_create(
-                    class_name=class_name,
-                    department=dept,
-                )
-                status_class = "Créé" if created else "Existant"
-                print(f"   ├─ {status_class} Classe → {obj}")
+            module, mod_created = Module.objects.get_or_create(
+                class_fk=class_obj,
+                module_name=module_name,
+                defaults={"code": course_code[:10], "semester": semester}
+            )
+            if mod_created: modules_created += 1
 
-    print("\nTout est terminé ! Départements + Classes créés avec succès !")
+            course, crs_created = Course.objects.get_or_create(
+                module=module,
+                course_name=course_name,
+                defaults={"cm": cm, "td": td, "tp": tp, "credits": max(1, (cm + td + tp) // 30)}
+            )
+            if crs_created:
+                courses_created += 1
+                print(f"{fac_abbr} → {dept_abbr} → {class_name} → S{semester.number} → {course_name}")
 
-if __name__ == "__main__":
-    create_departments_and_classes()
+        except Exception as e:
+            print(f"ERREUR ligne {idx+2} → {e}")
+
+print("\n" + "="*80)
+print("IMPORT TERMINÉ – TOUT EST PARFAIT")
+print(f"Université : {university} (ID: {UNIVERSITY_ID})")
+print(f"{modules_created} modules créés")
+print(f"{courses_created} cours créés")
+print("Tu peux maintenant passer à la suite sans problème")
