@@ -1,9 +1,11 @@
 from django.db.models import Avg, Sum
 from django.utils import timezone
 
-from services.core_service.finance_module.fees_app.models import FeesSheet
-from services.core_service.finance_module.payment_app.models import Payment
 from services.core_service.student_module.inscription_app.models import Inscription
+from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+    FeesSheet,
+    Payment,
+)
 from services.dependent_service.dashboard_module.dashboard_shared_app.models import (
     Message,
     Notification,

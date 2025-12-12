@@ -128,8 +128,23 @@ class Inscription(models.Model):
         return matricule
 
     def save(self, *args, **kwargs):
-        # Generate matricule if student doesn't have one
-        if not self.student.matricule:
-            self.generate_matricule()
+        # Generate expected matricule
+        try:
+            type_code = self.class_fk.department.faculty.types.code
+        except AttributeError:
+            type_code = "X"
+
+        year = self.academic_year.civil_year
+        existing_count = Student.objects.filter(
+            matricule__startswith=f"{type_code}{year}"
+        ).count()
+        expected_matricule = f"{type_code}{year}/{str(existing_count + 1).zfill(5)}"
+
+        # Assign or correct matricule if missing or not matching expected type/year
+        if not self.student.matricule or not self.student.matricule.startswith(
+            f"{type_code}{year}"
+        ):
+            self.student.matricule = expected_matricule
+            self.student.save()
 
         super().save(*args, **kwargs)

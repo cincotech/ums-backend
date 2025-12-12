@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from services.core_service.finance_module.payment_app.models import Payment
+from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+    Payment,
+)
 from services.dependent_service.dashboard_module.dashboard_shared_app.models import (
     Message,
     Notification,

@@ -31,7 +31,11 @@ class AcademicYear(models.Model):
     academic_year = models.CharField(max_length=15)
     description = models.CharField(max_length=255)
     university = models.ForeignKey(
-        University, on_delete=models.CASCADE, related_name="academic_years"
+        University,
+        on_delete=models.CASCADE,
+        related_name="academic_years",
+        null=True,
+        blank=True,
     )
     civil_year = models.CharField(max_length=4)
     start_date = models.DateField()

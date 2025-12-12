@@ -122,9 +122,26 @@ class RegisterView(APIView):
 
 
 class SendEmailOTPView(APIView):
-    """
-    Send an OTP to the user's email for verification or 2FA.
-    Accessible to anyone.
+    """@action(detail=False, methods=['post'])
+    def transfer(self, request):
+        serializer = PaymentTransferSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                payment = serializer.create_payment_transfer()
+                payment_service = PaymentProviderService()
+                result = payment_service.send_transfer(payment)
+                if result:
+                    return APIResponse.success(
+                        data=PaymentSerializer(payment, context={'request': request}).data,
+                        message="Transfer initiated successfully"
+                    )
+                return APIResponse.error(message="Failed to initiate transfer")
+            except Exception as e:
+                return APIResponse.error(message=f"Error processing transfer: {str(e)}")
+        return APIResponse.error(message="Invalid input data", errors=serializer.errors)
+
+        Send an OTP to the user's email for verification or 2FA.
+        Accessible to anyone.
     """
 
     permission_classes = [AllowAny]
@@ -762,6 +779,11 @@ class UserViewSet(BaseViewSet):
 
         # Case 2: everyone else → return only their own data
         return User.objects.filter(id=user.id)
+
+    # Override get_serializer to always pass request in context
+    def get_serializer(self, *args, **kwargs):
+        kwargs["context"] = self.get_serializer_context()
+        return super().get_serializer(*args, **kwargs)
 
     @action(detail=False, methods=["get"])
     def me(self, request):
