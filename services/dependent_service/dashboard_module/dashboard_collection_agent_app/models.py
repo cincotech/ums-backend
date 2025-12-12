@@ -43,7 +43,6 @@ class FeesSheet(models.Model):
         Wording, on_delete=models.RESTRICT, related_name="fees_sheets_wording"
     )
     base_amount = models.PositiveIntegerField()
-    installements = models.JSONField(default=list, null=True)  # a supplime
 
     class Meta:
         db_table = "fees_sheets"

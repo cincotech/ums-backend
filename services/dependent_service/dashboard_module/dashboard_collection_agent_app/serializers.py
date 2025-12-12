@@ -34,7 +34,6 @@ class FeesSheetSerializer(serializers.ModelSerializer):
             "academic_year",
             "wording",
             "base_amount",
-            "installements",
         ]
 
 
