@@ -92,13 +92,12 @@ class TeacherWorkload(models.Model):
         Update assigned_hours based on TeachingProgress for this academic year.
         """
         progress_entries = TeachingProgress.objects.filter(
-            attribution__principal_teacher=self.teacher,
-            academic_year=self.academic_year,
+            attribution__principal_teacher__user=self.teacher,
+            attribution__academic_year=self.academic_year,
         )
         total_assigned = 0
         for progress in progress_entries:
-            # Each TeachingProgress should calculate total delivered hours from related ActivityReports
-            timetables = progress.attribution.timetables.all()
+            timetables = Timetable.objects.filter(attribution=progress.attribution)
             for timetable in timetables:
                 for report in timetable.activity_reports.all():
                     if report.delivered_hours:

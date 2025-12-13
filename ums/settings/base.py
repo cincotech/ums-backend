@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     "services.dependent_service.dashboard_module.dashboard_academic_secretary_app",
     "services.dependent_service.dashboard_module.dashboard_alumni_app",
     "services.dependent_service.dashboard_module.dashboard_admin_app",
+    "services.dependent_service.dashboard_module.dashboard_doyen_app",
     "services.dependent_service.dashboard_module.dashboard_academic_app",
     "services.dependent_service.dashboard_module.dashboard_shared_app",
     "django_otp",
