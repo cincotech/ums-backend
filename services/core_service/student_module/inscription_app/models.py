@@ -45,6 +45,9 @@ class Inscription(models.Model):
     class Meta:
         db_table = "inscriptions"
         unique_together = ("student", "academic_year", "class_fk")
+        indexes = [
+            models.Index(fields=['student','academic_year','class_fk'])
+        ]
 
     def __str__(self):
         return f"{self.student} - {self.class_fk} ({self.regist_status})"
