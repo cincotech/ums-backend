@@ -28,9 +28,6 @@ class Wording(models.Model):
         db_table = "wordings"
 
 
-3
-
-
 class FeesSheet(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     class_fk = models.ForeignKey(

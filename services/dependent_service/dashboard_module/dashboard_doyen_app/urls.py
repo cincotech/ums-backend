@@ -1,26 +1,61 @@
-urlpatterns = []
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-# from django.urls import path
+from .views import (
+    AttributionStatisticsView,
+    ClassGroupViewSet,
+    ClassViewSet,
+    CourseAttributionViewSet,
+    DeanDashboardStatsView,
+    DepartmentViewSet,
+    FacultyOverviewView,
+    InscriptionViewSet,
+    RoomUtilizationReportView,
+    SecretaryNoteViewSet,
+    StudentViewSet,
+    TeacherWorkloadViewSet,
+    TeachingProgressReportView,
+    TeachingProgressViewSet,
+    TimetableOverviewView,
+)
 
-# from . import views
+router = DefaultRouter()
+router.register(r"teaching-progress", TeachingProgressViewSet)
+router.register(r"teacher-workload", TeacherWorkloadViewSet)
+router.register(r"secretary-notes", SecretaryNoteViewSet)
+router.register(r"course-attributions", CourseAttributionViewSet)
+router.register(r"departments", DepartmentViewSet)
+router.register(r"classes", ClassViewSet)
+router.register(r"class-groups", ClassGroupViewSet)
+router.register(r"students", StudentViewSet)
+router.register(r"inscriptions", InscriptionViewSet)
 
-# urlpatterns = [
-#     path("overview/", views.dashboard_overview, name="doyen_overview"),
-#     path("schedules/", views.schedules, name="doyen_schedules"),
-#     path(
-#         "schedules/<uuid:schedule_id>/publish/",
-#         views.publish_schedule,
-#         name="publish_schedule",
-#     ),
-#     path("teaching-progress/", views.teaching_progress, name="teaching_progress"),
-#     path("teacher-workload/", views.teacher_workload, name="teacher_workload"),
-#     path("student-groups/", views.student_groups, name="student_groups"),
-#     path("academic-programs/", views.academic_programs, name="academic_programs"),
-#     path("room-allocations/", views.room_allocations, name="room_allocations"),
-#     path("secretary-notes/", views.secretary_notes, name="secretary_notes"),
-#     path(
-#         "secretary-notes/<uuid:note_id>/resolve/",
-#         views.resolve_secretary_note,
-#         name="resolve_note",
-#     ),
-# ]
+urlpatterns = [
+    path("", include(router.urls)),
+    path("stats/", DeanDashboardStatsView.as_view(), name="dean-dashboard-stats"),
+    path(
+        "faculty/overview/",
+        FacultyOverviewView.as_view(),
+        name="faculty-overview",
+    ),
+    path(
+        "timetable/overview/",
+        TimetableOverviewView.as_view(),
+        name="timetable-overview",
+    ),
+    path(
+        "reports/teaching-progress/",
+        TeachingProgressReportView.as_view(),
+        name="teaching-progress-report",
+    ),
+    path(
+        "stats/attributions/",
+        AttributionStatisticsView.as_view(),
+        name="attribution-statistics",
+    ),
+    path(
+        "reports/room-utilization/",
+        RoomUtilizationReportView.as_view(),
+        name="room-utilization-report",
+    ),
+]
