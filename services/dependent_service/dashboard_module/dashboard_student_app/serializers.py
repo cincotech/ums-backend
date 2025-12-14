@@ -124,3 +124,65 @@ class AcademicProgressSerializer(serializers.Serializer):
     current_semester = serializers.CharField()
     gpa = serializers.FloatField()
     completion_percentage = serializers.FloatField()
+
+
+class StudentJuryDecisionSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
+    jury_session_name = serializers.CharField(source="jury_session.session_name")
+    jury_session_date = serializers.DateTimeField(source="jury_session.session_date")
+    decision = serializers.CharField()
+    notes = serializers.CharField()
+    validated_by_name = serializers.SerializerMethodField()
+    validated_at = serializers.DateTimeField()
+
+    def get_validated_by_name(self, obj):
+        return f"{obj.validated_by.first_name} {obj.validated_by.last_name}"
+
+
+class StudentGradeComplaintSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
+    course_id = serializers.UUIDField(write_only=True, required=False)
+    course_name = serializers.CharField(source="course.course_name", read_only=True)
+    original_grade = serializers.FloatField()
+    complaint_reason = serializers.CharField()
+    status = serializers.CharField(read_only=True)
+    assigned_to_name = serializers.SerializerMethodField()
+    new_grade = serializers.FloatField(read_only=True)
+    resolution_notes = serializers.CharField(read_only=True)
+    submitted_at = serializers.DateTimeField(read_only=True)
+    resolved_at = serializers.DateTimeField(read_only=True)
+
+    def get_assigned_to_name(self, obj):
+        if obj.assigned_to:
+            return f"{obj.assigned_to.first_name} {obj.assigned_to.last_name}"
+        return None
+
+
+class StudentExamSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
+    course_name = serializers.CharField(source="course.course_name")
+    exam_type_name = serializers.CharField(source="exam_type.name")
+    start_date = serializers.DateTimeField()
+    end_date = serializers.DateTimeField()
+    duration_minutes = serializers.IntegerField()
+    status = serializers.CharField()
+    max_marks = serializers.DecimalField(max_digits=5, decimal_places=2)
+
+
+class StudentOfficialDocumentSerializer(serializers.Serializer):
+    id = serializers.UUIDField(read_only=True)
+    document_type = serializers.CharField()
+    title = serializers.CharField()
+    content = serializers.CharField()
+    created_by_name = serializers.SerializerMethodField()
+    signed_by_name = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField()
+    signed_at = serializers.DateTimeField()
+
+    def get_created_by_name(self, obj):
+        return f"{obj.created_by.first_name} {obj.created_by.last_name}"
+
+    def get_signed_by_name(self, obj):
+        if obj.signed_by:
+            return f"{obj.signed_by.first_name} {obj.signed_by.last_name}"
+        return None

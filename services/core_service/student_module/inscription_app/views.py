@@ -1,7 +1,9 @@
+from django.utils import timezone
 from rest_framework.decorators import action
 
 from core.response_handler import error_response, success_response  # your helpers
 from core.views import BaseViewSet
+from services.core_service.academic_module.university_app.models import AcademicYear
 
 from .models import Class, Inscription
 from .serializers import InscriptionSerializer
@@ -10,6 +12,29 @@ from .serializers import InscriptionSerializer
 class InscriptionViewSet(BaseViewSet):
     queryset = Inscription.objects.all()
     serializer_class = InscriptionSerializer
+
+    def list(self, request, *args, **kwargs):
+        academic_year_id = request.query_params.get("academic_year_id")
+
+        queryset = self.queryset
+
+        if academic_year_id:
+            queryset = queryset.filter(academic_year_id=academic_year_id)
+        else:
+            try:
+                current_year = AcademicYear.objects.get(
+                    start_date__lte=timezone.now(),
+                    end_date__gte=timezone.now(),
+                )
+                queryset = queryset.filter(academic_year=current_year)
+            except AcademicYear.DoesNotExist:
+                queryset = queryset.none()
+
+        serializer = self.get_serializer(queryset.distinct(), many=True)
+        return success_response(
+            data=serializer.data,
+            message="Inscription list retrieved successfully",
+        )
 
     # ---------------------------
     # Custom actions using model methods
