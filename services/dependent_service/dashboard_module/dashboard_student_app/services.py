@@ -379,3 +379,163 @@ class StudentDashboardService:
         if StudentDashboardService._check_payment_status(student):
             return "paid"
         return "pending"
+
+    @staticmethod
+    def get_student_jury_decisions(student):
+        """Get jury decisions for student"""
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+            JuryDecision,
+        )
+
+        decisions = JuryDecision.objects.filter(student=student).select_related(
+            "jury_session", "validated_by"
+        )
+
+        return decisions
+
+    @staticmethod
+    def get_student_grade_complaints(student):
+        """Get grade complaints submitted by student"""
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+            GradeComplaint,
+        )
+
+        complaints = GradeComplaint.objects.filter(student=student).select_related(
+            "course", "assigned_to"
+        )
+
+        return complaints
+
+    @staticmethod
+    def submit_grade_complaint(student, course_id, original_grade, complaint_reason):
+        """Submit grade complaint for a course"""
+        from services.core_service.academic_module.course_app.models import Course
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+            GradeComplaint,
+        )
+
+        course = Course.objects.get(id=course_id)
+
+        # Verify student has this course and grade
+        result = Result.objects.filter(
+            inscription__student=student, course=course
+        ).first()
+
+        if not result:
+            raise ValueError("You don't have a grade for this course")
+
+        # Check if complaint already exists
+        existing_complaint = GradeComplaint.objects.filter(
+            student=student,
+            course=course,
+            status__in=["submitted", "assigned", "in_review"],
+        ).exists()
+
+        if existing_complaint:
+            raise ValueError("A complaint for this course is already pending")
+
+        complaint = GradeComplaint.objects.create(
+            student=student,
+            course=course,
+            original_grade=original_grade,
+            complaint_reason=complaint_reason,
+            status="submitted",
+        )
+
+        # Create notification for academic secretary
+        Notification.objects.create(
+            recipient=student.user,
+            recipient_type="student",
+            notification_type="complaint_submitted",
+            title="Grade Complaint Submitted",
+            message=f"Your grade complaint for {course.course_name} has been submitted and will be reviewed.",
+        )
+
+        return complaint
+
+    @staticmethod
+    def get_student_exams(student):
+        """Get upcoming exams for student"""
+        from services.dependent_service.exam_module.exam_app.models import Exam
+
+        # Get student's active inscription
+        inscription = Inscription.objects.filter(
+            student=student, regist_status="Active"
+        ).first()
+
+        if not inscription:
+            return []
+
+        # Get exams for courses in student's class
+        exams = (
+            Exam.objects.filter(course__classes=inscription.class_fk)
+            .select_related("course", "exam_type", "created_by")
+            .order_by("start_date")
+        )
+
+        return exams
+
+    @staticmethod
+    def get_official_documents(student):
+        """Get official documents relevant to student (circulars, service notes)"""
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+            OfficialDocument,
+        )
+
+        # Get signed documents (circulars and service notes only)
+        documents = OfficialDocument.objects.filter(
+            document_type__in=["circular", "service_note"], status="signed"
+        ).select_related("created_by", "signed_by")
+
+        return documents
+
+    @staticmethod
+    def get_student_payments(student):
+        """Get student payment history"""
+        # Get student's active inscription
+        inscription = Inscription.objects.filter(
+            student=student, regist_status="Active"
+        ).first()
+
+        if not inscription:
+            return []
+
+        payments = Payment.objects.filter(inscription=inscription).order_by(
+            "-payment_date"
+        )
+
+        return payments
+
+    @staticmethod
+    def get_student_messages(student):
+        """Get student messages"""
+        messages = Message.objects.filter(recipient=student.user).order_by("-sent_at")
+        return messages
+
+    @staticmethod
+    def get_student_notifications(student):
+        """Get student notifications"""
+        notifications = Notification.objects.filter(recipient=student.user).order_by(
+            "-created_at"
+        )
+        return notifications
+
+    @staticmethod
+    def get_document_requests(student):
+        """Get student document requests"""
+        requests = Request.objects.filter(student=student).select_related("document")
+        return requests
+
+    @staticmethod
+    def get_downloadable_document(student, document_type):
+        """Get downloadable document (transcript, etc.)"""
+        # Check payment status for certain documents
+        if document_type in ["transcript", "certificate"]:
+            if not StudentDashboardService._check_payment_status(student):
+                return {
+                    "error": True,
+                    "message": "Payment required to access this document",
+                }
+
+        # Return document data (simplified)
+        return {"document_type": document_type, "available": True}

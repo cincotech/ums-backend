@@ -22,4 +22,24 @@ urlpatterns = [
     # Document Management
     path("documents/requests/", views.document_requests, name="document-requests"),
     path("documents/download/", views.download_documents, name="download-documents"),
+    # Jury Decisions
+    path(
+        "jury-decisions/", views.student_jury_decisions, name="student-jury-decisions"
+    ),
+    # Grade Complaints
+    path(
+        "grade-complaints/",
+        views.student_grade_complaints,
+        name="student-grade-complaints",
+    ),
+    # Exams
+    path("exams/", views.student_exams, name="student-exams"),
+    # Official Documents
+    path(
+        "official-documents/",
+        views.student_official_documents,
+        name="student-official-documents",
+    ),
+    # Payments
+    path("payments/", views.student_payments, name="student-payments"),
 ]

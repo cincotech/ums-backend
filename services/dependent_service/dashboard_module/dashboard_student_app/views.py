@@ -16,9 +16,13 @@ from .serializers import (
     StudentAttendanceSerializer,
     StudentDashboardStatsSerializer,
     StudentDocumentRequestSerializer,
+    StudentExamSerializer,
+    StudentGradeComplaintSerializer,
     StudentGradesSerializer,
+    StudentJuryDecisionSerializer,
     StudentMessageSerializer,
     StudentNotificationSerializer,
+    StudentOfficialDocumentSerializer,
     StudentProfileSerializer,
     StudentScheduleSerializer,
     StudentTranscriptSerializer,
@@ -296,6 +300,115 @@ def download_documents(request):
         # Return document data (would typically return file response)
         return success_response(data=document_data, message="Document retrieved")
 
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_jury_decisions(request):
+    """Get jury decisions for student"""
+    try:
+        student = request.user.students_users
+        decisions = StudentDashboardService.get_student_jury_decisions(student)
+        serializer = StudentJuryDecisionSerializer(decisions, many=True)
+        return success_response(
+            data=serializer.data, message="Jury decisions retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_grade_complaints(request):
+    """Get or submit grade complaints"""
+    try:
+        student = request.user.students_users
+
+        if request.method == "GET":
+            complaints = StudentDashboardService.get_student_grade_complaints(student)
+            serializer = StudentGradeComplaintSerializer(complaints, many=True)
+            return success_response(
+                data=serializer.data, message="Grade complaints retrieved"
+            )
+
+        elif request.method == "POST":
+            serializer = StudentGradeComplaintSerializer(data=request.data)
+            if serializer.is_valid():
+                complaint = StudentDashboardService.submit_grade_complaint(
+                    student=student,
+                    course_id=serializer.validated_data["course_id"],
+                    original_grade=serializer.validated_data["original_grade"],
+                    complaint_reason=serializer.validated_data["complaint_reason"],
+                )
+                serializer = StudentGradeComplaintSerializer(complaint)
+                return success_response(
+                    data=serializer.data, message="Grade complaint submitted"
+                )
+            return error_response(message="Invalid data", errors=serializer.errors)
+
+    except ValueError as e:
+        return error_response(message=str(e), status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_exams(request):
+    """Get upcoming exams for student"""
+    try:
+        student = request.user.students_users
+        exams = StudentDashboardService.get_student_exams(student)
+        serializer = StudentExamSerializer(exams, many=True)
+        return success_response(data=serializer.data, message="Exams retrieved")
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent])
+def student_official_documents(request):
+    """Get official documents (circulars, service notes)"""
+    try:
+        student = request.user.students_users
+        documents = StudentDashboardService.get_official_documents(student)
+        serializer = StudentOfficialDocumentSerializer(documents, many=True)
+        return success_response(
+            data=serializer.data, message="Official documents retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsStudent, CanViewGrades])
+def student_payments(request):
+    """Get student payment history"""
+    try:
+        student = request.user.students_users
+        payments = StudentDashboardService.get_student_payments(student)
+
+        from .serializers import StudentPaymentSerializer
+
+        serializer = StudentPaymentSerializer(payments, many=True)
+        return success_response(data=serializer.data, message="Payments retrieved")
     except Exception as e:
         return error_response(
             message=f"Error: {str(e)}",
