@@ -45,6 +45,10 @@ class IsStudentService(RolePermission):
     allowed_roles = ["student_service"]
 
 
+class IsAcademicSecretary(RolePermission):
+    allowed_roles = ["academic_service"]
+
+
 class IsFinanceService(RolePermission):
     allowed_roles = ["finance_service"]
 

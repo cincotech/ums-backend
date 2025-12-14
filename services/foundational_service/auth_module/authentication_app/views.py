@@ -772,6 +772,8 @@ class UserViewSet(BaseViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        if user.role.name == "admin":
+            return User.objects.all()
 
         # Case 1: student_service → return student + guest
         if user.role.name == "student_service":
