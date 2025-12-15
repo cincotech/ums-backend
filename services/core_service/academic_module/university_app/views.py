@@ -16,6 +16,22 @@ class AcademicYearViewSet(BaseViewSet):
     serializer_class = AcademicYearSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        qs = AcademicYear.objects.all()
+        university_id = self.request.query_params.get("university_id")
+
+        if university_id:
+            qs = qs.filter(university_id=university_id)
+
+        return qs
+
+    def perform_create(self, serializer):
+        university, created = University.objects.get_or_create(
+            university_name="Université Polytechnique de Gitega",
+            defaults={"university_abrev": "UPG"},
+        )
+        serializer.save(university=university)
+
 
 class UniversityViewSet(BaseViewSet):
     queryset = University.objects.all()

@@ -28,9 +28,6 @@ class Wording(models.Model):
         db_table = "wordings"
 
 
-3
-
-
 class FeesSheet(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     class_fk = models.ForeignKey(
@@ -43,7 +40,6 @@ class FeesSheet(models.Model):
         Wording, on_delete=models.RESTRICT, related_name="fees_sheets_wording"
     )
     base_amount = models.PositiveIntegerField()
-    installements = models.JSONField(default=list, null=True)  # a supplime
 
     class Meta:
         db_table = "fees_sheets"

@@ -74,7 +74,7 @@ def main():
 
     # Création de l'université
     university, created = University.objects.get_or_create(
-        university_name="UNIVERSITE POLYTECHNIQUE DE GITEGA",
+        university_name="Université Polytechnique de Gitega",
         defaults={"university_abrev": "UPG", "country": country},
     )
     print(

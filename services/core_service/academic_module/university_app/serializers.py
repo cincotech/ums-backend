@@ -6,7 +6,7 @@ from .models import AcademicYear, University, UniversityDegree
 class AcademicYearSerializer(serializers.ModelSerializer):
     class Meta:
         model = AcademicYear
-        fields = "__all__"
+        exclude = ["university"]
 
 
 class UniversitySerializer(serializers.ModelSerializer):

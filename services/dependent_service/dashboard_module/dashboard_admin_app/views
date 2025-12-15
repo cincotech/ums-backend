@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from rest_framework import status, viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,40 +10,41 @@ from rest_framework_simplejwt.token_blacklist.models import (
     BlacklistedToken,
     OutstandingToken,
 )
+from core.views import  BaseViewSet
 
 from core.audit import log_security_event, log_user_action
-from core.response_handler import error_response, success_response
-from core.views import BaseViewSet
+from core.response_handler import success_response, error_response
 from services.dependent_service.dashboard_module.dashboard_super_admin_app.models import (
     AuditLog,
 )
 
-from .mixins import UniversityFilterMixin, UniversityRetrieveUpdateDestroyModelMixin
-from .models import UniversityConfiguration, UniversityNotification
+from .models import UniversityConfiguration, UniversityNotification, UniversityStatistics
 from .serializers import (
-    AssignRoleSerializer,
-    AuditLogSerializer,
-    BackupRecordSerializer,
-    ChangePasswordSerializer,
-    CreateRoleProfileSerializer,
-    CreateUserWithProfileSerializer,
-    EmergencyRecoverySerializer,
-    RoleSerializer,
-    RoleWithFieldsSerializer,
     UniversityConfigurationSerializer,
     UniversityNotificationSerializer,
     UniversityStatisticsSerializer,
-    UserCreateSerializer,
-    UserDetailSerializer,
+    AuditLogSerializer,
+    BackupRecordSerializer,
+    EmergencyRecoverySerializer,
+    DashboardStatsSerializer,
     UserListSerializer,
-    UserProfileSerializer,
+    UserDetailSerializer,
+    UserCreateSerializer,
     UserUpdateSerializer,
+    ChangePasswordSerializer,
+    AssignRoleSerializer,
+    UserProfileSerializer,
+    CreateRoleProfileSerializer,
+    CreateUserWithProfileSerializer,
+    RoleWithFieldsSerializer,
+    RoleSerializer,
 )
 from .services import (
+    UniversityAdminService,
+    ConfigurationService,
+    UniversityUserManagementService,
     RoleProfileService,
     SecureBackupService,
-    UniversityAdminService,
-    UniversityUserManagementService,
 )
 
 User = get_user_model()
@@ -52,14 +53,13 @@ User = get_user_model()
 # ============== Dashboard Overview API ==============
 class DashboardAPIView(viewsets.ViewSet):
     """Professional APIView for dashboard overview"""
-
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=['get'])
     def overview(self, request):
         """Get admin dashboard overview with all statistics"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -78,9 +78,7 @@ class DashboardAPIView(viewsets.ViewSet):
 
             active_tokens = OutstandingToken.objects.filter(
                 expires_at__gt=timezone.now()
-            ).exclude(
-                id__in=BlacklistedToken.objects.values_list("token_id", flat=True)
-            )
+            ).exclude(id__in=BlacklistedToken.objects.values_list("token_id", flat=True))
 
             # Count unique users
             active_users_count = (
@@ -117,11 +115,8 @@ class DashboardAPIView(viewsets.ViewSet):
 
 
 # ============== Configuration Management ==============
-class ConfigurationViewSet(
-    UniversityFilterMixin, UniversityRetrieveUpdateDestroyModelMixin, BaseViewSet
-):
+class ConfigurationViewSet(UniversityModelViewSet):
     """Professional ViewSet for university configurations"""
-
     queryset = UniversityConfiguration.objects.all()
     serializer_class = UniversityConfigurationSerializer
     permission_classes = [IsAuthenticated]
@@ -129,23 +124,22 @@ class ConfigurationViewSet(
     def get_queryset(self):
         """Override to handle category filtering"""
         queryset = super().get_queryset()
-        category = self.request.query_params.get("category")
+        category = self.request.query_params.get('category')
         if category:
             queryset = queryset.filter(category=category)
-        return queryset.order_by("category", "key")
+        return queryset.order_by('category', 'key')
 
 
 # ============== Statistics ==============
 class StatisticsViewSet(viewsets.ViewSet):
     """Professional APIView for university statistics"""
-
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=['get'])
     def university(self, request):
         """Get detailed statistics for university"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -162,8 +156,7 @@ class StatisticsViewSet(viewsets.ViewSet):
                 str(stats.id),
             )
             return success_response(
-                data=serializer.data,
-                message="University statistics retrieved successfully",
+                data=serializer.data, message="University statistics retrieved successfully"
             )
         except Exception as e:
             log_security_event(
@@ -182,10 +175,9 @@ class StatisticsViewSet(viewsets.ViewSet):
 # ============== Notifications ==============
 class NotificationViewSet(viewsets.ViewSet):
     """Professional ViewSet for university notifications"""
-
     permission_classes = [IsAuthenticated]
 
-    # @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'])
     def list(self, request):
         """Get notifications for admin"""
         try:
@@ -203,7 +195,7 @@ class NotificationViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
         """Mark notification as read"""
         try:
@@ -233,14 +225,13 @@ class NotificationViewSet(viewsets.ViewSet):
 # ============== Audit Logs ==============
 class AuditLogViewSet(viewsets.ViewSet):
     """Professional APIView for audit logs"""
-
     permission_classes = [IsAuthenticated]
 
-    # @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'])
     def list(self, request):
         """Get audit logs for university"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -249,6 +240,7 @@ class AuditLogViewSet(viewsets.ViewSet):
 
             days = int(request.query_params.get("days", 7))
             logs = AuditLog.objects.filter(
+                university=university,
                 timestamp__gte=timezone.now() - timedelta(days=days)
             ).order_by("-timestamp")[:100]
 
@@ -266,14 +258,13 @@ class AuditLogViewSet(viewsets.ViewSet):
 # ============== Backup & Restore ==============
 class BackupViewSet(viewsets.ViewSet):
     """Professional ViewSet for backup operations"""
-
     permission_classes = [IsAuthenticated]
 
-    # @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'])
     def list(self, request):
         """List backups for university"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -291,11 +282,11 @@ class BackupViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    # @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['post'])
     def create(self, request):
         """Create new backup"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -329,11 +320,11 @@ class BackupViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def restore(self, request, pk=None):
         """Restore from backup"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -374,11 +365,11 @@ class BackupViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["delete"])
+    @action(detail=True, methods=['delete'])
     def delete(self, request, pk=None):
         """Delete backup securely"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -420,12 +411,11 @@ class BackupViewSet(viewsets.ViewSet):
 # ============== User Management ==============
 class UserViewSet(viewsets.ViewSet):
     """Professional ViewSet for user management"""
-
     permission_classes = [IsAuthenticated]
 
     def get_university(self):
         """Get university from current user"""
-        university = getattr(self.request.user, "university", None)
+        university = getattr(self.request.user, 'university', None)
         if not university:
             return error_response(
                 message="University not found",
@@ -433,7 +423,7 @@ class UserViewSet(viewsets.ViewSet):
             )
         return university
 
-    # @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'])
     def list(self, request):
         """List users for university"""
         try:
@@ -442,9 +432,7 @@ class UserViewSet(viewsets.ViewSet):
                 return university
 
             users = UniversityUserManagementService.get_university_users(university)
-            serializer = UserListSerializer(
-                users, many=True, context={"request": request}
-            )
+            serializer = UserListSerializer(users, many=True)
             log_user_action(
                 request, "view", "Listed university users", "User", str(university.id)
             )
@@ -457,7 +445,7 @@ class UserViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    # @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['post'])
     def create(self, request):
         """Create new user for university"""
         try:
@@ -518,7 +506,7 @@ class UserViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["get", "put", "delete"])
+    @action(detail=True, methods=['get', 'put', 'delete'])
     def detail(self, request, pk=None):
         """Get, update, or delete user"""
         try:
@@ -528,7 +516,7 @@ class UserViewSet(viewsets.ViewSet):
 
             user = User.objects.get(id=pk, university=university)
 
-            if request.method == "GET":
+            if request.method == 'GET':
                 serializer = UserDetailSerializer(user)
                 log_user_action(
                     request, "view", f"Viewed user: {user.email}", "User", str(user.id)
@@ -537,7 +525,7 @@ class UserViewSet(viewsets.ViewSet):
                     data=serializer.data, message="User retrieved successfully"
                 )
 
-            elif request.method == "PUT":
+            elif request.method == 'PUT':
                 serializer = UserUpdateSerializer(user, data=request.data, partial=True)
                 if serializer.is_valid():
                     user = serializer.save()
@@ -560,7 +548,7 @@ class UserViewSet(viewsets.ViewSet):
                     status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
-            elif request.method == "DELETE":
+            elif request.method == 'DELETE':
                 user_email = user.email
                 user.delete()
                 log_user_action(
@@ -585,7 +573,7 @@ class UserViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def change_password(self, request, pk=None):
         """Change user password"""
         try:
@@ -631,7 +619,7 @@ class UserViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def assign_role(self, request, pk=None):
         """Assign role to user"""
         try:
@@ -657,8 +645,7 @@ class UserViewSet(viewsets.ViewSet):
                     )
                     result_serializer = UserDetailSerializer(user)
                     return success_response(
-                        data=result_serializer.data,
-                        message="Role assigned successfully",
+                        data=result_serializer.data, message="Role assigned successfully"
                     )
                 except ValueError as e:
                     return error_response(
@@ -688,7 +675,7 @@ class UserViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["get", "put"])
+    @action(detail=True, methods=['get', 'put'])
     def profile(self, request, pk=None):
         """Get or update user profile"""
         try:
@@ -698,26 +685,23 @@ class UserViewSet(viewsets.ViewSet):
 
             user = User.objects.get(id=pk, university=university)
 
-            if request.method == "GET":
+            if request.method == 'GET':
                 profile = UniversityUserManagementService.get_user_profile(user)
                 if not profile:
                     return error_response(
-                        message="Profile not found",
-                        status_code=status.HTTP_404_NOT_FOUND,
+                        message="Profile not found", status_code=status.HTTP_404_NOT_FOUND
                     )
                 serializer = UserProfileSerializer(profile)
                 return success_response(
                     data=serializer.data, message="Profile retrieved successfully"
                 )
 
-            elif request.method == "PUT":
+            elif request.method == 'PUT':
                 profile = UniversityUserManagementService.get_user_profile(user)
                 if not profile:
                     profile = UniversityUserManagementService.create_user_profile(user)
 
-                serializer = UserProfileSerializer(
-                    profile, data=request.data, partial=True
-                )
+                serializer = UserProfileSerializer(profile, data=request.data, partial=True)
                 if serializer.is_valid():
                     profile = UniversityUserManagementService.update_user_profile(
                         user, **serializer.validated_data
@@ -732,8 +716,7 @@ class UserViewSet(viewsets.ViewSet):
                     )
                     result_serializer = UserProfileSerializer(profile)
                     return success_response(
-                        data=result_serializer.data,
-                        message="Profile updated successfully",
+                        data=result_serializer.data, message="Profile updated successfully"
                     )
                 return error_response(
                     message="Validation error",
@@ -758,7 +741,7 @@ class UserViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def deactivate(self, request, pk=None):
         """Deactivate user"""
         try:
@@ -769,11 +752,7 @@ class UserViewSet(viewsets.ViewSet):
             user = User.objects.get(id=pk, university=university)
             UniversityUserManagementService.deactivate_user(user)
             log_user_action(
-                request,
-                "update",
-                f"Deactivated user: {user.email}",
-                "User",
-                str(user.id),
+                request, "update", f"Deactivated user: {user.email}", "User", str(user.id)
             )
             return success_response(message="User deactivated successfully")
         except User.DoesNotExist:
@@ -786,7 +765,7 @@ class UserViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         """Activate user"""
         try:
@@ -814,10 +793,9 @@ class UserViewSet(viewsets.ViewSet):
 # ============== Roles Management ==============
 class RoleViewSet(viewsets.ViewSet):
     """Professional ViewSet for role management"""
-
     permission_classes = [IsAuthenticated]
 
-    # @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'])
     def list(self, request):
         """Get available roles"""
         try:
@@ -836,10 +814,9 @@ class RoleViewSet(viewsets.ViewSet):
 # ============== Role Profile Management ==============
 class RoleProfileViewSet(viewsets.ViewSet):
     """Professional ViewSet for role profile management"""
-
     permission_classes = [IsAuthenticated]
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=['get'])
     def fields_info(self, request):
         """Get all roles with their required fields"""
         try:
@@ -854,11 +831,11 @@ class RoleProfileViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    # @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['post'])
     def create_with_profile(self, request):
         """Create user with role-specific profile"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -937,11 +914,11 @@ class RoleProfileViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["get"])
+    @action(detail=True, methods=['get'])
     def profile_detail(self, request, pk=None):
         """Get user profile with role-specific data"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -977,11 +954,11 @@ class RoleProfileViewSet(viewsets.ViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=True, methods=["put"])
+    @action(detail=True, methods=['put'])
     def profile_update(self, request, pk=None):
         """Update user profile with role-specific data"""
         try:
-            university = getattr(request.user, "university", None)
+            university = getattr(request.user, 'university', None)
             if not university:
                 return error_response(
                     message="University not found",
@@ -1017,8 +994,7 @@ class RoleProfileViewSet(viewsets.ViewSet):
 
                 profile_data_response = RoleProfileService.get_user_profile_data(user)
                 return success_response(
-                    data=profile_data_response,
-                    message="User profile updated successfully",
+                    data=profile_data_response, message="User profile updated successfully"
                 )
 
             return error_response(

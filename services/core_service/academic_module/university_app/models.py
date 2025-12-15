@@ -1,5 +1,6 @@
 import uuid
 
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -31,7 +32,11 @@ class AcademicYear(models.Model):
     academic_year = models.CharField(max_length=15)
     description = models.CharField(max_length=255)
     university = models.ForeignKey(
-        University, on_delete=models.CASCADE, related_name="academic_years"
+        University,
+        on_delete=models.CASCADE,
+        related_name="academic_years",
+        null=True,
+        blank=True,
     )
     civil_year = models.CharField(max_length=4)
     start_date = models.DateField()
@@ -51,6 +56,21 @@ class AcademicYear(models.Model):
 
     def __str__(self):
         return self.academic_year
+
+    def save(self, *args, **kwargs):
+        # Ensure only one open year per university
+        if not self.is_closed:
+            qs = AcademicYear.objects.filter(
+                university=self.university, is_closed=False
+            )
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                raise ValidationError(
+                    "There is already an open academic year for this university."
+                )
+
+        super().save(*args, **kwargs)
 
     @property
     def is_active(self):

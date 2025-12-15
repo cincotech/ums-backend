@@ -22,8 +22,8 @@ print(f"Country: {country.country_name} ({'created' if created else 'exists'})")
 
 # Créer ou récupérer une université
 university, created = University.objects.get_or_create(
-    university_name="Université Test",
-    defaults={"university_abrev": "UT", "country": country},
+    university_name="Université Polytechnique de Gitega",
+    defaults={"university_abrev": "UPG", "country": country},
 )
 print(
     f"University: {university.university_name} ({'created' if created else 'exists'})"

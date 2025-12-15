@@ -60,11 +60,26 @@ def custom_exception_handler(exc, context):
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
-    # 🧾 DJANGO & PYTHON EXCEPTIONS --------------------------------------------
     if isinstance(exc, ValidationError):
+        # Get a clean string message
+        if hasattr(exc, "message_dict"):
+            # Join all field errors
+            message_str = " ".join(
+                [
+                    f"{field}: {'; '.join(messages)}"
+                    for field, messages in exc.message_dict.items()
+                ]
+            )
+        elif hasattr(exc, "messages"):
+            # Join list of messages
+            message_str = " ".join(exc.messages)
+        else:
+            message_str = str(exc)
+
+        # Return clean message, not list
         return error_response(
-            message="Validation error.",
-            errors=getattr(exc, "message_dict", str(exc)),
+            message=message_str,
+            errors=None,  # no need for extra 'errors'
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 

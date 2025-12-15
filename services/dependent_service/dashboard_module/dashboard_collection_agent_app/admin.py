@@ -2,16 +2,13 @@ from django.contrib import admin
 
 from .models import (
     CollectionCorrespondence,
+    FeesSheet,
     PaymentPlan,
     PaymentPromise,
     PaymentReminder,
 )
 
-# @admin.register(PaymentInstallment)
-# class PaymentInstallmentAdmin(admin.ModelAdmin):
-#     list_display = ['student', 'amount', 'due_date', 'status', 'paid_amount', 'paid_date']
-#     list_filter = ['status', 'due_date', 'created_at']
-#     search_fields = ['student__user__email', 'student__matricule']
+admin.site.register(FeesSheet)
 
 
 @admin.register(PaymentReminder)

@@ -1,342 +1,566 @@
-# from rest_framework import status
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
+from rest_framework import status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-# from core.response_handler import error_response, success_response
-# from services.dependent_service.exam_module.exam_app.models import Exam
+from core.permissions import IsAcademicSecretary
+from core.response_handler import error_response, success_response
 
-# from .models import GradeComplaint, JurySession, OfficialDocument, TeacherPaymentClaim
-# from .serializers import (
-#     AcademicSecretaryStatsSerializer,
-#     ExamAttendanceSerializer,
-#     ExamSerializer,
-#     GradeComplaintSerializer,
-#     GradeEntryStatusSerializer,
-#     JuryDecisionSerializer,
-#     JurySessionSerializer,
-#     OfficialDocumentSerializer,
-#     TeacherPaymentClaimSerializer,
-# )
-# from .services import AcademicSecretaryService
+from .serializers import (
+    AcademicSecretaryStatsSerializer,
+    CompilationStatusSerializer,
+    CourseResultSerializer,
+    ExamRoomSerializer,
+    ExamSerializer,
+    ExamSupervisorSerializer,
+    GradeComplaintSerializer,
+    GradeEntryStatusSerializer,
+    InscriptionSerializer,
+    InscriptionStatisticsSerializer,
+    JuryDecisionSerializer,
+    JurySessionSerializer,
+    OfficialDocumentSerializer,
+    TeacherPaymentClaimSerializer,
+)
+from .services import AcademicSecretaryService
 
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def academic_secretary_overview(request):
-#     """Get academic secretary dashboard overview"""
-#     try:
-#         stats = AcademicSecretaryService.get_dashboard_stats()
-#         serializer = AcademicSecretaryStatsSerializer(stats)
-#         return success_response(
-#             data=serializer.data, message="Academic secretary overview retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+# ==================== DASHBOARD ====================
 
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def exam_sessions(request):
-#     """Manage exam sessions"""
-#     try:
-#         if request.method == "GET":
-#             exams = Exam.objects.select_related("course").order_by("exam_date")
-#             serializer = ExamSerializer(exams, many=True)
-#             return success_response(
-#                 data=serializer.data, message="Exam sessions retrieved"
-#             )
-
-#         elif request.method == "POST":
-#             course_id = request.data.get("course_id")
-#             exam_date = request.data.get("exam_date")
-#             duration = request.data.get("duration_minutes")
-#             room = request.data.get("room")
-#             supervisor_ids = request.data.get("supervisor_ids", [])
-
-#             exam = AcademicSecretaryService.schedule_exam(
-#                 course_id, exam_date, duration, room, supervisor_ids, request.user
-#             )
-
-#             serializer = ExamSerializer(exam)
-#             return success_response(
-#                 data=serializer.data, message="Exam session scheduled"
-#             )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAcademicSecretary])
+def dashboard_stats(request):
+    """Get academic secretary dashboard statistics"""
+    try:
+        stats = AcademicSecretaryService.get_dashboard_stats()
+        serializer = AcademicSecretaryStatsSerializer(stats)
+        return success_response(
+            data=serializer.data, message="Dashboard stats retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def record_exam_attendance(request, exam_id):
-#     """Record student exam attendance"""
-#     try:
-#         student_id = request.data.get("student_id")
-#         attendance_status = request.data.get("status")
-#         incident_notes = request.data.get("incident_notes", "")
-
-#         attendance = AcademicSecretaryService.record_exam_attendance(
-#             exam_id, student_id, attendance_status, incident_notes, request.user
-#         )
-
-#         serializer = ExamAttendanceSerializer(attendance)
-#         return success_response(
-#             data=serializer.data, message="Exam attendance recorded"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+# ==================== EXAM MANAGEMENT ====================
 
 
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def grade_entry_status(request):
-#     """Check grade entry completion status by teachers"""
-#     try:
-#         grade_status = AcademicSecretaryService.check_grade_entry_status()
-#         serializer = GradeEntryStatusSerializer(grade_status, many=True)
-#         return success_response(
-#             data=serializer.data, message="Grade entry status retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+class ExamViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing exams"""
+
+    serializer_class = ExamSerializer
+    permission_classes = [IsAuthenticated, IsAcademicSecretary]
+
+    def get_queryset(self):
+        filters = {}
+        if self.request.query_params.get("status"):
+            filters["status"] = self.request.query_params.get("status")
+        if self.request.query_params.get("course_id"):
+            filters["course_id"] = self.request.query_params.get("course_id")
+        if self.request.query_params.get("start_date_from"):
+            filters["start_date_from"] = self.request.query_params.get(
+                "start_date_from"
+            )
+        if self.request.query_params.get("start_date_to"):
+            filters["start_date_to"] = self.request.query_params.get("start_date_to")
+
+        return AcademicSecretaryService.get_exam_list(filters if filters else None)
+
+    def create(self, request, *args, **kwargs):
+        try:
+            exam = AcademicSecretaryService.schedule_exam(
+                course_id=request.data.get("course"),
+                exam_type_id=request.data.get("exam_type"),
+                start_date=request.data.get("start_date"),
+                end_date=request.data.get("end_date"),
+                duration_minutes=request.data.get("duration_minutes"),
+                max_marks=request.data.get("max_marks"),
+                instructions=request.data.get("instructions", ""),
+                created_by=request.user,
+            )
+            serializer = self.get_serializer(exam)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def update_status(self, request, pk=None):
+        """Update exam status"""
+        try:
+            exam = AcademicSecretaryService.update_exam_status(
+                pk, request.data.get("status")
+            )
+            serializer = self.get_serializer(exam)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def assign_room(self, request, pk=None):
+        """Assign room to exam"""
+        try:
+            exam_room = AcademicSecretaryService.assign_exam_room(
+                exam_id=pk,
+                room_id=request.data.get("room"),
+                capacity=request.data.get("capacity"),
+            )
+            serializer = ExamRoomSerializer(exam_room)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def assign_supervisor(self, request, pk=None):
+        """Assign supervisor to exam"""
+        try:
+            exam_supervisor = AcademicSecretaryService.assign_exam_supervisor(
+                exam_id=pk, supervisor_id=request.data.get("supervisor")
+            )
+            serializer = ExamSupervisorSerializer(exam_supervisor)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def jury_sessions(request):
-#     """Manage jury sessions"""
-#     try:
-#         if request.method == "GET":
-#             juries = JurySession.objects.all().order_by("session_date")
-#             serializer = JurySessionSerializer(juries, many=True)
-#             return success_response(
-#                 data=serializer.data, message="Jury sessions retrieved"
-#             )
-
-#         elif request.method == "POST":
-#             session_name = request.data.get("session_name")
-#             session_date = request.data.get("session_date")
-#             jury_member_ids = request.data.get("jury_member_ids", [])
-
-#             jury = AcademicSecretaryService.create_jury_session(
-#                 session_name, session_date, jury_member_ids, request.user
-#             )
-
-#             serializer = JurySessionSerializer(jury)
-#             return success_response(
-#                 data=serializer.data, message="Jury session created"
-#             )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+# ==================== GRADE MONITORING ====================
 
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def record_jury_decision(request, jury_id):
-#     """Record jury decision for student"""
-#     try:
-#         student_id = request.data.get("student_id")
-#         decision = request.data.get("decision")
-#         notes = request.data.get("notes", "")
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAcademicSecretary])
+def grade_entry_status(request):
+    """Get grade entry completion status"""
+    try:
+        filters = {}
+        if request.query_params.get("academic_year_id"):
+            filters["academic_year_id"] = request.query_params.get("academic_year_id")
 
-#         jury_decision = AcademicSecretaryService.record_jury_decision(
-#             jury_id, student_id, decision, notes, request.user
-#         )
-
-#         serializer = JuryDecisionSerializer(jury_decision)
-#         return success_response(data=serializer.data, message="Jury decision recorded")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
-
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def grade_complaints(request):
-#     """Get grade complaints"""
-#     try:
-#         complaints = GradeComplaint.objects.select_related(
-#             "student__user", "course", "assigned_to"
-#         ).order_by("-submitted_at")
-
-#         serializer = GradeComplaintSerializer(complaints, many=True)
-#         return success_response(
-#             data=serializer.data, message="Grade complaints retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+        grade_status = AcademicSecretaryService.check_grade_entry_status(
+            filters if filters else None
+        )
+        serializer = GradeEntryStatusSerializer(grade_status, many=True)
+        return success_response(
+            data=serializer.data, message="Grade entry status retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def assign_complaint(request, complaint_id):
-#     """Assign grade complaint to teacher or department head"""
-#     try:
-#         assigned_to_id = request.data.get("assigned_to_id")
-
-#         complaint = AcademicSecretaryService.assign_grade_complaint(
-#             complaint_id, assigned_to_id, request.user
-#         )
-
-#         serializer = GradeComplaintSerializer(complaint)
-#         return success_response(data=serializer.data, message="Complaint assigned")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAcademicSecretary])
+def course_results(request, course_id):
+    """Get results for a specific course"""
+    try:
+        session_id = request.query_params.get("session_id")
+        results = AcademicSecretaryService.get_course_results(course_id, session_id)
+        serializer = CourseResultSerializer(results, many=True)
+        return success_response(
+            data=serializer.data, message="Course results retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def resolve_complaint(request, complaint_id):
-#     """Resolve grade complaint"""
-#     try:
-#         new_grade = request.data.get("new_grade")
-#         resolution_notes = request.data.get("resolution_notes", "")
-
-#         complaint = AcademicSecretaryService.resolve_grade_complaint(
-#             complaint_id, new_grade, resolution_notes, request.user
-#         )
-
-#         serializer = GradeComplaintSerializer(complaint)
-#         return success_response(data=serializer.data, message="Complaint resolved")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+# ==================== JURY MANAGEMENT ====================
 
 
-# @api_view(["GET", "POST"])
-# @permission_classes([IsAuthenticated])
-# def official_documents(request):
-#     """Manage official documents"""
-#     try:
-#         if request.method == "GET":
-#             documents = OfficialDocument.objects.select_related(
-#                 "created_by", "signed_by"
-#             ).order_by("-created_at")
+class JurySessionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing jury sessions"""
 
-#             serializer = OfficialDocumentSerializer(documents, many=True)
-#             return success_response(
-#                 data=serializer.data, message="Official documents retrieved"
-#             )
+    serializer_class = JurySessionSerializer
+    permission_classes = [IsAuthenticated, IsAcademicSecretary]
 
-#         elif request.method == "POST":
-#             doc_type = request.data.get("document_type")
-#             title = request.data.get("title")
-#             content = request.data.get("content")
+    def get_queryset(self):
+        filters = {}
+        if self.request.query_params.get("status"):
+            filters["status"] = self.request.query_params.get("status")
+        if self.request.query_params.get("date_from"):
+            filters["date_from"] = self.request.query_params.get("date_from")
+        if self.request.query_params.get("date_to"):
+            filters["date_to"] = self.request.query_params.get("date_to")
 
-#             document = AcademicSecretaryService.create_official_document(
-#                 doc_type, title, content, request.user
-#             )
+        return AcademicSecretaryService.get_jury_sessions(filters if filters else None)
 
-#             serializer = OfficialDocumentSerializer(document)
-#             return success_response(
-#                 data=serializer.data, message="Official document created"
-#             )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    def create(self, request, *args, **kwargs):
+        try:
+            jury = AcademicSecretaryService.create_jury_session(
+                session_name=request.data.get("session_name"),
+                session_date=request.data.get("session_date"),
+                jury_member_ids=request.data.get("jury_members", []),
+                created_by=request.user,
+            )
+            serializer = self.get_serializer(jury)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
+    @action(detail=True, methods=["post"])
+    def update_status(self, request, pk=None):
+        """Update jury session status"""
+        try:
+            jury = AcademicSecretaryService.update_jury_status(
+                jury_id=pk,
+                status=request.data.get("status"),
+                minutes_document=request.data.get("minutes_document"),
+            )
+            serializer = self.get_serializer(jury)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def sign_document(request, document_id):
-#     """Sign official document"""
-#     try:
-#         document = AcademicSecretaryService.sign_document(document_id, request.user)
-#         serializer = OfficialDocumentSerializer(document)
-#         return success_response(data=serializer.data, message="Document signed")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    @action(detail=True, methods=["get"])
+    def decisions(self, request, pk=None):
+        """Get all decisions for a jury session"""
+        try:
+            decisions = AcademicSecretaryService.get_jury_decisions(pk)
+            serializer = JuryDecisionSerializer(decisions, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def payment_claims(request):
-#     """Get teacher payment claims"""
-#     try:
-#         claims = TeacherPaymentClaim.objects.select_related(
-#             "teacher__user", "course"
-#         ).order_by("-submitted_at")
-
-#         serializer = TeacherPaymentClaimSerializer(claims, many=True)
-#         return success_response(
-#             data=serializer.data, message="Payment claims retrieved"
-#         )
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
-
-
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def verify_payment_claim(request, claim_id):
-#     """Verify teacher payment claim"""
-#     try:
-#         claim = AcademicSecretaryService.verify_payment_claim(claim_id, request.user)
-#         serializer = TeacherPaymentClaimSerializer(claim)
-#         return success_response(data=serializer.data, message="Payment claim verified")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+    @action(detail=True, methods=["post"])
+    def record_decision(self, request, pk=None):
+        """Record jury decision for a student"""
+        try:
+            decision = AcademicSecretaryService.record_jury_decision(
+                jury_id=pk,
+                student_id=request.data.get("student"),
+                decision=request.data.get("decision"),
+                notes=request.data.get("notes", ""),
+                validated_by=request.user,
+            )
+            serializer = JuryDecisionSerializer(decision)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def approve_payment_claim(request, claim_id):
-#     """Approve payment claim"""
-#     try:
-#         claim = AcademicSecretaryService.approve_payment_claim(claim_id, request.user)
-#         serializer = TeacherPaymentClaimSerializer(claim)
-#         return success_response(data=serializer.data, message="Payment claim approved")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+# ==================== GRADE COMPLAINT MANAGEMENT ====================
 
 
-# @api_view(["POST"])
-# @permission_classes([IsAuthenticated])
-# def send_claim_to_finance(request, claim_id):
-#     """Send approved claim to financial service"""
-#     try:
-#         claim = AcademicSecretaryService.send_claim_to_finance(claim_id, request.user)
-#         serializer = TeacherPaymentClaimSerializer(claim)
-#         return success_response(data=serializer.data, message="Claim sent to finance")
-#     except Exception as e:
-#         return error_response(
-#             message=f"Error: {str(e)}",
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#         )
+class GradeComplaintViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing grade complaints"""
+
+    serializer_class = GradeComplaintSerializer
+    permission_classes = [IsAuthenticated, IsAcademicSecretary]
+
+    def get_queryset(self):
+        filters = {}
+        if self.request.query_params.get("status"):
+            filters["status"] = self.request.query_params.get("status")
+        if self.request.query_params.get("course_id"):
+            filters["course_id"] = self.request.query_params.get("course_id")
+        if self.request.query_params.get("student_id"):
+            filters["student_id"] = self.request.query_params.get("student_id")
+
+        return AcademicSecretaryService.get_grade_complaints(
+            filters if filters else None
+        )
+
+    @action(detail=True, methods=["post"])
+    def assign(self, request, pk=None):
+        """Assign complaint to teacher"""
+        try:
+            complaint = AcademicSecretaryService.assign_grade_complaint(
+                complaint_id=pk, assigned_to_id=request.data.get("assigned_to")
+            )
+            serializer = self.get_serializer(complaint)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def update_status(self, request, pk=None):
+        """Update complaint status"""
+        try:
+            complaint = AcademicSecretaryService.update_complaint_status(
+                complaint_id=pk, status=request.data.get("status")
+            )
+            serializer = self.get_serializer(complaint)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def resolve(self, request, pk=None):
+        """Resolve grade complaint"""
+        try:
+            complaint = AcademicSecretaryService.resolve_grade_complaint(
+                complaint_id=pk,
+                new_grade=request.data.get("new_grade"),
+                resolution_notes=request.data.get("resolution_notes", ""),
+                resolved_by=request.user,
+            )
+            serializer = self.get_serializer(complaint)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# ==================== OFFICIAL DOCUMENT MANAGEMENT ====================
+
+
+class OfficialDocumentViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing official documents"""
+
+    serializer_class = OfficialDocumentSerializer
+    permission_classes = [IsAuthenticated, IsAcademicSecretary]
+
+    def get_queryset(self):
+        filters = {}
+        if self.request.query_params.get("document_type"):
+            filters["document_type"] = self.request.query_params.get("document_type")
+        if self.request.query_params.get("status"):
+            filters["status"] = self.request.query_params.get("status")
+
+        return AcademicSecretaryService.get_official_documents(
+            filters if filters else None
+        )
+
+    def create(self, request, *args, **kwargs):
+        try:
+            document = AcademicSecretaryService.create_official_document(
+                doc_type=request.data.get("document_type"),
+                title=request.data.get("title"),
+                content=request.data.get("content"),
+                created_by=request.user,
+            )
+            serializer = self.get_serializer(document)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def update_status(self, request, pk=None):
+        """Update document status"""
+        try:
+            document = AcademicSecretaryService.update_document_status(
+                document_id=pk, status=request.data.get("status")
+            )
+            serializer = self.get_serializer(document)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def sign(self, request, pk=None):
+        """Sign official document"""
+        try:
+            document = AcademicSecretaryService.sign_document(
+                document_id=pk, signed_by=request.user
+            )
+            serializer = self.get_serializer(document)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# ==================== PAYMENT CLAIM MANAGEMENT ====================
+
+
+class PaymentClaimViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing teacher payment claims"""
+
+    serializer_class = TeacherPaymentClaimSerializer
+    permission_classes = [IsAuthenticated, IsAcademicSecretary]
+
+    def get_queryset(self):
+        filters = {}
+        if self.request.query_params.get("status"):
+            filters["status"] = self.request.query_params.get("status")
+        if self.request.query_params.get("teacher_id"):
+            filters["teacher_id"] = self.request.query_params.get("teacher_id")
+        if self.request.query_params.get("course_id"):
+            filters["course_id"] = self.request.query_params.get("course_id")
+
+        return AcademicSecretaryService.get_payment_claims(filters if filters else None)
+
+    @action(detail=True, methods=["post"])
+    def verify(self, request, pk=None):
+        """Verify payment claim"""
+        try:
+            claim = AcademicSecretaryService.verify_payment_claim(
+                claim_id=pk, verified_by=request.user
+            )
+            serializer = self.get_serializer(claim)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        """Approve payment claim"""
+        try:
+            claim = AcademicSecretaryService.approve_payment_claim(
+                claim_id=pk, approved_by=request.user
+            )
+            serializer = self.get_serializer(claim)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def sign(self, request, pk=None):
+        """Sign payment claim"""
+        try:
+            claim = AcademicSecretaryService.sign_payment_claim(
+                claim_id=pk, signed_by=request.user
+            )
+            serializer = self.get_serializer(claim)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def send_to_finance(self, request, pk=None):
+        """Send claim to finance"""
+        try:
+            claim = AcademicSecretaryService.send_claim_to_finance(claim_id=pk)
+            serializer = self.get_serializer(claim)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        """Reject payment claim"""
+        try:
+            claim = AcademicSecretaryService.reject_payment_claim(
+                claim_id=pk, rejection_reason=request.data.get("rejection_reason", "")
+            )
+            serializer = self.get_serializer(claim)
+            return Response(serializer.data)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# ==================== INSCRIPTION MANAGEMENT ====================
+
+
+class InscriptionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing student inscriptions"""
+
+    serializer_class = InscriptionSerializer
+    permission_classes = [IsAuthenticated, IsAcademicSecretary]
+
+    def get_queryset(self):
+        filters = {}
+        if self.request.query_params.get("status"):
+            filters["status"] = self.request.query_params.get("status")
+        if self.request.query_params.get("academic_year_id"):
+            filters["academic_year_id"] = self.request.query_params.get(
+                "academic_year_id"
+            )
+        if self.request.query_params.get("class_id"):
+            filters["class_id"] = self.request.query_params.get("class_id")
+
+        return AcademicSecretaryService.get_inscriptions(filters if filters else None)
+
+    @action(detail=False, methods=["get"])
+    def statistics(self, request):
+        """Get inscription statistics"""
+        try:
+            academic_year_id = request.query_params.get("academic_year_id")
+            stats = AcademicSecretaryService.get_inscription_statistics(
+                academic_year_id
+            )
+            serializer = InscriptionStatisticsSerializer(stats)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# ==================== RESULT COMPILATION ====================
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsAcademicSecretary])
+def compilation_status(request):
+    """Get result compilation status"""
+    try:
+        academic_year_id = request.query_params.get("academic_year_id")
+        stats = AcademicSecretaryService.get_compilation_status(academic_year_id)
+        serializer = CompilationStatusSerializer(stats)
+        return success_response(
+            data=serializer.data, message="Compilation status retrieved"
+        )
+    except Exception as e:
+        return error_response(
+            message=f"Error: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
