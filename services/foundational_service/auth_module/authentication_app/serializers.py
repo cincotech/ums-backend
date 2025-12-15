@@ -7,8 +7,11 @@ from rest_framework import serializers
 
 from services.core_service.academic_module.university_app.models import University
 from services.foundational_service.auth_module.user_app.models import Role, User
-from services.foundational_service.geo_module.colline_app.models import Colline
 from services.foundational_service.geo_module.country_app.models import Country
+from services.foundational_service.geo_module.serializers import (
+    CollineSerializer,
+    CountrySerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +24,22 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)
-    nationality = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.all(), allow_null=True
+    role_id = serializers.PrimaryKeyRelatedField(
+        queryset=Role.objects.all(), source="role", write_only=True, required=False
     )
-    residence = serializers.PrimaryKeyRelatedField(
-        queryset=Colline.objects.all(), many=True, allow_null=True
+    nationality = CountrySerializer(read_only=True)
+    nationality_id = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.all(),
+        source="nationality",
+        write_only=True,
+        required=False,
+    )
+    residence = CollineSerializer(many=True, read_only=True)
+    residence_ids = serializers.PrimaryKeyRelatedField(
+        queryset=User.residence.field.related_model.objects.all(),
+        many=True,
+        write_only=True,
+        source="residence",
     )
 
     class Meta:
@@ -50,6 +64,9 @@ class UserSerializer(serializers.ModelSerializer):
             "totp_secret_key",
             "profile_picture",
             "spoken_languages",
+            "role_id",
+            "nationality_id",
+            "residence_ids",
         ]
         read_only_fields = [
             "email_verified",
@@ -69,20 +86,17 @@ class UserSerializer(serializers.ModelSerializer):
         if residence_data:
             user.residence.set(residence_data)
 
-        # 2. Assign default role
+        # Assign default role
         guest_role, _ = Role.objects.get_or_create(name="guest")
+        user.role = guest_role
 
-        # 3. Assign university
+        # Assign university
         upg, _ = University.objects.get_or_create(
             university_name="Université Polytechnique de Gitega", university_abrev="UPG"
         )
-
-        user.role = guest_role
         user.university = upg
 
-        # 4. Save final user
         user.save()
-
         return user
 
 

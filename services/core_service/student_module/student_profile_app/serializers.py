@@ -5,7 +5,7 @@ from services.foundational_service.auth_module.authentication_app.serializers im
 )
 from services.foundational_service.auth_module.user_app.models import User
 
-from .models import Student, StudentGraduateInfo, StudentHsInfo, Training
+from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, Training
 
 
 class TrainingSerializer(serializers.ModelSerializer):
@@ -75,8 +75,49 @@ class StudentHsInfoSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["formation"]
 
+    def create(self, validated_data):
+        formations = validated_data.pop("formation", [])
+        student = validated_data.get("student")
+
+        # ✔ GET OR CREATE
+        obj, created = StudentHsInfo.objects.get_or_create(
+            student=student, defaults=validated_data
+        )
+
+        # If the object already exists → update it
+        if not created:
+            for key, value in validated_data.items():
+                setattr(obj, key, value)
+            obj.save()
+
+        # Assign M2M formations
+        if formations:
+            obj.formation.set(formations)
+
+        return obj
+
 
 class StudentGraduateInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentGraduateInfo
         fields = ["id", "student", "department", "option", "mention", "degree"]
+
+    def create(self, validated_data):
+        student = validated_data.get("student")
+
+        obj, created = StudentGraduateInfo.objects.get_or_create(
+            student=student, defaults=validated_data
+        )
+
+        if not created:
+            for key, value in validated_data.items():
+                setattr(obj, key, value)
+            obj.save()
+
+        return obj
+
+
+class StudentFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentFile
+        fields = "__all__"
