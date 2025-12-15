@@ -53,3 +53,26 @@ def validate_serializer(serializer):
             message=message, errors=errors, status_code=status.HTTP_400_BAD_REQUEST
         )
     return None
+
+
+def paginated_success_response(
+    paginator, queryset, serializer_class, request, message="Success"
+):
+    page = paginator.paginate_queryset(queryset, request)
+
+    serializer = serializer_class(page, many=True)
+
+    return success_response(
+        data=serializer.data,
+        message=message,
+        extra={
+            "pagination": {
+                "count": paginator.page.paginator.count,
+                "page_size": paginator.page.paginator.per_page,
+                "current_page": paginator.page.number,
+                "total_pages": paginator.page.paginator.num_pages,
+                "next": paginator.get_next_link(),
+                "previous": paginator.get_previous_link(),
+            }
+        },
+    )
