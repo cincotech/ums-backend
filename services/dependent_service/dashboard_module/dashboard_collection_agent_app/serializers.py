@@ -40,7 +40,6 @@ class FeesSheetSerializer(serializers.ModelSerializer):
         model = FeesSheet
         fields = [
             "id",
-            "level",
             "class_fk",
             "class_name",
             "department",
@@ -55,27 +54,16 @@ class FeesSheetSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
-        level = data.get("level")
         class_fk = data.get("class_fk")
         department = data.get("department")
         faculty = data.get("faculty")
 
-        # Vérifier que le niveau est défini
-        if not level:
-            raise serializers.ValidationError("Le niveau (level) est requis.")
+        # Vérifier qu'au moins un niveau est défini
+        levels_set = sum([bool(class_fk), bool(department), bool(faculty)])
 
-        # Vérifier la cohérence entre le niveau et les champs
-        if level == "class" and not class_fk:
+        if levels_set == 0:
             raise serializers.ValidationError(
-                "Une classe doit être définie pour le niveau 'classe'."
-            )
-        elif level == "department" and not department:
-            raise serializers.ValidationError(
-                "Un département doit être défini pour le niveau 'département'."
-            )
-        elif level == "faculty" and not faculty:
-            raise serializers.ValidationError(
-                "Une faculté doit être définie pour le niveau 'faculté'."
+                "Vous devez définir au moins un niveau : classe, département ou faculté."
             )
 
         return data
@@ -130,11 +118,6 @@ class PaymentInstallementSerializer(serializers.ModelSerializer):
                         if obj.payment_plan.feessheet
                         else None
                     ),
-                    "level": (
-                        obj.payment_plan.feessheet.level
-                        if obj.payment_plan.feessheet
-                        else None
-                    ),
                 }
                 if obj.payment_plan.feessheet
                 else None
@@ -181,7 +164,6 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
             return {
                 "id": str(obj.feessheet.id),
                 "wording": obj.feessheet.wording.wording_name,
-                "level": obj.feessheet.level,
                 "base_amount": obj.feessheet.base_amount,
             }
         return None

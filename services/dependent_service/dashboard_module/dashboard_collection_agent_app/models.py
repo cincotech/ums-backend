@@ -32,16 +32,7 @@ class Wording(models.Model):
 
 
 class FeesSheet(models.Model):
-    LEVEL_CHOICES = (
-        ("class", "Classe"),
-        ("department", "Département"),
-        ("faculty", "Faculté"),
-    )
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    level = models.CharField(
-        max_length=20, choices=LEVEL_CHOICES, null=True, blank=True
-    )
     class_fk = models.ForeignKey(
         Class,
         on_delete=models.RESTRICT,
@@ -77,28 +68,14 @@ class FeesSheet(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
 
-        # Vérifier qu'un seul niveau est défini
+        # Vérifier qu'au moins un niveau est défini
         levels_set = sum(
             [bool(self.class_fk), bool(self.department), bool(self.faculty)]
         )
 
-        if levels_set != 1:
+        if levels_set == 0:
             raise ValidationError(
-                "Vous devez définir exactement un niveau : classe, département ou faculté."
-            )
-
-        # Vérifier la cohérence entre le niveau et le champ défini
-        if self.level == "class" and not self.class_fk:
-            raise ValidationError(
-                "Une classe doit être définie pour le niveau 'classe'."
-            )
-        elif self.level == "department" and not self.department:
-            raise ValidationError(
-                "Un département doit être défini pour le niveau 'département'."
-            )
-        elif self.level == "faculty" and not self.faculty:
-            raise ValidationError(
-                "Une faculté doit être définie pour le niveau 'faculté'."
+                "Vous devez définir au moins un niveau : classe, département ou faculté."
             )
 
     def save(self, *args, **kwargs):
@@ -106,13 +83,13 @@ class FeesSheet(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        if self.level == "class" and self.class_fk:
+        if self.class_fk:
             return f"Frais {self.wording.wording_name} - {self.class_fk.class_name}"
-        elif self.level == "department" and self.department:
+        elif self.department:
             return (
                 f"Frais {self.wording.wording_name} - {self.department.department_name}"
             )
-        elif self.level == "faculty" and self.faculty:
+        elif self.faculty:
             return f"Frais {self.wording.wording_name} - {self.faculty.faculty_name}"
         return f"Frais {self.wording.wording_name}"
 
