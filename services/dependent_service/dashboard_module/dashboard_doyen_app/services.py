@@ -1,4 +1,5 @@
 from django.db.models import Avg, Count, Q, Sum
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from services.core_service.academic_module.class_app.models import Class, ClassGroup
@@ -556,9 +557,8 @@ class ClassManagementService:
 class DepartmentManagementService:
     @staticmethod
     def get_faculty_departments(faculty_id):
-        faculty = Faculty.objects.get(id=faculty_id)
-        departments = faculty.departments.all()
-        return departments
+        faculty = get_object_or_404(Faculty, id=faculty_id)
+        return faculty.departments.all()
 
     @staticmethod
     def get_department_overview(department_id, academic_year_id=None):
