@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
 
 from core.permissions import IsFinanceService, IsStudent
 from core.views import BaseViewSet
@@ -48,21 +51,163 @@ class WordingViewSet(BaseViewSet):
 
 
 class FeesSheetViewSet(BaseViewSet):
-    queryset = FeesSheet.objects.all()
+    queryset = FeesSheet.objects.select_related(
+        "class_fk", "department", "faculty", "academic_year", "wording"
+    ).all()
     serializer_class = FeesSheetSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = ["class_fk", "academic_year", "wording"]
-    ordering_fields = ["base_amount"]
+    filterset_fields = [
+        "level",
+        "class_fk",
+        "department",
+        "faculty",
+        "academic_year",
+        "wording",
+    ]
+    ordering_fields = ["base_amount", "level"]
 
 
 class PaymentInstallementViewSet(BaseViewSet):
-    queryset = PaymentInstallement.objects.all()
+    queryset = PaymentInstallement.objects.select_related(
+        "student__user", "payment_plan__feessheet__wording"
+    ).all()
     serializer_class = PaymentInstallementSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = ["student", "status", "due_date"]
+    filterset_fields = ["payment_plan", "student", "status", "due_date"]
     ordering_fields = ["due_date", "amount"]
+
+    @action(detail=False, methods=["get"])
+    def payment_statistics(self, request):
+        """Statistiques des paiements"""
+        total = self.queryset.count()
+        paid = self.queryset.filter(status="paid").count()
+        overdue = self.queryset.filter(status="overdue").count()
+        pending = self.queryset.filter(status="pending").count()
+
+        return Response(
+            {
+                "total_installments": total,
+                "paid_count": paid,
+                "overdue_count": overdue,
+                "pending_count": pending,
+                "completion_rate": round((paid / total * 100), 2) if total > 0 else 0,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def completed_students(self, request):
+        """Liste des étudiants qui ont terminé leurs paiements"""
+        completed = self.queryset.filter(status="paid").select_related("student__user")
+        data = [
+            {
+                "student_id": str(inst.student.id),
+                "student_name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
+                "matricule": inst.student.matricule,
+                "amount_paid": inst.paid_amount,
+                "paid_date": inst.paid_date,
+                "payment_plan_id": str(inst.payment_plan.id),
+            }
+            for inst in completed
+        ]
+
+        return Response({"count": len(data), "students": data})
+
+    @action(detail=False, methods=["get"])
+    def overdue_students(self, request):
+        """Liste des étudiants en retard"""
+        overdue = self.queryset.filter(status="overdue").select_related("student__user")
+        data = [
+            {
+                "student_id": str(inst.student.id),
+                "student_name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
+                "matricule": inst.student.matricule,
+                "amount_due": inst.amount - inst.paid_amount,
+                "due_date": inst.due_date,
+                "days_overdue": (timezone.now().date() - inst.due_date).days,
+                "payment_plan_id": str(inst.payment_plan.id),
+            }
+            for inst in overdue
+        ]
+
+        return Response({"count": len(data), "students": data})
+
+    @action(detail=False, methods=["get"])
+    def students_by_class(self, request):
+        """Liste des étudiants par classe et statut de paiement"""
+        class_id = request.query_params.get("class_id")
+        payment_plan_id = request.query_params.get("payment_plan_id")
+        status = request.query_params.get("status", "paid")  # par défaut: terminé
+        academic_year_id = request.query_params.get("academic_year_id")
+
+        if not class_id:
+            return Response({"error": "class_id is required"}, status=400)
+
+        # Filtrer par classe via l'inscription
+        queryset = self.queryset.filter(
+            student__inscriptions__class_fk_id=class_id,
+            student__inscriptions__regist_status="Active",
+            status=status,
+        )
+
+        # Filtrer par plan de paiement si spécifié
+        if payment_plan_id:
+            queryset = queryset.filter(payment_plan_id=payment_plan_id)
+
+        # Filtrer par année académique si spécifié
+        if academic_year_id:
+            queryset = queryset.filter(
+                student__inscriptions__academic_year_id=academic_year_id
+            )
+
+        queryset = queryset.select_related(
+            "student__user", "payment_plan__feessheet__wording"
+        ).distinct()
+
+        data = []
+        for inst in queryset:
+            # Récupérer l'inscription active de l'étudiant pour cette classe
+            inscription = inst.student.inscriptions.filter(
+                class_fk_id=class_id, regist_status="Active"
+            ).first()
+
+            data.append(
+                {
+                    "student_id": str(inst.student.id),
+                    "student_name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
+                    "matricule": inst.student.matricule,
+                    "class_name": (
+                        inscription.class_fk.class_name if inscription else None
+                    ),
+                    "academic_year": (
+                        inscription.academic_year.year_name if inscription else None
+                    ),
+                    "payment_status": inst.status,
+                    "amount": inst.amount,
+                    "paid_amount": inst.paid_amount,
+                    "paid_date": inst.paid_date,
+                    "due_date": inst.due_date,
+                    "payment_plan_info": {
+                        "id": str(inst.payment_plan.id),
+                        "total_amount": inst.payment_plan.total_amount,
+                        "wording": (
+                            inst.payment_plan.feessheet.wording.wording_name
+                            if inst.payment_plan.feessheet
+                            else None
+                        ),
+                    },
+                }
+            )
+
+        return Response(
+            {
+                "count": len(data),
+                "class_id": class_id,
+                "status_filter": status,
+                "students": data,
+            }
+        )
 
 
 class PaymentReminderViewSet(BaseViewSet):
@@ -75,7 +220,7 @@ class PaymentReminderViewSet(BaseViewSet):
 
 
 class PaymentPlanViewSet(BaseViewSet):
-    queryset = PaymentPlan.objects.all()
+    queryset = PaymentPlan.objects.select_related("feessheet__wording").all()
     serializer_class = PaymentPlanSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
