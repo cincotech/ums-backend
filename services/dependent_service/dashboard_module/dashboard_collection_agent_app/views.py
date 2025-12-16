@@ -58,14 +58,13 @@ class FeesSheetViewSet(BaseViewSet):
     permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = [
-        "level",
         "class_fk",
         "department",
         "faculty",
         "academic_year",
         "wording",
     ]
-    ordering_fields = ["base_amount", "level"]
+    ordering_fields = ["base_amount"]
 
 
 class PaymentInstallementViewSet(BaseViewSet):
