@@ -111,7 +111,9 @@ class PaymentPlan(models.Model):
         related_name="paymentplan_feessheet",
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    monthly_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    monthly_amount = models.DecimalField(
+        max_digits=10, null=True, blank=True, decimal_places=2
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
