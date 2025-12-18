@@ -68,14 +68,18 @@ class FeesSheet(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
 
-        # Vérifier qu'au moins un niveau est défini
+        # Vérifier qu'exactement un seul niveau est défini
         levels_set = sum(
             [bool(self.class_fk), bool(self.department), bool(self.faculty)]
         )
 
         if levels_set == 0:
             raise ValidationError(
-                "Vous devez définir au moins un niveau : classe, département ou faculté."
+                "Vous devez définir exactement un niveau : classe, département ou faculté."
+            )
+        elif levels_set > 1:
+            raise ValidationError(
+                "Vous ne pouvez définir qu'un seul niveau à la fois : classe, département ou faculté."
             )
 
     def save(self, *args, **kwargs):
