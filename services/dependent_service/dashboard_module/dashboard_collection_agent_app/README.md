@@ -8,26 +8,21 @@ Dashboard specifically designed for the Agent Recouvrement du Minerval role - fo
 **Description**: Générer des listes et rapports précis des étudiants en retard de paiement ou ayant des soldes impayés, avec filtrage par programme, montant ou ancienneté.
 
 **Endpoints**:
-- `GET /dashboard/collection-agent/debtors/` - Extract debtor student data with filtering
+- `GET /dashboard/finance/debtors/` - Extract debtor student data with filtering
 
 ### 2. Enregistrement des Paiements
 **Description**: Enregistrer les paiements de minerval reçus et émettre des reçus.
 
 **Endpoints**:
-- `POST /dashboard/collection-agent/payments/record/` - Record payments and issue receipts
+- `POST /dashboard/finance/payments/` - Record payments and issue receipts
 
 ### 3. Génération de notifications
 **Description**: Envoyer des rappels et mises en demeure automatiques basés sur des scénarios prédéfinis (J+7, J+30, J+60).
 
 **Endpoints**:
-- `POST /dashboard/collection-agent/reminders/{student_id}/send/` - Send payment reminders
+- `POST /dashboard/finance/payment-reminders/` - Send payment reminders
 
-### 4. Gestion des tranches de paiements
-**Description**: Fixer les tranches de paiement des frais académiques et modifier les dates d'échéance.
-
-**Endpoints**:
-- `GET/POST /dashboard/collection-agent/installments/` - Manage payment installments
-- `PUT /dashboard/collection-agent/installments/{installment_id}/update-date/` - Update due dates
+pourquoi alors ca ??
 
 ### 5. Gestion des dérogations
 **Description**: Modifier la date d'échéance pour les étudiants justifiés ou bénéficiant d'une bourse.
@@ -39,8 +34,8 @@ Dashboard specifically designed for the Agent Recouvrement du Minerval role - fo
 **Description**: Rédiger et envoyer des courriers officiels exigeant le paiement.
 
 **Endpoints**:
-- `POST /dashboard/collection-agent/correspondence/send/` - Send official correspondence
-- `GET /dashboard/collection-agent/correspondence/{student_id}/` - View correspondence history
+- `POST /dashboard/finance/collection-correspondence/` - Send official correspondence
+- `GET /dashboard/finance/collection-correspondence/{student_id}/` - View correspondence history
 
 ### 7. Communication Ciblée
 **Description**: Utiliser la messagerie interne pour dialoguer avec l'étudiant ou ses garants.
@@ -52,15 +47,15 @@ Dashboard specifically designed for the Agent Recouvrement du Minerval role - fo
 **Description**: Saisir et valider le plan de paiement échelonné dans le système.
 
 **Endpoints**:
-- `POST /dashboard/collection-agent/payment-plans/create/` - Create payment plans
-- `GET /dashboard/collection-agent/payment-plans/` - List payment plans
+- `POST /dashboard/finance/payment-plans/` - Create payment plans
+- `GET /dashboard/finance/payment-plans/` - List payment plans
 
 ### 9. Suivi des Promesses de Paiement
 **Description**: Enregistrer les dates et montants promis par les débiteurs.
 
 **Endpoints**:
-- `POST /dashboard/collection-agent/promises/record/` - Record payment promises
-- `GET /dashboard/collection-agent/promises/` - Track payment promises
+- `POST /dashboard/finance/payment-promises/` - Record payment promises
+- `GET /dashboard/finance/payment-promises/` - Track payment promises
 
 ### 10. Mise à Jour du Statut
 **Description**: Mettre à jour le statut du compte à "soldé" ou "en cours de règlement".
@@ -78,26 +73,26 @@ Dashboard specifically designed for the Agent Recouvrement du Minerval role - fo
 **Description**: Extraire tous les documents financiers pour constituer le dossier juridique.
 
 **Endpoints**:
-- `POST /dashboard/collection-agent/legal-cases/{student_id}/prepare/` - Prepare legal cases
-- `GET /dashboard/collection-agent/legal-cases/` - List legal cases
+- `POST /dashboard/finance/legal-cases/{student_id}/prepare/` - Prepare legal cases
+- `GET /dashboard/finance/legal-cases/` - List legal cases
 
 ## API Endpoints
 
 ### Dashboard Overview
 ```
-GET /dashboard/collection-agent/overview/
+GET /dashboard/finance/overview/
 ```
 Returns collection dashboard statistics including total debtors, debt amounts, overdue cases.
 
 ### Debtor Management
 ```
-GET /dashboard/collection-agent/debtors/?program=&min_amount=&min_days_overdue=
+GET /dashboard/finance/debtors/?program=&min_amount=&min_days_overdue=
 ```
 Extract debtor student data with filtering options by program, amount, or overdue days.
 
 ### Payment Processing
 ```
-POST /dashboard/collection-agent/payments/record/
+POST /dashboard/finance/payments/
 ```
 Record payment and issue receipt. Request body:
 ```json
@@ -111,7 +106,7 @@ Record payment and issue receipt. Request body:
 
 ### Reminder System
 ```
-POST /dashboard/collection-agent/reminders/{student_id}/send/
+POST /dashboard/finance/payment-reminders/
 ```
 Send payment reminders. Request body:
 ```json
@@ -122,19 +117,19 @@ Send payment reminders. Request body:
 
 ### Installment Management
 ```
-GET /dashboard/collection-agent/installments/
-POST /dashboard/collection-agent/installments/
+GET /dashboard/finance/payment-installements/
+POST /dashboard/finance/payment-installements/
 ```
 Manage payment installments and tranches.
 
 ```
-PUT /dashboard/collection-agent/installments/{installment_id}/update-date/
+PUT /dashboard/finance/payment-installements/{installment_id}/update-date/
 ```
 Update installment due dates for justified cases.
 
 ### Payment Plans
 ```
-POST /dashboard/collection-agent/payment-plans/create/
+POST /dashboard/finance/payment-plans/
 ```
 Create payment plans. Request body:
 ```json
@@ -148,19 +143,19 @@ Create payment plans. Request body:
 
 ### Promise Tracking
 ```
-POST /dashboard/collection-agent/promises/record/
+POST /dashboard/finance/payment-promises/
 ```
 Record payment promises from students.
 
 ### Correspondence
 ```
-POST /dashboard/collection-agent/correspondence/send/
+POST /dashboard/finance/collection-correspondence/
 ```
 Send official correspondence to students.
 
 ### Legal Cases
 ```
-POST /dashboard/collection-agent/legal-cases/{student_id}/prepare/
+POST /dashboard/finance/legal-cases/{student_id}/prepare/
 ```
 Prepare legal case documentation for irrecoverable debts.
 
@@ -208,12 +203,12 @@ All endpoints require Collection Agent authentication.
 Example usage:
 ```python
 # Record payment
-response = requests.post('/dashboard/collection-agent/payments/record/',
+response = requests.post('/dashboard/finance/payments/',
                         json={'student_id': 'uuid', 'amount': '500.00', 'payment_method': 'cash'},
                         headers={'Authorization': 'Bearer <token>'})
 
 # Send reminder
-response = requests.post('/dashboard/collection-agent/reminders/{student_id}/send/',
+response = requests.post('/dashboard/finance/payment-reminders/',
                         json={'reminder_type': 'reminder_30'},
                         headers={'Authorization': 'Bearer <token>'})
 ```
