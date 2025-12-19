@@ -21,4 +21,4 @@ class Course(models.Model):
         unique_together = ("module", "course_name")
 
     def __str__(self):
-        return f"{self.course_name} - {self.credits} credits"
+        return f"{self.course_name} - {self.credits} credits -{self.module.class_fk.class_name}"

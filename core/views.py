@@ -27,39 +27,44 @@ class HelloView(APIView):
 
 class BaseViewSet(viewsets.ModelViewSet):
     """
-    Base ViewSet with standardized response handling and pagination.
+    Base ViewSet with standardized response handling
+    Pagination is ENABLED by default
     """
 
     pagination_class = StandardResultsSetPagination
+    pagination_enabled = True  # ✅ DEFAULT
 
-    # ✅ PAGINATED LIST
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-
+        # 🔥 Disable pagination if explicitly turned off
+        if (
+            not self.pagination_enabled
+            or request.query_params.get("pagination") == "false"
+        ):
+            serializer = self.get_serializer(queryset, many=True)
             return success_response(
                 data=serializer.data,
                 message=f"{queryset.model.__name__} list retrieved successfully",
-                extra={
-                    "pagination": {
-                        "count": self.paginator.page.paginator.count,
-                        "page_size": self.paginator.page.paginator.per_page,
-                        "current_page": self.paginator.page.number,
-                        "total_pages": self.paginator.page.paginator.num_pages,
-                        "next": self.paginator.get_next_link(),
-                        "previous": self.paginator.get_previous_link(),
-                    }
-                },
             )
 
-        # Fallback (rare case)
-        serializer = self.get_serializer(queryset, many=True)
+        # ✅ PAGINATED
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+
         return success_response(
             data=serializer.data,
             message=f"{queryset.model.__name__} list retrieved successfully",
+            extra={
+                "pagination": {
+                    "count": self.paginator.page.paginator.count,
+                    "page_size": self.paginator.page.paginator.per_page,
+                    "current_page": self.paginator.page.number,
+                    "total_pages": self.paginator.page.paginator.num_pages,
+                    "next": self.paginator.get_next_link(),
+                    "previous": self.paginator.get_previous_link(),
+                }
+            },
         )
 
     def retrieve(self, request, *args, **kwargs):
