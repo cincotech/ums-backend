@@ -246,55 +246,65 @@ class Payment(models.Model):
     def save(self, *args, **kwargs):
         # Récupérer l'ancien montant avant la sauvegarde
         old_amount = 0
+        old_status = None
         if self.pk:
+            # Utiliser only() pour ne récupérer que les champs nécessaires
             try:
-                old_payment = Payment.objects.get(pk=self.pk)
+                old_payment = Payment.objects.only("amount_paid", "payment_status").get(
+                    pk=self.pk
+                )
                 old_amount = (
                     old_payment.amount_paid
                     if old_payment.payment_status == "verified"
                     else 0
                 )
+                old_status = old_payment.payment_status
             except Payment.DoesNotExist:
                 pass
 
         super().save(*args, **kwargs)
-        self._update_payment_installment(old_amount)
+
+        # Ne mettre à jour que si le statut ou le montant a changé
+        if (old_status != self.payment_status) or (old_amount != self.amount_paid):
+            self._update_payment_installment(old_amount)
 
     def _update_payment_installment(self, old_amount=0):
         """Met à jour le PaymentInstallement correspondant"""
         if self.payment_status == "verified":
-            # Récupérer l'étudiant depuis l'inscription ou l'utilisateur
-            student = None
-            if self.inscription:
-                student = self.inscription.student
-            else:
-                # Essayer de trouver l'étudiant via l'utilisateur
-                try:
-                    student = Student.objects.get(user=self.user)
-                except Student.DoesNotExist:
-                    return
+            student = self.inscription.student if self.inscription else None
+            if not student:
+                return
 
-            if student:
-                # Chercher ou créer PaymentInstallement pour ce plan et cet étudiant
-                installment, created = PaymentInstallement.objects.get_or_create(
-                    payment_plan=self.paymentplan,
-                    student=student,
-                    defaults={
-                        "amount": self.paymentplan.total_amount,
-                        "due_date": self.paymentplan.end_date,
-                        "created_by": self.user,
-                    },
-                )
+            # Chercher ou créer PaymentInstallement pour ce plan et cet étudiant
+            installment, created = PaymentInstallement.objects.get_or_create(
+                payment_plan=self.paymentplan,
+                student=student,
+                defaults={
+                    "amount": self.paymentplan.total_amount,
+                    "due_date": self.paymentplan.end_date,
+                    "created_by": self.user,
+                },
+            )
 
-                # Calculer la différence et ajuster le montant payé
-                difference = self.amount_paid - old_amount
-                installment.paid_amount += difference
+            # Calculer la différence et ajuster le montant payé
+            difference = self.amount_paid - old_amount
+            installment.paid_amount += difference
 
-                # S'assurer que le montant payé ne devient pas négatif
-                if installment.paid_amount < 0:
-                    installment.paid_amount = 0
+            # S'assurer que le montant payé ne devient pas négatif
+            if installment.paid_amount < 0:
+                installment.paid_amount = 0
 
-                installment.save()
+            installment.save()
+
+    def can_pay_plan(self, student, target_plan):
+        """Vérifie si l'étudiant peut payer ce plan (plans précédents payés)"""
+        previous_unpaid = PaymentInstallement.objects.filter(
+            student=student,
+            payment_plan__start_date__lt=target_plan.start_date,
+            status__in=["pending", "overdue"],
+        ).exists()
+
+        return not previous_unpaid
 
     def delete(self, *args, **kwargs):
         """Met à jour le PaymentInstallement après suppression du paiement"""

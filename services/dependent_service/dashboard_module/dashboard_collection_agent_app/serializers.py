@@ -245,7 +245,6 @@ class PaymentPromiseSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     inscription = serializers.UUIDField(required=False, allow_null=True)
     remittance_slip_uri = serializers.ImageField(required=False, allow_null=True)
-    matricule = serializers.CharField(required=False, allow_null=True, write_only=True)
 
     def validate_inscription(self, value):
         if value == "" or value == "<uuid-inscription>" or value is None:
@@ -264,19 +263,52 @@ class PaymentSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         user_role = user.role.name
 
-        if user_role == "student":
-            # Pour les étudiants, pas besoin de matricule
-            data.pop("matricule", None)
-        elif user_role == "finance_service":
-            # Pour finance_service, matricule est requis
-            if not data.get("matricule"):
-                raise serializers.ValidationError(
-                    "Le matricule est requis pour le service financier."
-                )
-        else:
+        if user_role not in ["student", "finance_service"]:
             raise serializers.ValidationError(
                 "Rôle non autorisé pour créer des paiements."
             )
+
+        # Vérifier que les plans précédents sont payés (pour tous les rôles)
+        paymentplan = data.get("paymentplan")
+        inscription = data.get("inscription")
+
+        if paymentplan:
+            from services.core_service.student_module.inscription_app.models import (
+                Inscription,
+            )
+            from services.core_service.student_module.student_profile_app.models import (
+                Student,
+            )
+
+            student = None
+
+            # Récupérer l'étudiant selon le rôle
+            if user_role == "student":
+                try:
+                    student = Student.objects.get(user=user)
+                except Student.DoesNotExist:
+                    raise serializers.ValidationError("Profil étudiant non trouvé.")
+            elif user_role == "finance_service" and inscription:
+                try:
+                    inscription_obj = Inscription.objects.select_related("student").get(
+                        id=inscription
+                    )
+                    student = inscription_obj.student
+                except Inscription.DoesNotExist:
+                    raise serializers.ValidationError("Inscription non trouvée.")
+
+            # Vérifier les plans précédents pour cet étudiant
+            if student:
+                previous_unpaid = PaymentInstallement.objects.filter(
+                    student=student,
+                    payment_plan__start_date__lt=paymentplan.start_date,
+                    status__in=["pending", "overdue"],
+                ).exists()
+
+                if previous_unpaid:
+                    raise serializers.ValidationError(
+                        f"Impossible de créer ce paiement. L'étudiant {student.user.get_full_name()} ({student.matricule}) a encore des paiements non terminés sur des plans précédents."
+                    )
 
         return data
 
@@ -290,12 +322,9 @@ class PaymentSerializer(serializers.ModelSerializer):
 
         user = self.context["request"].user
         user_role = user.role.name
-        matricule = validated_data.pop("matricule", None)
-
         validated_data["user"] = user
 
         if user_role == "student":
-            # Trouver l'inscription la plus récente de l'étudiant
             try:
                 student = Student.objects.get(user=user)
                 inscription = (
@@ -303,32 +332,14 @@ class PaymentSerializer(serializers.ModelSerializer):
                     .order_by("-date_inscription")
                     .first()
                 )
-
-                if inscription:
-                    validated_data["inscription"] = inscription
-            except Student.DoesNotExist:
-                raise serializers.ValidationError("Profil étudiant non trouvé.")
-
-        elif user_role == "finance_service":
-            # Trouver l'inscription par matricule
-            try:
-                student = Student.objects.get(matricule=matricule)
-                inscription = (
-                    Inscription.objects.filter(student=student)
-                    .order_by("-date_inscription")
-                    .first()
-                )
-
                 if inscription:
                     validated_data["inscription"] = inscription
                 else:
                     raise serializers.ValidationError(
-                        f"Aucune inscription trouvée pour le matricule {matricule}."
+                        "Aucune inscription trouvée pour cet étudiant."
                     )
             except Student.DoesNotExist:
-                raise serializers.ValidationError(
-                    f"Étudiant avec matricule {matricule} non trouvé."
-                )
+                raise serializers.ValidationError("Profil étudiant non trouvé.")
 
         return super().create(validated_data)
 
@@ -345,7 +356,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             "bank_slip_ref",
             "transaction_code",
             "inscription",
-            "matricule",
             "user",
             "description",
             "remittance_slip_uri",
