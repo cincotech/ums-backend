@@ -52,7 +52,14 @@ class WordingViewSet(BaseViewSet):
 
 class FeesSheetViewSet(BaseViewSet):
     queryset = FeesSheet.objects.select_related(
-        "class_fk", "department", "faculty", "academic_year", "wording"
+        "class_fk",
+        "class_fk__department",
+        "class_fk__department__faculty",
+        "department",
+        "department__faculty",
+        "faculty",
+        "academic_year",
+        "wording",
     ).all()
     serializer_class = FeesSheetSerializer
     permission_classes = [IsFinanceService]
@@ -219,7 +226,16 @@ class PaymentReminderViewSet(BaseViewSet):
 
 
 class PaymentPlanViewSet(BaseViewSet):
-    queryset = PaymentPlan.objects.select_related("feessheet__wording").all()
+    queryset = PaymentPlan.objects.select_related(
+        "feessheet__wording",
+        "feessheet__class_fk",
+        "feessheet__class_fk__department",
+        "feessheet__class_fk__department__faculty",
+        "feessheet__department",
+        "feessheet__department__faculty",
+        "feessheet__faculty",
+        "feessheet__academic_year",
+    ).all()
     serializer_class = PaymentPlanSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]

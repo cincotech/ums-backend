@@ -13,6 +13,60 @@ from .models import (
 )
 
 
+class FeesSheetInfoMixin:
+    """Mixin pour les méthodes de sérialisation des informations FeesSheet"""
+
+    def get_wording_info(self, obj):
+        wording = getattr(obj, "wording", None)
+        if wording:
+            return {"id": str(wording.id), "wording_name": wording.wording_name}
+        return None
+
+    def get_class_info(self, obj):
+        class_fk = getattr(obj, "class_fk", None)
+        if class_fk:
+            return {
+                "id": str(class_fk.id),
+                "class_name": class_fk.class_name,
+                "department_name": (
+                    class_fk.department.department_name if class_fk.department else None
+                ),
+                "faculty_name": (
+                    class_fk.department.faculty.faculty_name
+                    if class_fk.department and class_fk.department.faculty
+                    else None
+                ),
+            }
+        return None
+
+    def get_department_info(self, obj):
+        department = getattr(obj, "department", None)
+        if department:
+            return {
+                "id": str(department.id),
+                "department_name": department.department_name,
+                "faculty_name": (
+                    department.faculty.faculty_name if department.faculty else None
+                ),
+            }
+        return None
+
+    def get_faculty_info(self, obj):
+        faculty = getattr(obj, "faculty", None)
+        if faculty:
+            return {"id": str(faculty.id), "faculty_name": faculty.faculty_name}
+        return None
+
+    def get_academic_year_info(self, obj):
+        academic_year = getattr(obj, "academic_year", None)
+        if academic_year:
+            return {
+                "id": str(academic_year.id),
+                "academic_year": academic_year.academic_year,
+            }
+        return None
+
+
 class BankSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bank
@@ -25,31 +79,27 @@ class WordingSerializer(serializers.ModelSerializer):
         fields = ["id", "wording_name"]
 
 
-class FeesSheetSerializer(serializers.ModelSerializer):
-    class_name = serializers.CharField(source="class_fk.class_name", read_only=True)
-    department_name = serializers.CharField(
-        source="department.department_name", read_only=True
-    )
-    faculty_name = serializers.CharField(source="faculty.faculty_name", read_only=True)
-    academic_year_name = serializers.CharField(
-        source="academic_year.year_name", read_only=True
-    )
-    wording_name = serializers.CharField(source="wording.wording_name", read_only=True)
+class FeesSheetSerializer(FeesSheetInfoMixin, serializers.ModelSerializer):
+    wording_info = serializers.SerializerMethodField()
+    class_info = serializers.SerializerMethodField()
+    department_info = serializers.SerializerMethodField()
+    faculty_info = serializers.SerializerMethodField()
+    academic_year_info = serializers.SerializerMethodField()
 
     class Meta:
         model = FeesSheet
         fields = [
             "id",
             "class_fk",
-            "class_name",
+            "class_info",
             "department",
-            "department_name",
+            "department_info",
             "faculty",
-            "faculty_name",
+            "faculty_info",
             "academic_year",
-            "academic_year_name",
+            "academic_year_info",
             "wording",
-            "wording_name",
+            "wording_info",
             "base_amount",
         ]
 
@@ -58,15 +108,52 @@ class FeesSheetSerializer(serializers.ModelSerializer):
         department = data.get("department")
         faculty = data.get("faculty")
 
-        # Vérifier qu'au moins un niveau est défini
+        # Vérifier qu'exactement un seul niveau est défini
         levels_set = sum([bool(class_fk), bool(department), bool(faculty)])
 
         if levels_set == 0:
             raise serializers.ValidationError(
-                "Vous devez définir au moins un niveau : classe, département ou faculté."
+                "Vous devez définir exactement un niveau : classe, département ou faculté."
+            )
+        elif levels_set > 1:
+            raise serializers.ValidationError(
+                "Vous ne pouvez définir qu'un seul niveau à la fois : classe, département ou faculté."
             )
 
         return data
+
+
+class PaymentPlanSerializer(FeesSheetInfoMixin, serializers.ModelSerializer):
+    feessheet_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PaymentPlan
+        fields = [
+            "id",
+            "feessheet",
+            "feessheet_info",
+            "total_amount",
+            "monthly_amount",
+            "start_date",
+            "end_date",
+            "status",
+            "created_by",
+            "created_at",
+        ]
+        read_only_fields = ["created_by", "created_at"]
+
+    def get_feessheet_info(self, obj):
+        if obj.feessheet:
+            return {
+                "id": str(obj.feessheet.id),
+                "base_amount": obj.feessheet.base_amount,
+                "wording": self.get_wording_info(obj.feessheet),
+                "class_fk": self.get_class_info(obj.feessheet),
+                "department": self.get_department_info(obj.feessheet),
+                "faculty": self.get_faculty_info(obj.feessheet),
+                "academic_year": self.get_academic_year_info(obj.feessheet),
+            }
+        return None
 
 
 class PaymentInstallementSerializer(serializers.ModelSerializer):
@@ -138,35 +225,6 @@ class PaymentReminderSerializer(serializers.ModelSerializer):
             "sent_by",
             "sent_at",
         ]
-
-
-class PaymentPlanSerializer(serializers.ModelSerializer):
-    feessheet_info = serializers.SerializerMethodField()
-
-    class Meta:
-        model = PaymentPlan
-        fields = [
-            "id",
-            "feessheet",
-            "feessheet_info",
-            "total_amount",
-            "monthly_amount",
-            "start_date",
-            "end_date",
-            "status",
-            "created_by",
-            "created_at",
-        ]
-        read_only_fields = ["created_by", "created_at"]
-
-    def get_feessheet_info(self, obj):
-        if obj.feessheet:
-            return {
-                "id": str(obj.feessheet.id),
-                "wording": obj.feessheet.wording.wording_name,
-                "base_amount": obj.feessheet.base_amount,
-            }
-        return None
 
 
 class PaymentPromiseSerializer(serializers.ModelSerializer):
