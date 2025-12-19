@@ -269,7 +269,16 @@ class PaymentPromiseViewSet(BaseViewSet):
 
 
 class PaymentViewSet(BaseViewSet):
-    queryset = Payment.objects.all()
+    queryset = Payment.objects.select_related(
+        "paymentplan__feessheet__wording",
+        "paymentplan__feessheet__academic_year",
+        "bank",
+        "inscription__student__user",
+        "inscription__academic_year",
+        "inscription__class_fk",
+        "user",
+        "verified_by",
+    ).all()
     serializer_class = PaymentSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = [
