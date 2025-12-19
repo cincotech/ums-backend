@@ -58,7 +58,7 @@ class IsGeneralService(RolePermission):
 
 
 class IsSuperAdminOrGeneralService(RolePermission):
-    allowed_roles = ["super_admin", "general_service"]
+    allowed_roles = ["super_admin", "general_service", "dean"]
 
 
 class IsRectorOffice(RolePermission):

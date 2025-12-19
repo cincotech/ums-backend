@@ -156,7 +156,7 @@ class DeanDashboardService:
                 {
                     "timetable_id": tt.id,
                     "class_name": (
-                        tt.class_group.class_name if tt.class_group else "N/A"
+                        tt.class_group.class_fk.class_name if tt.class_group else "N/A"
                     ),
                     "course_name": course_name,
                     "teacher_name": teacher_name,

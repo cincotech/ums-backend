@@ -18,7 +18,7 @@ class Class(models.Model):
         unique_together = ("class_name", "department")
 
     def __str__(self):
-        return f"{self.class_name} - {self.department.department_name}"
+        return f"{self.class_name} - {self.department.department_name}-{self.department.faculty.faculty_name}"
 
 
 class ClassGroup(models.Model):
@@ -33,4 +33,4 @@ class ClassGroup(models.Model):
         unique_together = ("class_fk", "academic_year", "group_name")
 
     def __str__(self):
-        return f"{self.group_name} ({self.class_fk.name} - {self.academic_year.name})"
+        return f"{self.group_name} ({self.class_fk.class_name} - {self.academic_year})"
