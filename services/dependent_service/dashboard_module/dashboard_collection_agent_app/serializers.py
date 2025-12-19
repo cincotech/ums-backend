@@ -245,6 +245,7 @@ class PaymentPromiseSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     inscription = serializers.UUIDField(required=False, allow_null=True)
     remittance_slip_uri = serializers.ImageField(required=False, allow_null=True)
+    matricule = serializers.CharField(required=False, allow_null=True, write_only=True)
 
     def validate_inscription(self, value):
         if value == "" or value == "<uuid-inscription>" or value is None:
@@ -259,6 +260,78 @@ class PaymentSerializer(serializers.ModelSerializer):
             data["inscription"] = None
         return super().to_internal_value(data)
 
+    def validate(self, data):
+        user = self.context["request"].user
+        user_role = user.role.name
+
+        if user_role == "student":
+            # Pour les étudiants, pas besoin de matricule
+            data.pop("matricule", None)
+        elif user_role == "finance_service":
+            # Pour finance_service, matricule est requis
+            if not data.get("matricule"):
+                raise serializers.ValidationError(
+                    "Le matricule est requis pour le service financier."
+                )
+        else:
+            raise serializers.ValidationError(
+                "Rôle non autorisé pour créer des paiements."
+            )
+
+        return data
+
+    def create(self, validated_data):
+        from services.core_service.student_module.inscription_app.models import (
+            Inscription,
+        )
+        from services.core_service.student_module.student_profile_app.models import (
+            Student,
+        )
+
+        user = self.context["request"].user
+        user_role = user.role.name
+        matricule = validated_data.pop("matricule", None)
+
+        validated_data["user"] = user
+
+        if user_role == "student":
+            # Trouver l'inscription la plus récente de l'étudiant
+            try:
+                student = Student.objects.get(user=user)
+                inscription = (
+                    Inscription.objects.filter(student=student)
+                    .order_by("-date_inscription")
+                    .first()
+                )
+
+                if inscription:
+                    validated_data["inscription"] = inscription
+            except Student.DoesNotExist:
+                raise serializers.ValidationError("Profil étudiant non trouvé.")
+
+        elif user_role == "finance_service":
+            # Trouver l'inscription par matricule
+            try:
+                student = Student.objects.get(matricule=matricule)
+                inscription = (
+                    Inscription.objects.filter(student=student)
+                    .order_by("-date_inscription")
+                    .first()
+                )
+
+                if inscription:
+                    validated_data["inscription"] = inscription
+                else:
+                    raise serializers.ValidationError(
+                        f"Aucune inscription trouvée pour le matricule {matricule}."
+                    )
+            except Student.DoesNotExist:
+                raise serializers.ValidationError(
+                    f"Étudiant avec matricule {matricule} non trouvé."
+                )
+
+        return super().create(validated_data)
+
     class Meta:
         model = Payment
         fields = [
@@ -272,12 +345,15 @@ class PaymentSerializer(serializers.ModelSerializer):
             "bank_slip_ref",
             "transaction_code",
             "inscription",
+            "matricule",
             "user",
             "description",
             "remittance_slip_uri",
             "payment_status",
+            "verified_by",
+            "verified_at",
         ]
-        read_only_fields = ["user"]
+        read_only_fields = ["user", "verified_by", "verified_at"]
 
 
 class CollectionCorrespondenceSerializer(serializers.ModelSerializer):
