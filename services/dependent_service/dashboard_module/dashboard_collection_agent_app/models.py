@@ -68,14 +68,18 @@ class FeesSheet(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
 
-        # Vérifier qu'au moins un niveau est défini
+        # Vérifier qu'exactement un seul niveau est défini
         levels_set = sum(
             [bool(self.class_fk), bool(self.department), bool(self.faculty)]
         )
 
         if levels_set == 0:
             raise ValidationError(
-                "Vous devez définir au moins un niveau : classe, département ou faculté."
+                "Vous devez définir exactement un niveau : classe, département ou faculté."
+            )
+        elif levels_set > 1:
+            raise ValidationError(
+                "Vous ne pouvez définir qu'un seul niveau à la fois : classe, département ou faculté."
             )
 
     def save(self, *args, **kwargs):
@@ -111,7 +115,9 @@ class PaymentPlan(models.Model):
         related_name="paymentplan_feessheet",
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    monthly_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    monthly_amount = models.DecimalField(
+        max_digits=10, null=True, blank=True, decimal_places=2
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
