@@ -206,8 +206,6 @@ class Payment(models.Model):
     inscription = models.ForeignKey(
         Inscription,
         on_delete=models.RESTRICT,
-        null=True,
-        blank=True,
         related_name="payments_inscription",
     )
     user = models.ForeignKey(
@@ -220,52 +218,118 @@ class Payment(models.Model):
     payment_status = models.CharField(
         max_length=20, choices=STATUS, default="unverified"
     )
+    verified_by = models.ForeignKey(
+        User,
+        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        related_name="verified_payments",
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
     # history = HistoricalRecords()
 
     class Meta:
         db_table = "payments"
 
+    def verify(self, verified_by_user):
+        """Valide le paiement par le service financier"""
+        from django.utils import timezone
+
+        if verified_by_user.role.name != "finance_service":
+            raise ValueError("Seul le service financier peut valider les paiements.")
+
+        self.payment_status = "verified"
+        self.verified_by = verified_by_user
+        self.verified_at = timezone.now()
+        self.save()
+
     def save(self, *args, **kwargs):
+        # Récupérer l'ancien montant avant la sauvegarde
+        old_amount = 0
+        old_status = None
+        if self.pk:
+            # Utiliser only() pour ne récupérer que les champs nécessaires
+            try:
+                old_payment = Payment.objects.only("amount_paid", "payment_status").get(
+                    pk=self.pk
+                )
+                old_amount = (
+                    old_payment.amount_paid
+                    if old_payment.payment_status == "verified"
+                    else 0
+                )
+                old_status = old_payment.payment_status
+            except Payment.DoesNotExist:
+                pass
+
         super().save(*args, **kwargs)
 
-        # Créer ou mettre à jour PaymentInstallement quand le paiement est vérifié
+        # Ne mettre à jour que si le statut ou le montant a changé
+        if (old_status != self.payment_status) or (old_amount != self.amount_paid):
+            self._update_payment_installment(old_amount)
+
+    def _update_payment_installment(self, old_amount=0):
+        """Met à jour le PaymentInstallement correspondant"""
         if self.payment_status == "verified":
-            # Récupérer l'étudiant depuis l'inscription ou l'utilisateur
-            student = None
-            if self.inscription:
-                student = self.inscription.student
-            else:
-                # Essayer de trouver l'étudiant via l'utilisateur
-                try:
-                    student = Student.objects.get(user=self.user)
-                except Student.DoesNotExist:
-                    return
+            student = self.inscription.student if self.inscription else None
+            if not student:
+                return
 
-            if student:
-                # Chercher ou créer PaymentInstallement pour ce plan et cet étudiant
-                installment, created = PaymentInstallement.objects.get_or_create(
-                    payment_plan=self.paymentplan,
-                    student=student,
-                    defaults={
-                        "amount": self.paymentplan.total_amount,
-                        "due_date": self.paymentplan.end_date,
-                        "created_by": self.user,
-                    },
-                )
+            # Chercher ou créer PaymentInstallement pour ce plan et cet étudiant
+            installment, created = PaymentInstallement.objects.get_or_create(
+                payment_plan=self.paymentplan,
+                student=student,
+                defaults={
+                    "amount": self.paymentplan.total_amount,
+                    "due_date": self.paymentplan.end_date,
+                    "created_by": self.user,
+                },
+            )
 
-                # Calculer le total des paiements vérifiés pour ce plan et cet étudiant
-                total_verified = (
-                    Payment.objects.filter(
-                        paymentplan=self.paymentplan,
-                        payment_status="verified",
-                        user=self.user,
-                    ).aggregate(total=Sum("amount_paid"))["total"]
-                    or 0
-                )
+            # Calculer la différence et ajuster le montant payé
+            difference = self.amount_paid - old_amount
+            installment.paid_amount += difference
 
-                # Mettre à jour le montant payé
-                installment.paid_amount = total_verified
-                installment.save()
+            # S'assurer que le montant payé ne devient pas négatif
+            if installment.paid_amount < 0:
+                installment.paid_amount = 0
+
+            installment.save()
+
+    def can_pay_plan(self, student, target_plan):
+        """Vérifie si l'étudiant peut payer ce plan (plans précédents payés)"""
+        previous_unpaid = PaymentInstallement.objects.filter(
+            student=student,
+            payment_plan__start_date__lt=target_plan.start_date,
+            status__in=["pending", "overdue"],
+        ).exists()
+
+        return not previous_unpaid
+
+    def delete(self, *args, **kwargs):
+        """Met à jour le PaymentInstallement après suppression du paiement"""
+        super().delete(*args, **kwargs)
+        # Recalculer les montants pour tous les PaymentInstallement affectés
+        self._recalculate_installments_for_plan()
+
+    def _recalculate_installments_for_plan(self):
+        """Recalcule tous les PaymentInstallement pour ce plan de paiement"""
+        installments = PaymentInstallement.objects.filter(payment_plan=self.paymentplan)
+        for installment in installments:
+            total_verified = (
+                Payment.objects.filter(
+                    paymentplan=self.paymentplan,
+                    payment_status="verified",
+                    user=(
+                        installment.student.user
+                        if hasattr(installment.student, "user")
+                        else None
+                    ),
+                ).aggregate(total=Sum("amount_paid"))["total"]
+                or 0
+            )
+            installment.paid_amount = total_verified
+            installment.save()
 
 
 class PaymentReminder(models.Model):

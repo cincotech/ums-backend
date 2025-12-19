@@ -259,6 +259,90 @@ class PaymentSerializer(serializers.ModelSerializer):
             data["inscription"] = None
         return super().to_internal_value(data)
 
+    def validate(self, data):
+        user = self.context["request"].user
+        user_role = user.role.name
+
+        if user_role not in ["student", "finance_service"]:
+            raise serializers.ValidationError(
+                "Rôle non autorisé pour créer des paiements."
+            )
+
+        # Vérifier que les plans précédents sont payés (pour tous les rôles)
+        paymentplan = data.get("paymentplan")
+        inscription = data.get("inscription")
+
+        if paymentplan:
+            from services.core_service.student_module.inscription_app.models import (
+                Inscription,
+            )
+            from services.core_service.student_module.student_profile_app.models import (
+                Student,
+            )
+
+            student = None
+
+            # Récupérer l'étudiant selon le rôle
+            if user_role == "student":
+                try:
+                    student = Student.objects.get(user=user)
+                except Student.DoesNotExist:
+                    raise serializers.ValidationError("Profil étudiant non trouvé.")
+            elif user_role == "finance_service" and inscription:
+                try:
+                    inscription_obj = Inscription.objects.select_related("student").get(
+                        id=inscription
+                    )
+                    student = inscription_obj.student
+                except Inscription.DoesNotExist:
+                    raise serializers.ValidationError("Inscription non trouvée.")
+
+            # Vérifier les plans précédents pour cet étudiant
+            if student:
+                previous_unpaid = PaymentInstallement.objects.filter(
+                    student=student,
+                    payment_plan__start_date__lt=paymentplan.start_date,
+                    status__in=["pending", "overdue"],
+                ).exists()
+
+                if previous_unpaid:
+                    raise serializers.ValidationError(
+                        f"Impossible de créer ce paiement. L'étudiant {student.user.get_full_name()} ({student.matricule}) a encore des paiements non terminés sur des plans précédents."
+                    )
+
+        return data
+
+    def create(self, validated_data):
+        from services.core_service.student_module.inscription_app.models import (
+            Inscription,
+        )
+        from services.core_service.student_module.student_profile_app.models import (
+            Student,
+        )
+
+        user = self.context["request"].user
+        user_role = user.role.name
+        validated_data["user"] = user
+
+        if user_role == "student":
+            try:
+                student = Student.objects.get(user=user)
+                inscription = (
+                    Inscription.objects.filter(student=student)
+                    .order_by("-date_inscription")
+                    .first()
+                )
+                if inscription:
+                    validated_data["inscription"] = inscription
+                else:
+                    raise serializers.ValidationError(
+                        "Aucune inscription trouvée pour cet étudiant."
+                    )
+            except Student.DoesNotExist:
+                raise serializers.ValidationError("Profil étudiant non trouvé.")
+
+        return super().create(validated_data)
+
     class Meta:
         model = Payment
         fields = [
@@ -276,8 +360,10 @@ class PaymentSerializer(serializers.ModelSerializer):
             "description",
             "remittance_slip_uri",
             "payment_status",
+            "verified_by",
+            "verified_at",
         ]
-        read_only_fields = ["user"]
+        read_only_fields = ["user", "verified_by", "verified_at"]
 
 
 class CollectionCorrespondenceSerializer(serializers.ModelSerializer):

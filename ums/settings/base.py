@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -164,6 +165,23 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+SIMPLE_JWT = {
+    # ⏳ Durée de vie du token d'accès
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=3),
+    # 🔄 Durée de vie du token de refresh
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
+    # ♻️ Renouveler le refresh token à chaque utilisation
+    "ROTATE_REFRESH_TOKENS": True,
+    # ❌ Blacklist l'ancien refresh token
+    "BLACKLIST_AFTER_ROTATION": True,
+    # 🔐 Type d’auth
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    # 👤 Optionnel : user_id
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+}
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
