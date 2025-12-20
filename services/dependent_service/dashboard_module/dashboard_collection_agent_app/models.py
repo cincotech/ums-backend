@@ -127,6 +127,11 @@ class PaymentPlan(models.Model):
     class Meta:
         db_table = "payment_plans"
 
+    def __str__(self):
+        if self.feessheet:
+            return f"Plan {self.feessheet.wording.wording_name} - {self.total_amount}"
+        return f"Plan de paiement - {self.total_amount}"
+
 
 class PaymentInstallement(models.Model):
     STATUS_CHOICES = (
@@ -162,17 +167,18 @@ class PaymentInstallement(models.Model):
         today = timezone.now().date()
 
         # Mettre à jour le statut automatiquement
-        if self.paid_amount >= self.amount and self.status != "paid":
+        if self.paid_amount >= self.amount:
             self.status = "paid"
             if not self.paid_date:
                 self.paid_date = today
         elif self.paid_amount < self.amount:
-            if self.status == "paid":
-                self.status = "pending"
-                self.paid_date = None
+            # Si le montant n'est pas totalisé, réinitialiser la date de paiement
+            self.paid_date = None
             # Vérifier si en retard
-            elif self.due_date < today and self.status != "overdue":
+            if self.due_date < today:
                 self.status = "overdue"
+            else:
+                self.status = "pending"
 
         super().save(*args, **kwargs)
 
@@ -194,7 +200,7 @@ class Payment(models.Model):
     paymentplan = models.ForeignKey(
         PaymentPlan, on_delete=models.RESTRICT, related_name="payments_paymentplan"
     )
-    amount_paid = models.PositiveIntegerField()
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField(null=True, blank=True)
     reception_date = models.DateField(null=True, blank=True)
     payment_method = models.CharField(max_length=20, choices=METHOD)
@@ -231,6 +237,17 @@ class Payment(models.Model):
     class Meta:
         db_table = "payments"
 
+    @classmethod
+    def create_payment(cls, created_by_user, **payment_data):
+        """Crée un paiement - finance_service ou student peuvent créer"""
+        if created_by_user.role.name not in ["finance_service", "student"]:
+            raise ValueError(
+                "Seuls le service financier et les étudiants peuvent créer les paiements."
+            )
+
+        payment_data["user"] = created_by_user
+        return cls.objects.create(**payment_data)
+
     def verify(self, verified_by_user):
         """Valide le paiement par le service financier"""
         from django.utils import timezone
@@ -264,37 +281,39 @@ class Payment(models.Model):
 
         super().save(*args, **kwargs)
 
-        # Ne mettre à jour que si le statut ou le montant a changé
-        if (old_status != self.payment_status) or (old_amount != self.amount_paid):
+        # Mettre à jour le PaymentInstallement si le statut est vérifié ou si c'était vérifié avant
+        if self.payment_status == "verified" or old_status == "verified":
             self._update_payment_installment(old_amount)
 
     def _update_payment_installment(self, old_amount=0):
         """Met à jour le PaymentInstallement correspondant"""
-        if self.payment_status == "verified":
-            student = self.inscription.student if self.inscription else None
-            if not student:
-                return
+        student = self.inscription.student if self.inscription else None
+        if not student:
+            return
 
-            # Chercher ou créer PaymentInstallement pour ce plan et cet étudiant
-            installment, created = PaymentInstallement.objects.get_or_create(
-                payment_plan=self.paymentplan,
-                student=student,
-                defaults={
-                    "amount": self.paymentplan.total_amount,
-                    "due_date": self.paymentplan.end_date,
-                    "created_by": self.user,
-                },
-            )
+        # Chercher ou créer PaymentInstallement pour ce plan et cet étudiant
+        installment, created = PaymentInstallement.objects.get_or_create(
+            payment_plan=self.paymentplan,
+            student=student,
+            defaults={
+                "amount": self.paymentplan.total_amount,
+                "due_date": self.paymentplan.end_date,
+                "created_by": self.user,
+            },
+        )
 
-            # Calculer la différence et ajuster le montant payé
-            difference = self.amount_paid - old_amount
-            installment.paid_amount += difference
+        # Recalculer le montant total payé pour ce plan et cet étudiant
+        total_verified_payments = (
+            Payment.objects.filter(
+                paymentplan=self.paymentplan,
+                payment_status="verified",
+                inscription__student=student,
+            ).aggregate(total=Sum("amount_paid"))["total"]
+            or 0
+        )
 
-            # S'assurer que le montant payé ne devient pas négatif
-            if installment.paid_amount < 0:
-                installment.paid_amount = 0
-
-            installment.save()
+        installment.paid_amount = total_verified_payments
+        installment.save()
 
     def can_pay_plan(self, student, target_plan):
         """Vérifie si l'étudiant peut payer ce plan (plans précédents payés)"""
@@ -320,11 +339,7 @@ class Payment(models.Model):
                 Payment.objects.filter(
                     paymentplan=self.paymentplan,
                     payment_status="verified",
-                    user=(
-                        installment.student.user
-                        if hasattr(installment.student, "user")
-                        else None
-                    ),
+                    inscription__student=installment.student,
                 ).aggregate(total=Sum("amount_paid"))["total"]
                 or 0
             )
