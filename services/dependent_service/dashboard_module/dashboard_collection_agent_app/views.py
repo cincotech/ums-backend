@@ -75,126 +75,160 @@ class FeesSheetViewSet(BaseViewSet):
 
 
 class PaymentInstallementViewSet(BaseViewSet):
-    queryset = PaymentInstallement.objects.select_related(
-        "student__user", "payment_plan__feessheet__wording"
-    ).all()
+    queryset = (
+        PaymentInstallement.objects.select_related(
+            "student__user",
+            "payment_plan__feessheet__wording",
+            "payment_plan__feessheet__academic_year",
+        )
+        .prefetch_related(
+            "student__inscriptions__class_fk__department__faculty",
+            "student__inscriptions__academic_year",
+        )
+        .all()
+    )
     serializer_class = PaymentInstallementSerializer
-    permission_classes = [IsFinanceService]
+    permission_classes = [IsStudentOrFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["payment_plan", "student", "status", "due_date"]
     ordering_fields = ["due_date", "amount"]
 
-    @action(detail=False, methods=["get"])
-    def payment_statistics(self, request):
-        """Statistiques des paiements"""
-        total = self.queryset.count()
-        paid = self.queryset.filter(status="paid").count()
-        overdue = self.queryset.filter(status="overdue").count()
-        pending = self.queryset.filter(status="pending").count()
+    def get_queryset(self):
+        """Filtre les échéanciers selon le rôle de l'utilisateur"""
+        user = self.request.user
+        if user.role.name == "finance_service":
+            return self.queryset
+        elif user.role.name == "student":
+            # Étudiant voit seulement ses échéanciers
+            return self.queryset.filter(student__user=user)
+        return PaymentInstallement.objects.none()
 
-        return Response(
-            {
-                "total_installments": total,
-                "paid_count": paid,
-                "overdue_count": overdue,
-                "pending_count": pending,
-                "completion_rate": round((paid / total * 100), 2) if total > 0 else 0,
-            }
-        )
+    def list(self, request, *args, **kwargs):
+        """Liste optimisée avec données organisées"""
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
 
-    @action(detail=False, methods=["get"])
-    def completed_students(self, request):
-        """Liste des étudiants qui ont terminé leurs paiements"""
-        completed = self.queryset.filter(status="paid").select_related("student__user")
-        data = [
-            {
-                "student_id": str(inst.student.id),
-                "student_name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
-                "matricule": inst.student.matricule,
-                "amount_paid": inst.paid_amount,
-                "paid_date": inst.paid_date,
-                "payment_plan_id": str(inst.payment_plan.id),
-            }
-            for inst in completed
-        ]
+        if page is not None:
+            data = self._format_installments_data(page)
+            return self.get_paginated_response(data)
 
-        return Response({"count": len(data), "students": data})
+        data = self._format_installments_data(queryset)
+        return Response(data)
 
-    @action(detail=False, methods=["get"])
-    def overdue_students(self, request):
-        """Liste des étudiants en retard"""
-        overdue = self.queryset.filter(status="overdue").select_related("student__user")
-        data = [
-            {
-                "student_id": str(inst.student.id),
-                "student_name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
-                "matricule": inst.student.matricule,
-                "amount_due": inst.amount - inst.paid_amount,
-                "due_date": inst.due_date,
-                "days_overdue": (timezone.now().date() - inst.due_date).days,
-                "payment_plan_id": str(inst.payment_plan.id),
-            }
-            for inst in overdue
-        ]
-
-        return Response({"count": len(data), "students": data})
-
-    @action(detail=False, methods=["get"])
-    def students_by_class(self, request):
-        """Liste des étudiants par classe et statut de paiement"""
-        class_id = request.query_params.get("class_id")
-        payment_plan_id = request.query_params.get("payment_plan_id")
-        status = request.query_params.get("status", "paid")  # par défaut: terminé
-        academic_year_id = request.query_params.get("academic_year_id")
-
-        if not class_id:
-            return Response({"error": "class_id is required"}, status=400)
-
-        # Filtrer par classe via l'inscription
-        queryset = self.queryset.filter(
-            student__inscriptions__class_fk_id=class_id,
-            student__inscriptions__regist_status="Active",
-            status=status,
-        )
-
-        # Filtrer par plan de paiement si spécifié
-        if payment_plan_id:
-            queryset = queryset.filter(payment_plan_id=payment_plan_id)
-
-        # Filtrer par année académique si spécifié
-        if academic_year_id:
-            queryset = queryset.filter(
-                student__inscriptions__academic_year_id=academic_year_id
-            )
-
-        queryset = queryset.select_related(
-            "student__user", "payment_plan__feessheet__wording"
-        ).distinct()
-
+    def _format_installments_data(self, installments):
+        """Formate les données pour l'affichage"""
         data = []
-        for inst in queryset:
-            # Récupérer l'inscription active de l'étudiant pour cette classe
-            inscription = inst.student.inscriptions.filter(
-                class_fk_id=class_id, regist_status="Active"
+
+        for inst in installments:
+            # Récupérer l'inscription active
+            active_inscription = inst.student.inscriptions.filter(
+                regist_status="Active"
             ).first()
 
             data.append(
                 {
-                    "student_id": str(inst.student.id),
-                    "student_name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
-                    "matricule": inst.student.matricule,
-                    "class_name": (
-                        inscription.class_fk.class_name if inscription else None
+                    "id": str(inst.id),
+                    "student": {
+                        "id": str(inst.student.id),
+                        "name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
+                        "matricule": inst.student.matricule,
+                    },
+                    "class_info": (
+                        {
+                            "id": (
+                                str(active_inscription.class_fk.id)
+                                if active_inscription and active_inscription.class_fk
+                                else None
+                            ),
+                            "name": (
+                                active_inscription.class_fk.class_name
+                                if active_inscription and active_inscription.class_fk
+                                else None
+                            ),
+                            "department": (
+                                active_inscription.class_fk.department.department_name
+                                if active_inscription
+                                and active_inscription.class_fk
+                                and active_inscription.class_fk.department
+                                else None
+                            ),
+                            "faculty": (
+                                active_inscription.class_fk.department.faculty.faculty_name
+                                if active_inscription
+                                and active_inscription.class_fk
+                                and active_inscription.class_fk.department
+                                and active_inscription.class_fk.department.faculty
+                                else None
+                            ),
+                        }
+                        if active_inscription
+                        else None
                     ),
-                    "academic_year": (
-                        inscription.academic_year.year_name if inscription else None
-                    ),
-                    "payment_status": inst.status,
+                    "payment_plan": {
+                        "id": str(inst.payment_plan.id),
+                        "total_amount": inst.payment_plan.total_amount,
+                        "monthly_amount": inst.payment_plan.monthly_amount,
+                        "start_date": inst.payment_plan.start_date,
+                        "end_date": inst.payment_plan.end_date,
+                        "status": inst.payment_plan.status,
+                        "wording": (
+                            inst.payment_plan.feessheet.wording.wording_name
+                            if inst.payment_plan.feessheet
+                            else None
+                        ),
+                    },
+                    "financial_info": {
+                        "amount": inst.amount,
+                        "paid_amount": inst.paid_amount,
+                        "remaining_amount": inst.amount - inst.paid_amount,
+                        "completion_percentage": (
+                            round((inst.paid_amount / inst.amount) * 100, 2)
+                            if inst.amount > 0
+                            else 0
+                        ),
+                    },
+                    "status_info": {
+                        "status": inst.status,
+                        "status_display": inst.get_status_display(),
+                        "is_overdue": inst.status == "overdue",
+                        "days_overdue": (
+                            (timezone.now().date() - inst.due_date).days
+                            if inst.status == "overdue"
+                            else 0
+                        ),
+                    },
+                    "dates": {
+                        "due_date": inst.due_date,
+                        "paid_date": inst.paid_date,
+                        "created_at": inst.created_at,
+                    },
+                }
+            )
+
+        return data
+
+    @action(detail=False, methods=["get"])
+    def my_installments(self, request):
+        """Échéanciers de l'étudiant connecté"""
+        if request.user.role.name != "student":
+            return Response({"error": "Accès réservé aux étudiants"}, status=403)
+
+        installments = self.get_queryset().filter(student__user=request.user)
+        data = []
+
+        for inst in installments:
+            data.append(
+                {
+                    "id": str(inst.id),
                     "amount": inst.amount,
                     "paid_amount": inst.paid_amount,
-                    "paid_date": inst.paid_date,
+                    "remaining_amount": inst.amount - inst.paid_amount,
                     "due_date": inst.due_date,
-                    "payment_plan_info": {
+                    "status": inst.status,
+                    "status_display": inst.get_status_display(),
+                    "paid_date": inst.paid_date,
+                    "is_overdue": inst.status == "overdue",
+                    "payment_plan": {
                         "id": str(inst.payment_plan.id),
                         "total_amount": inst.payment_plan.total_amount,
                         "wording": (
@@ -202,18 +236,13 @@ class PaymentInstallementViewSet(BaseViewSet):
                             if inst.payment_plan.feessheet
                             else None
                         ),
+                        "start_date": inst.payment_plan.start_date,
+                        "end_date": inst.payment_plan.end_date,
                     },
                 }
             )
 
-        return Response(
-            {
-                "count": len(data),
-                "class_id": class_id,
-                "status_filter": status,
-                "students": data,
-            }
-        )
+        return Response({"count": len(data), "installments": data})
 
 
 class PaymentReminderViewSet(BaseViewSet):
