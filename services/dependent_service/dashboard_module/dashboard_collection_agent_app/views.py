@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 
-from core.permissions import IsFinanceService, IsStudent
+from core.permissions import IsFinanceService, IsStudent, IsStudentOrFinanceService
 from core.views import BaseViewSet
 
 from .models import (
@@ -295,7 +295,11 @@ class PaymentViewSet(BaseViewSet):
     def get_permissions(self):
         if self.action in ["update", "partial_update"]:
             return [IsFinanceService()]
-        return [IsStudent()]
+        return [IsStudentOrFinanceService()]
+
+    def get_queryset(self):
+        """Filtre les paiements selon le rôle de l'utilisateur"""
+        return Payment.get_payments_for_user(self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
