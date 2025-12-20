@@ -207,8 +207,10 @@ class Payment(models.Model):
     bank = models.ForeignKey(
         Bank, on_delete=models.RESTRICT, null=True, related_name="bank"
     )
-    bank_slip_ref = models.CharField(max_length=128, null=True)
-    transaction_code = models.CharField(max_length=50, null=True)
+    bank_slip_ref = models.CharField(max_length=128, null=True, blank=True, unique=True)
+    transaction_code = models.CharField(
+        max_length=50, null=True, blank=True, unique=True
+    )
     inscription = models.ForeignKey(
         Inscription,
         on_delete=models.RESTRICT,
@@ -217,7 +219,7 @@ class Payment(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.RESTRICT, related_name="payments_user"
     )
-    description = models.CharField(max_length=250, null=True)
+    description = models.CharField(max_length=250, null=True, blank=True)
     remittance_slip_uri = models.ImageField(
         upload_to="payment_slips/", null=True, blank=True
     )
@@ -274,11 +276,23 @@ class Payment(models.Model):
         self.save()
 
     def save(self, *args, **kwargs):
+        # Vérifier si l'étudiant peut créer un nouveau paiement
+        if not self.pk:  # Seulement pour les nouveaux paiements
+            if self.inscription:
+                # Vérifier s'il y a des PaymentInstallement non payés pour cet étudiant
+                unpaid_installments = PaymentInstallement.objects.filter(
+                    student=self.inscription.student, status__in=["pending", "overdue"]
+                ).exists()
+
+                if unpaid_installments:
+                    raise ValueError(
+                        f"Impossible de créer ce paiement. L'étudiant {self.inscription.student.user.get_full_name()} ({self.inscription.student.matricule}) a encore des échéanciers de paiement non terminés."
+                    )
+
         # Récupérer l'ancien montant avant la sauvegarde
         old_amount = 0
         old_status = None
         if self.pk:
-            # Utiliser only() pour ne récupérer que les champs nécessaires
             try:
                 old_payment = Payment.objects.only("amount_paid", "payment_status").get(
                     pk=self.pk
@@ -294,7 +308,7 @@ class Payment(models.Model):
 
         super().save(*args, **kwargs)
 
-        # Mettre à jour le PaymentInstallement si le statut est vérifié ou si c'était vérifié avant
+        # Mettre à jour le PaymentInstallement si le statut est vérifié
         if self.payment_status == "verified" or old_status == "verified":
             self._update_payment_installment(old_amount)
 
