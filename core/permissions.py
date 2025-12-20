@@ -112,6 +112,10 @@ class CanSendMessages(permissions.BasePermission):
         return request.user.is_authenticated
 
 
+class IsStudentOrFinanceService(RolePermission):
+    allowed_roles = ["student", "finance_service"]
+
+
 # -----------------------------
 # Combined Role Permissions
 # -----------------------------

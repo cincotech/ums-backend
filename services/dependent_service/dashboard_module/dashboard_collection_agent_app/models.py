@@ -238,6 +238,19 @@ class Payment(models.Model):
         db_table = "payments"
 
     @classmethod
+    def get_payments_for_user(cls, user):
+        """Retourne les paiements selon le rôle de l'utilisateur"""
+        if user.role.name == "finance_service":
+            # Finance voit tous les paiements
+            return cls.objects.all()
+        elif user.role.name == "student":
+            # Étudiant voit seulement ses paiements
+            return cls.objects.filter(inscription__student__user=user)
+        else:
+            # Autres rôles n'ont pas accès
+            return cls.objects.none()
+
+    @classmethod
     def create_payment(cls, created_by_user, **payment_data):
         """Crée un paiement - finance_service ou student peuvent créer"""
         if created_by_user.role.name not in ["finance_service", "student"]:
