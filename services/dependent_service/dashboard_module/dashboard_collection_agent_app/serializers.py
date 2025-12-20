@@ -324,20 +324,31 @@ class PaymentSerializer(serializers.ModelSerializer):
         user_role = user.role.name
         validated_data["user"] = user
 
+        # Convertir l'UUID inscription en objet Inscription si fourni
+        inscription_uuid = validated_data.get("inscription")
+        if inscription_uuid:
+            try:
+                inscription_obj = Inscription.objects.get(id=inscription_uuid)
+                validated_data["inscription"] = inscription_obj
+            except Inscription.DoesNotExist:
+                raise serializers.ValidationError("Inscription non trouvée.")
+
         if user_role == "student":
             try:
                 student = Student.objects.get(user=user)
-                inscription = (
-                    Inscription.objects.filter(student=student)
-                    .order_by("-date_inscription")
-                    .first()
-                )
-                if inscription:
-                    validated_data["inscription"] = inscription
-                else:
-                    raise serializers.ValidationError(
-                        "Aucune inscription trouvée pour cet étudiant."
+                # Si pas d'inscription fournie, prendre la plus récente de l'étudiant
+                if not inscription_uuid:
+                    inscription = (
+                        Inscription.objects.filter(student=student)
+                        .order_by("-date_inscription")
+                        .first()
                     )
+                    if inscription:
+                        validated_data["inscription"] = inscription
+                    else:
+                        raise serializers.ValidationError(
+                            "Aucune inscription trouvée pour cet étudiant."
+                        )
             except Student.DoesNotExist:
                 raise serializers.ValidationError("Profil étudiant non trouvé.")
 
