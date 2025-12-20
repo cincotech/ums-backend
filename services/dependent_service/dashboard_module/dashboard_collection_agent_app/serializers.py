@@ -158,7 +158,13 @@ class PaymentPlanSerializer(FeesSheetInfoMixin, serializers.ModelSerializer):
 
 class PaymentInstallementSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
+    student_matricule = serializers.SerializerMethodField()
     payment_plan_info = serializers.SerializerMethodField()
+    remaining_amount = serializers.SerializerMethodField()
+    completion_percentage = serializers.SerializerMethodField()
+    status_display = serializers.SerializerMethodField()
+    is_overdue = serializers.SerializerMethodField()
+    days_overdue = serializers.SerializerMethodField()
 
     class Meta:
         model = PaymentInstallement
@@ -168,44 +174,59 @@ class PaymentInstallementSerializer(serializers.ModelSerializer):
             "payment_plan_info",
             "student",
             "student_name",
+            "student_matricule",
             "amount",
+            "paid_amount",
+            "remaining_amount",
+            "completion_percentage",
             "due_date",
             "status",
-            "paid_amount",
+            "status_display",
+            "is_overdue",
+            "days_overdue",
             "paid_date",
             "created_by",
             "created_at",
         ]
         read_only_fields = ["paid_amount", "paid_date", "status", "amount"]
 
-    def validate(self, data):
-        payment_plan = data.get("payment_plan")
-
-        # Vérifier que payment_plan est défini
-        if not payment_plan:
-            raise serializers.ValidationError(
-                "Le plan de paiement (payment_plan) est requis."
-            )
-
-        return data
-
     def get_student_name(self, obj):
         return f"{obj.student.user.first_name} {obj.student.user.last_name}"
+
+    def get_student_matricule(self, obj):
+        return obj.student.matricule
+
+    def get_remaining_amount(self, obj):
+        return obj.amount - obj.paid_amount
+
+    def get_completion_percentage(self, obj):
+        if obj.amount > 0:
+            return round((obj.paid_amount / obj.amount) * 100, 2)
+        return 0
+
+    def get_status_display(self, obj):
+        return obj.get_status_display()
+
+    def get_is_overdue(self, obj):
+        return obj.status == "overdue"
+
+    def get_days_overdue(self, obj):
+        if obj.status == "overdue":
+            from django.utils import timezone
+
+            return (timezone.now().date() - obj.due_date).days
+        return 0
 
     def get_payment_plan_info(self, obj):
         return {
             "id": str(obj.payment_plan.id),
             "total_amount": obj.payment_plan.total_amount,
             "monthly_amount": obj.payment_plan.monthly_amount,
+            "start_date": obj.payment_plan.start_date,
+            "end_date": obj.payment_plan.end_date,
             "status": obj.payment_plan.status,
-            "feessheet_info": (
-                {
-                    "wording": (
-                        obj.payment_plan.feessheet.wording.wording_name
-                        if obj.payment_plan.feessheet
-                        else None
-                    ),
-                }
+            "wording": (
+                obj.payment_plan.feessheet.wording.wording_name
                 if obj.payment_plan.feessheet
                 else None
             ),
