@@ -129,6 +129,29 @@ class FeesSheetForm(forms.ModelForm):
         return cleaned_data
 
 
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        inscription = cleaned_data.get("inscription")
+
+        if inscription:
+            # Vérifier s'il y a des PaymentInstallement non payés pour cet étudiant
+            unpaid_installments = PaymentInstallement.objects.filter(
+                student=inscription.student, status__in=["pending", "overdue"]
+            )
+
+            if unpaid_installments.exists():
+                raise forms.ValidationError(
+                    f"Impossible de créer ce paiement. L'étudiant {inscription.student.user.get_full_name()} ({inscription.student.matricule}) a encore des échéanciers de paiement non terminés."
+                )
+
+        return cleaned_data
+
+
 # ----------------------------
 # Admin Classes
 # ----------------------------
@@ -240,6 +263,7 @@ class PaymentInstallementAdmin(ImportExportModelAdmin, ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(ImportExportModelAdmin, ModelAdmin):
+    form = PaymentForm
     resource_class = PaymentResource
     list_display = (
         "paymentplan",
