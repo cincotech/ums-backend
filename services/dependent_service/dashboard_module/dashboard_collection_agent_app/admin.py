@@ -221,6 +221,21 @@ class PaymentInstallementAdmin(ImportExportModelAdmin, ModelAdmin):
         "student__matricule",
     )
     ordering = ("-due_date",)
+    readonly_fields = ("paid_amount", "status", "paid_date")
+
+    actions = ["recalculate_status"]
+
+    def recalculate_status(self, request, queryset):
+        """Recalculer le statut des échéanciers sélectionnés"""
+        updated = 0
+        for installment in queryset:
+            installment.save()  # Déclenche la logique de mise à jour du statut
+            updated += 1
+        self.message_user(request, f"{updated} échéancier(s) mis à jour.")
+
+    recalculate_status.short_description = (
+        "Recalculer le statut des échéanciers sélectionnés"
+    )
 
 
 @admin.register(Payment)
@@ -233,6 +248,7 @@ class PaymentAdmin(ImportExportModelAdmin, ModelAdmin):
         "payment_method",
         "payment_status",
         "user",
+        # "verified_by",  # Temporairement commenté jusqu'à la migration
     )
     list_filter = ("payment_status", "payment_method", "payment_date", "reception_date")
     search_fields = (
