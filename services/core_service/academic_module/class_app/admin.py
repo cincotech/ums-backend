@@ -8,7 +8,7 @@ from unfold.admin import ModelAdmin
 
 from services.core_service.academic_module.department_app.models import Department
 
-from .models import Class
+from .models import Class, ClassGroup
 
 
 # ----------------------------
@@ -48,3 +48,25 @@ class ClassAdmin(ImportExportModelAdmin, ModelAdmin):
             "widget": admin.widgets.AdminTextareaWidget(attrs={"rows": 3, "cols": 40})
         },
     }
+
+
+@admin.register(ClassGroup)
+class ClassGroupAdmin(ImportExportModelAdmin, ModelAdmin):
+    list_display = (
+        "id",
+        "group_name",
+        "class_fk",
+        "academic_year",
+        "created_date",
+    )
+    list_filter = (
+        "academic_year",
+        "class_fk",
+    )
+    search_fields = (
+        "group_name",
+        "class_fk__class_name",
+        "academic_year__name",
+    )
+    readonly_fields = ("id", "created_date")
+    date_hierarchy = "created_date"

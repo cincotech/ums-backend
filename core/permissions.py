@@ -58,7 +58,7 @@ class IsGeneralService(RolePermission):
 
 
 class IsSuperAdminOrGeneralService(RolePermission):
-    allowed_roles = ["super_admin", "general_service"]
+    allowed_roles = ["super_admin", "general_service", "dean"]
 
 
 class IsRectorOffice(RolePermission):
@@ -110,6 +110,10 @@ class CanRequestDocuments(permissions.BasePermission):
 class CanSendMessages(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated
+
+
+class IsStudentOrFinanceService(RolePermission):
+    allowed_roles = ["student", "finance_service"]
 
 
 # -----------------------------

@@ -28,6 +28,9 @@ class Teacher(models.Model):
     class Meta:
         db_table = "teachers"
 
+    def __str__(self):
+        return self.user.email
+
 
 class Attribution(models.Model):
     STATUS = (("Pending", "Pending"), ("Accepted", "Accepted"), ("Refused", "Refused"))

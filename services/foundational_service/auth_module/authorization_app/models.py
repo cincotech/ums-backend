@@ -9,12 +9,12 @@ from services.foundational_service.auth_module.user_app.models import User
 
 
 class BaseProfile(models.Model):
-    position = models.CharField(max_length=100, null=True)
+    position = models.CharField(max_length=100, null=True, blank=True)
     room = models.ForeignKey(
         Room, on_delete=models.RESTRICT, null=True, related_name="room_profiles"
     )
     start_date = models.DateField()
-    end_date = models.DateField(null=True)
+    end_date = models.DateField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -22,7 +22,11 @@ class BaseProfile(models.Model):
 
 class Dean(BaseProfile):
     faculty = models.ForeignKey(
-        Faculty, on_delete=models.RESTRICT, null=True, related_name="dean_profile"
+        Faculty,
+        on_delete=models.RESTRICT,
+        related_name="dean_profile",
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -31,7 +35,11 @@ class Dean(BaseProfile):
 
 class Rector(BaseProfile):
     university = models.ForeignKey(
-        University, on_delete=models.RESTRICT, null=True, related_name="rector_profile"
+        University,
+        on_delete=models.RESTRICT,
+        related_name="rector_profile",
+        null=True,
+        blank=True,
     )
 
     class Meta:
