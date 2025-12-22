@@ -4,17 +4,7 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from unfold.admin import ModelAdmin
 
-from .models import (
-    Bank,
-    CollectionCorrespondence,
-    FeesSheet,
-    Payment,
-    PaymentInstallement,
-    PaymentPlan,
-    PaymentPromise,
-    PaymentReminder,
-    Wording,
-)
+from .models import Bank, FeesSheet, Payment, PaymentInstallement, PaymentPlan, Wording
 
 
 # ----------------------------
@@ -282,46 +272,3 @@ class PaymentAdmin(ImportExportModelAdmin, ModelAdmin):
         "transaction_code",
     )
     ordering = ("-payment_date",)
-
-
-@admin.register(PaymentReminder)
-class PaymentReminderAdmin(ImportExportModelAdmin, ModelAdmin):
-    list_display = ("student", "reminder_type", "amount_due", "status", "sent_at")
-    list_filter = ("reminder_type", "status", "sent_at")
-    search_fields = (
-        "student__user__first_name",
-        "student__user__last_name",
-        "student__matricule",
-    )
-    ordering = ("-sent_at",)
-
-
-@admin.register(PaymentPromise)
-class PaymentPromiseAdmin(ImportExportModelAdmin, ModelAdmin):
-    list_display = (
-        "student",
-        "promised_amount",
-        "promised_date",
-        "status",
-        "recorded_at",
-    )
-    list_filter = ("status", "promised_date", "recorded_at")
-    search_fields = (
-        "student__user__first_name",
-        "student__user__last_name",
-        "student__matricule",
-    )
-    ordering = ("-promised_date",)
-
-
-@admin.register(CollectionCorrespondence)
-class CollectionCorrespondenceAdmin(ImportExportModelAdmin, ModelAdmin):
-    list_display = ("student", "correspondence_type", "subject", "sent_by", "sent_at")
-    list_filter = ("correspondence_type", "sent_at")
-    search_fields = (
-        "student__user__first_name",
-        "student__user__last_name",
-        "subject",
-        "content",
-    )
-    ordering = ("-sent_at",)

@@ -279,14 +279,22 @@ class Payment(models.Model):
         # Vérifier si l'étudiant peut créer un nouveau paiement
         if not self.pk:  # Seulement pour les nouveaux paiements
             if self.inscription:
-                # Vérifier s'il y a des PaymentInstallement non payés pour cet étudiant
-                unpaid_installments = PaymentInstallement.objects.filter(
-                    student=self.inscription.student, status__in=["pending", "overdue"]
-                ).exists()
+                student = self.inscription.student
 
-                if unpaid_installments:
+                # Vérifier s'il y a des PaymentInstallement non payés pour d'AUTRES plans (antérieurs)
+                other_unpaid_installments = (
+                    PaymentInstallement.objects.filter(
+                        student=student,
+                        status__in=["pending", "overdue"],
+                        payment_plan__start_date__lt=self.paymentplan.start_date,  # Plans antérieurs seulement
+                    )
+                    .exclude(payment_plan=self.paymentplan)  # Exclure le plan actuel
+                    .exists()
+                )
+
+                if other_unpaid_installments:
                     raise ValueError(
-                        f"Impossible de créer ce paiement. L'étudiant {self.inscription.student.user.get_full_name()} ({self.inscription.student.matricule}) a encore des échéanciers de paiement non terminés."
+                        f"Impossible de créer ce paiement. L'étudiant {student.user.get_full_name()} ({student.matricule}) doit d'abord terminer les plans de paiement précédents."
                     )
 
         # Récupérer l'ancien montant avant la sauvegarde
