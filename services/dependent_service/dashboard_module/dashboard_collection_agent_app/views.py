@@ -90,7 +90,7 @@ class PaymentInstallementViewSet(BaseViewSet):
     )
     serializer_class = PaymentInstallementSerializer
     permission_classes = [IsStudentOrFinanceService]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = [
         "payment_plan",
         "student",
@@ -99,6 +99,12 @@ class PaymentInstallementViewSet(BaseViewSet):
         "student__inscriptions__class_fk",  # Filtrage par classe
         "student__inscriptions__class_fk__department",  # Filtrage par département
         "student__inscriptions__class_fk__department__faculty",  # Filtrage par faculté
+        "student__matricule",  # Filtrage par matricule
+    ]
+    search_fields = [
+        "student__matricule",
+        "student__user__first_name",
+        "student__user__last_name",
     ]
     ordering_fields = ["due_date", "amount"]
 
@@ -127,12 +133,12 @@ class PaymentInstallementViewSet(BaseViewSet):
                 "Seuls les étudiants et le service financier peuvent accéder à cette ressource."
             )
 
-        # Filtrage personnalisé par classe (pour les inscriptions actives uniquement)
+        # Filtrage personnalisé par classe (chaque classe appartient à un département)
         class_id = self.request.query_params.get("class_id")
         if class_id:
             queryset = queryset.filter(
                 student__inscriptions__class_fk=class_id,
-                student__inscriptions__regist_status="Active",
+                student__inscriptions__regist_status__in=["Active", "Pending"],
             )
 
         # Filtrage par département
@@ -140,7 +146,7 @@ class PaymentInstallementViewSet(BaseViewSet):
         if department_id:
             queryset = queryset.filter(
                 student__inscriptions__class_fk__department=department_id,
-                student__inscriptions__regist_status="Active",
+                student__inscriptions__regist_status__in=["Active", "Pending"],
             )
 
         # Filtrage par faculté
@@ -148,7 +154,7 @@ class PaymentInstallementViewSet(BaseViewSet):
         if faculty_id:
             queryset = queryset.filter(
                 student__inscriptions__class_fk__department__faculty=faculty_id,
-                student__inscriptions__regist_status="Active",
+                student__inscriptions__regist_status__in=["Active", "Pending"],
             )
 
         return queryset.distinct()  # Éviter les doublons
@@ -171,12 +177,21 @@ class PaymentInstallementViewSet(BaseViewSet):
         today = timezone.now().date()  # Calculer une seule fois
 
         for inst in installments:
-            # Récupérer l'inscription active (optimisé avec prefetch_related)
+            # Récupérer l'inscription la plus récente
             active_inscription = None
-            for inscription in inst.student.inscriptions.all():
-                if inscription.regist_status == "Active":
-                    active_inscription = inscription
-                    break
+            inscriptions = list(inst.student.inscriptions.all())
+            if inscriptions:
+                # Prioriser Active, puis Pending, puis autres
+                for status in ["Active", "Pending"]:
+                    for inscription in inscriptions:
+                        if inscription.regist_status == status:
+                            active_inscription = inscription
+                            break
+                    if active_inscription:
+                        break
+                # Si aucune Active/Pending, prendre la première
+                if not active_inscription:
+                    active_inscription = inscriptions[0]
 
             data.append(
                 {
@@ -261,7 +276,7 @@ class PaymentInstallementViewSet(BaseViewSet):
         classes = (
             Class.objects.filter(
                 inscriptions__student__paymentinstallement__isnull=False,
-                inscriptions__regist_status="Active",
+                inscriptions__regist_status__in=["Active", "Pending"],
             )
             .distinct()
             .values("id", "class_name", "department__department_name")
@@ -271,7 +286,7 @@ class PaymentInstallementViewSet(BaseViewSet):
         departments = (
             Department.objects.filter(
                 classes__inscriptions__student__paymentinstallement__isnull=False,
-                classes__inscriptions__regist_status="Active",
+                classes__inscriptions__regist_status__in=["Active", "Pending"],
             )
             .distinct()
             .values("id", "department_name", "faculty__faculty_name")
@@ -281,7 +296,10 @@ class PaymentInstallementViewSet(BaseViewSet):
         faculties = (
             Faculty.objects.filter(
                 departments__classes__inscriptions__student__paymentinstallement__isnull=False,
-                departments__classes__inscriptions__regist_status="Active",
+                departments__classes__inscriptions__regist_status__in=[
+                    "Active",
+                    "Pending",
+                ],
             )
             .distinct()
             .values("id", "faculty_name")
