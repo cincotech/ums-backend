@@ -206,6 +206,7 @@ class PaymentPlanAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = PaymentPlanResource
     list_display = (
         "feessheet",
+        "description",
         "total_amount",
         "monthly_amount",
         "start_date",
