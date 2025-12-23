@@ -313,6 +313,60 @@ class PaymentInstallementViewSet(BaseViewSet):
             }
         )
 
+    @action(detail=False, methods=["get"], permission_classes=[IsFinanceService])
+    def unpaid_installments(self, request):
+        """Échéanciers non payés (pending + overdue)"""
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            status__in=["pending", "overdue"]
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            data = self._format_installments_data(page)
+            return self.get_paginated_response(data)
+
+        data = self._format_installments_data(queryset)
+        return Response(data)
+
+    @action(detail=False, methods=["get"], permission_classes=[IsFinanceService])
+    def incomplete_payments_by_class(self, request):
+        """Étudiants qui n'ont pas fini leurs paiements par classe"""
+        class_id = request.query_params.get("class_id")
+        if not class_id:
+            return Response({"error": "class_id est requis"}, status=400)
+
+        # Étudiants avec des échéanciers non terminés dans cette classe
+        queryset = (
+            self.get_queryset()
+            .filter(
+                student__inscriptions__class_fk=class_id,
+                student__inscriptions__regist_status__in=["Active", "Pending"],
+                status__in=["pending", "overdue"],
+            )
+            .distinct()
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            data = self._format_installments_data(page)
+            return self.get_paginated_response(data)
+
+        data = self._format_installments_data(queryset)
+        return Response(data)
+
+    @action(detail=False, methods=["get"], permission_classes=[IsFinanceService])
+    def overdue_payments(self, request):
+        """Échéanciers en retard seulement"""
+        queryset = self.filter_queryset(self.get_queryset()).filter(status="overdue")
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            data = self._format_installments_data(page)
+            return self.get_paginated_response(data)
+
+        data = self._format_installments_data(queryset)
+        return Response(data)
+
 
 class PaymentReminderViewSet(BaseViewSet):
     queryset = PaymentReminder.objects.all()
