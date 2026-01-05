@@ -72,6 +72,30 @@ class Timetable(models.Model):
         return f"Timetable {self.class_group} ({self.start_date} - {self.end_date})"
 
 
+class TimetableMerge(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    name = models.CharField(max_length=255)
+
+    timetables = models.ManyToManyField(Timetable, related_name="timetable_merges")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_timetable_merges",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.name
+
+
 class Attendance(models.Model):
     STATUS_CHOICES = (
         ("Present", "Present"),

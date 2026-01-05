@@ -3,6 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from core.permissions import IsDean
@@ -36,6 +37,7 @@ from services.dependent_service.scheduling_module.scheduling_app.models import (
     Attendance,
     ScheduleSlot,
     Timetable,
+    TimetableMerge,
 )
 
 from .models import SecretaryNote, TeacherWorkload, TeachingProgress
@@ -74,6 +76,7 @@ from .serializers import (
     TeachingProgressDetailSerializer,
     TeachingProgressSerializer,
     TimetableDetailSerializer,
+    TimetableMergeSerializer,
     TimetableOverviewSerializer,
     TimetableSerializer,
 )
@@ -99,6 +102,7 @@ from .services import (
     TeacherWorkloadService,
     TimetableManagementService,
 )
+from .utils import get_faculty_for_request
 
 User = get_user_model()
 
@@ -132,7 +136,7 @@ class TeachingProgressViewSet(BaseViewSet):
 
     @action(detail=False, methods=["post"])
     def bulk_update(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.data.get("academic_year_id")
 
         if not faculty:
@@ -200,7 +204,7 @@ class TeacherWorkloadViewSet(BaseViewSet):
 
     @action(detail=False, methods=["post"])
     def bulk_update(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.data.get("academic_year_id")
 
         if not faculty:
@@ -217,7 +221,7 @@ class TeacherWorkloadViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -283,7 +287,7 @@ class DeanDashboardStatsView(APIView):
     permission_classes = [IsDean]
 
     def get(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -309,7 +313,7 @@ class TimetableOverviewView(APIView):
     permission_classes = [IsDean]
 
     def get(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -335,7 +339,7 @@ class TeachingProgressReportView(APIView):
     permission_classes = [IsDean]
 
     def get(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -360,7 +364,7 @@ class AttributionStatisticsView(APIView):
     permission_classes = [IsDean]
 
     def get(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -385,7 +389,7 @@ class RoomUtilizationReportView(APIView):
     permission_classes = [IsDean]
 
     def get(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -460,6 +464,27 @@ class CourseAttributionViewSet(BaseViewSet):
             message="Course attributions retrieved successfully",
         )
 
+    @action(detail=False, methods=["get"])
+    def by_class(self, request):
+        class_id = request.query_params.get("class_id")
+        academic_year_id = request.query_params.get("academic_year_id")
+
+        if not class_id:
+            return error_response(message="Class ID is required")
+
+        queryset = self.get_queryset().filter(course__module__class_fk__id=class_id)
+
+        if academic_year_id:
+            queryset = queryset.filter(academic_year_id=academic_year_id)
+
+        queryset = queryset.distinct()
+        serializer = self.get_serializer(queryset, many=True)
+
+        return success_response(
+            data=serializer.data,
+            message="Class course attributions retrieved successfully",
+        )
+
 
 class DepartmentViewSet(BaseViewSet):
     queryset = Department.objects.all()
@@ -472,7 +497,7 @@ class DepartmentViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -522,7 +547,7 @@ class ClassViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -542,7 +567,7 @@ class ClassViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def statistics(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -690,7 +715,7 @@ class StudentViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -738,7 +763,7 @@ class StudentViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def statistics(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -775,7 +800,7 @@ class InscriptionViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -801,7 +826,7 @@ class FacultyOverviewView(APIView):
     permission_classes = [IsDean]
 
     def get(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -957,7 +982,7 @@ class TimetableViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def by_day(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         day_of_week = request.query_params.get("day_of_week")
         academic_year_id = request.query_params.get("academic_year_id")
 
@@ -1147,7 +1172,7 @@ class ActivityReportViewSet(BaseViewSet):
 
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -1636,3 +1661,18 @@ class TeacherPaymentClaimViewSet(BaseViewSet):
             return error_response(message=str(e))
         except Exception as e:
             return error_response(message="Error rejecting claim", errors=str(e))
+
+
+class TimetableMergeViewSet(BaseViewSet):
+    queryset = TimetableMerge.objects.all()
+    serializer_class = TimetableMergeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        """
+        Injecte request dans le serializer
+        (obligatoire pour created_by)
+        """
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context

@@ -204,7 +204,7 @@ class UserListSerializer(serializers.ModelSerializer):
         read_only=True, source="nationality.country_name"
     )
     residence = CollineSerializer(many=True, read_only=True)
-    profile = ProfileSerializer(source="profiles", read_only=True)
+    profile = ProfileSerializer(source="profiles", many=True, read_only=True)
 
     class Meta:
         model = User
@@ -239,7 +239,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     role_name = serializers.CharField(source="role.name", read_only=True)
-    profile = ProfileSerializer(source="profiles", read_only=True)
+    profile = ProfileSerializer(source="profiles", many=True, read_only=True)
 
     class Meta:
         model = User

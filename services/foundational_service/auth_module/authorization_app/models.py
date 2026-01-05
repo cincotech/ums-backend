@@ -87,9 +87,7 @@ class Profile(
     AcademicAffairs,
 ):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(
-        User, on_delete=models.RESTRICT, related_name="profiles"
-    )
+    user = models.ForeignKey(User, on_delete=models.RESTRICT, related_name="profiles")
 
     class Meta:
         db_table = "profiles"

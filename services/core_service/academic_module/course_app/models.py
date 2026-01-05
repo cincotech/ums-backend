@@ -10,6 +10,7 @@ class Course(models.Model):
     module = models.ForeignKey(
         Module, on_delete=models.RESTRICT, related_name="courses"
     )
+    course_code = models.CharField(max_length=255, null=True, blank=True)
     course_name = models.CharField(max_length=255)
     cm = models.PositiveSmallIntegerField(default=0)  # Lecture hours
     td = models.PositiveSmallIntegerField(default=0)  # Tutorial hours
