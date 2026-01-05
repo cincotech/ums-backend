@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 
 from services.core_service.academic_module.course_app.models import Course
@@ -5,6 +6,9 @@ from services.core_service.academic_module.university_app.models import (
     AcademicYear,
     University,
     UniversityDegree,
+)
+from services.foundational_service.auth_module.authentication_app.serializers import (
+    UserSerializer,
 )
 from services.foundational_service.auth_module.user_app.models import User
 
@@ -18,9 +22,11 @@ class TeacherSerializer(serializers.ModelSerializer):
     degree_id = serializers.PrimaryKeyRelatedField(
         queryset=UniversityDegree.objects.all(), source="degree", write_only=True
     )
+    degree_name = serializers.CharField(source="degree.degree_name", read_only=True)
     university_id = serializers.PrimaryKeyRelatedField(
         queryset=University.objects.all(), source="university", write_only=True
     )
+    user_obj = UserSerializer(source="user", read_only=True)
 
     class Meta:
         model = Teacher
@@ -28,9 +34,11 @@ class TeacherSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "user_id",
+            "user_obj",
             "teacher_grade",
             "degree",
             "degree_id",
+            "degree_name",
             "university",
             "university_id",
             "speciality",
@@ -53,18 +61,28 @@ class AttributionSerializer(serializers.ModelSerializer):
         source="substitute_teacher",
         write_only=True,
         allow_null=True,
+        required=False,
     )
     academic_year_id = serializers.PrimaryKeyRelatedField(
         queryset=AcademicYear.objects.all(), source="academic_year", write_only=True
     )
     submitted_by_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), source="submitted_by", write_only=True
+        queryset=User.objects.all(),
+        source="submitted_by",
+        write_only=True,
+        required=False,
+        default=serializers.CurrentUserDefault(),  # Will use request.user if available
     )
     authorized_by_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source="authorized_by",
         write_only=True,
         allow_null=True,
+        required=False,
+    )
+    date_attribution = serializers.DateField(
+        required=False,
+        default=timezone.now().date(),
     )
 
     class Meta:
