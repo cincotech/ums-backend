@@ -19,8 +19,19 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = "__all__"
-        read_only_fields = ["id", "user"]
+        fields = [
+            "id",
+            "user_id",
+            "position",
+            "start_date",
+            "end_date",
+            "room",
+            "faculty",
+            "university",
+            "faculty_abreviation",
+        ]
+        read_only_fields = ["id"]
+      
 
 
 class SupervisorSerializer(serializers.ModelSerializer):

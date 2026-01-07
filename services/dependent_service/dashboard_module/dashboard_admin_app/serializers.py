@@ -412,28 +412,16 @@ class CreateUserWithProfileSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True, min_length=8)
-    role_name = serializers.CharField(max_length=100)
-    position = serializers.CharField(max_length=100, required=True)
-    start_date = serializers.DateField(required=True)
+
+    role_id = serializers.UUIDField()   # 🔥 UUID instead of name
+
+    position = serializers.CharField(max_length=100)
+    start_date = serializers.DateField()
     end_date = serializers.DateField(required=False, allow_null=True)
+
     room_id = serializers.UUIDField(required=False, allow_null=True)
     university_id = serializers.UUIDField(required=False, allow_null=True)
     faculty_id = serializers.UUIDField(required=False, allow_null=True)
-
-    def validate_room_id(self, value):
-        if value and not Room.objects.filter(id=value).exists():
-            raise serializers.ValidationError("Room not found")
-        return value
-
-    def validate_university_id(self, value):
-        if value and not University.objects.filter(id=value).exists():
-            raise serializers.ValidationError("University not found")
-        return value
-
-    def validate_faculty_id(self, value):
-        if value and not Faculty.objects.filter(id=value).exists():
-            raise serializers.ValidationError("Faculty not found")
-        return value
 
 
 class RoleWithFieldsSerializer(serializers.Serializer):

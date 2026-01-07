@@ -314,7 +314,7 @@ class RoleProfileService:
 
     @staticmethod
     def create_user_with_profile(
-        university, email, first_name, last_name, password, role_name, profile_data=None
+        university, email, first_name, last_name, password, role_id, profile_data=None
     ):
         """Create user with role-specific profile"""
         if User.objects.filter(email=email).exists():
@@ -328,14 +328,10 @@ class RoleProfileService:
             password=password,
             university=university,
             is_active=True,
+            role_id=role_id,
         )
-
-        # Assign role
-        role = RoleProfileService.get_role_by_name(role_name)
-        if role:
-            user.role = role
-            user.save()
-
+        role = RoleProfileService.get_role_by_name(role_id)
+        role_name = role.name if role else ""
         # Create profile with role-specific data
         if profile_data:
             RoleProfileService.create_profile_for_user(user, role_name, profile_data)
@@ -343,12 +339,11 @@ class RoleProfileService:
         return user
 
     @staticmethod
-    def create_profile_for_user(user, role_name, profile_data):
+    def create_profile_for_user(user, role_id, profile_data):
         """Create role-specific profile for user"""
-        profile, created = Profile.objects.get_or_create(user=user)
+        profile, created = Profile.objects.get_or_create(user=user,defaults={"start_date": profile_data.get("start_date")})
 
-        role_name_lower = role_name.lower().replace(" ", "_")
-
+        role_name_lower = role_id.lower().replace(" ", "_")
         # Set common fields
         if "position" in profile_data:
             profile.position = profile_data["position"]
