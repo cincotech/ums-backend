@@ -5,7 +5,7 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from unfold.admin import ModelAdmin
 
-from .models import ActivityReport, Attendance, ScheduleSlot, Timetable
+from .models import ActivityReport, Attendance, ScheduleSlot, Timetable, TimetableMerge
 
 # ----------------------------
 # Resources for Import/Export
@@ -82,6 +82,9 @@ class TimetableAdmin(ImportExportModelAdmin, ModelAdmin):
     list_filter = ("status", "start_date", "end_date")
     search_fields = ("attribution__id", "room__room_name")
     ordering = ("-start_date",)
+
+
+admin.site.register(TimetableMerge)
 
 
 @admin.register(Attendance)

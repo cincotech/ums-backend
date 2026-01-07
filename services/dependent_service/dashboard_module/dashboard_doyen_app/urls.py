@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from .course_management_views import CourseByTeacherView, CourseViewSet
 from .views import (
     ActivityReportViewSet,
     AttendanceViewSet,
@@ -31,6 +32,7 @@ from .views import (
     TeacherWorkloadViewSet,
     TeachingProgressReportView,
     TeachingProgressViewSet,
+    TimetableMergeViewSet,
     TimetableOverviewView,
     TimetableViewSet,
 )
@@ -41,6 +43,9 @@ router.register(r"teaching-progress", TeachingProgressViewSet)
 router.register(r"teacher-workload", TeacherWorkloadViewSet)
 router.register(r"secretary-notes", SecretaryNoteViewSet)
 router.register(r"course-attributions", CourseAttributionViewSet)
+
+# Course Management
+router.register(r"courses", CourseViewSet)
 
 # Academic Structure
 router.register(r"departments", DepartmentViewSet)
@@ -54,6 +59,7 @@ router.register(r"schedule-slots", ScheduleSlotViewSet)
 router.register(r"timetables", TimetableViewSet)
 router.register(r"attendances", AttendanceViewSet)
 router.register(r"activity-reports", ActivityReportViewSet)
+router.register(r"timetable-merges", TimetableMergeViewSet)
 
 # Exam Management
 router.register(r"exam-types", ExamTypeViewSet)
@@ -102,5 +108,15 @@ urlpatterns = [
         "reports/room-utilization/",
         RoomUtilizationReportView.as_view(),
         name="room-utilization-report",
+    ),
+    # path(
+    #     "courses/by_class/",
+    #     CourseByClassView.as_view(),
+    #     name="courses-by-class",
+    # ),
+    path(
+        "courses/by_teacher/",
+        CourseByTeacherView.as_view(),
+        name="courses-by-teacher",
     ),
 ]

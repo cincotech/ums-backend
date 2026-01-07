@@ -132,6 +132,7 @@ class PaymentPlanSerializer(FeesSheetInfoMixin, serializers.ModelSerializer):
             "id",
             "feessheet",
             "feessheet_info",
+            "description",
             "total_amount",
             "monthly_amount",
             "start_date",
