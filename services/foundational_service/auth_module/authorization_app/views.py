@@ -5,10 +5,47 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+from core.views import BaseViewSet
 from services.foundational_service.auth_module.authentication_app.serializers import (
     RoleSerializer,
 )
 from services.foundational_service.auth_module.user_app.models import Role
+
+from .models import Profile, Supervisor
+from .serializers import ProfileSerializer, SupervisorSerializer
+
+
+class ProfileViewSet(BaseViewSet):
+    serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # STAFF / ADMIN → see all profiles
+        if user.is_staff or user.is_superuser:
+            return Profile.objects.select_related("user")
+
+        # NORMAL USER → only his profile
+        return Profile.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+
+        # Prevent normal users from creating for others
+        if not (user.is_staff or user.is_superuser):
+            serializer.save(user=user)
+        else:
+            serializer.save()
+
+
+class SupervisorViewSet(BaseViewSet):
+    queryset = Supervisor.objects.select_related("user")
+    serializer_class = SupervisorSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class AvailableRoleView(viewsets.ReadOnlyModelViewSet):

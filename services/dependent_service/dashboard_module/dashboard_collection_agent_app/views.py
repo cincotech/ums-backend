@@ -3,7 +3,6 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.response import Response
 
 from core.permissions import IsFinanceService, IsStudent, IsStudentOrFinanceService
 from core.views import BaseViewSet
@@ -161,15 +160,13 @@ class PaymentInstallementViewSet(BaseViewSet):
 
     def list(self, request, *args, **kwargs):
         """Liste optimisée avec données organisées"""
+        from core.response_handler import success_response
+
         queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-
-        if page is not None:
-            data = self._format_installments_data(page)
-            return self.get_paginated_response(data)
-
         data = self._format_installments_data(queryset)
-        return Response(data)
+        return success_response(
+            data=data, message="PaymentInstallement list retrieved successfully"
+        )
 
     def _format_installments_data(self, installments):
         """Formate les données pour l'affichage - VERSION OPTIMISÉE"""
@@ -227,6 +224,7 @@ class PaymentInstallementViewSet(BaseViewSet):
                         "start_date": inst.payment_plan.start_date,
                         "end_date": inst.payment_plan.end_date,
                         "status": inst.payment_plan.status,
+                        "description": inst.payment_plan.description,
                         "wording": (
                             inst.payment_plan.feessheet.wording.wording_name
                             if inst.payment_plan.feessheet
@@ -266,6 +264,7 @@ class PaymentInstallementViewSet(BaseViewSet):
     @action(detail=False, methods=["get"], permission_classes=[IsFinanceService])
     def available_filters(self, request):
         """Retourne les options de filtrage disponibles"""
+        from core.response_handler import success_response
         from services.core_service.academic_module.class_app.models import Class
         from services.core_service.academic_module.department_app.models import (
             Department,
@@ -305,12 +304,61 @@ class PaymentInstallementViewSet(BaseViewSet):
             .values("id", "faculty_name")
         )
 
-        return Response(
-            {
+        return success_response(
+            data={
                 "classes": list(classes),
                 "departments": list(departments),
                 "faculties": list(faculties),
-            }
+            },
+            message="Available filters retrieved successfully",
+        )
+
+    @action(detail=False, methods=["get"], permission_classes=[IsFinanceService])
+    def unpaid_installments(self, request):
+        """Échéanciers non payés (pending + overdue)"""
+        from core.response_handler import success_response
+
+        queryset = self.filter_queryset(self.get_queryset()).filter(
+            status__in=["pending", "overdue"]
+        )
+        data = self._format_installments_data(queryset)
+        return success_response(
+            data=data, message="Unpaid installments retrieved successfully"
+        )
+
+    @action(detail=False, methods=["get"], permission_classes=[IsFinanceService])
+    def incomplete_payments_by_class(self, request):
+        """Étudiants qui n'ont pas fini leurs paiements par classe"""
+        from core.response_handler import error_response, success_response
+
+        class_id = request.query_params.get("class_id")
+        if not class_id:
+            return error_response(message="class_id est requis", status_code=400)
+
+        # Étudiants avec des échéanciers non terminés dans cette classe
+        queryset = (
+            self.get_queryset()
+            .filter(
+                student__inscriptions__class_fk=class_id,
+                student__inscriptions__regist_status__in=["Active", "Pending"],
+                status__in=["pending", "overdue"],
+            )
+            .distinct()
+        )
+        data = self._format_installments_data(queryset)
+        return success_response(
+            data=data, message="Incomplete payments by class retrieved successfully"
+        )
+
+    @action(detail=False, methods=["get"], permission_classes=[IsFinanceService])
+    def overdue_payments(self, request):
+        """Échéanciers en retard seulement"""
+        from core.response_handler import success_response
+
+        queryset = self.filter_queryset(self.get_queryset()).filter(status="overdue")
+        data = self._format_installments_data(queryset)
+        return success_response(
+            data=data, message="Overdue payments retrieved successfully"
         )
 
 

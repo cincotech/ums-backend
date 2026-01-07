@@ -114,6 +114,12 @@ class PaymentPlan(models.Model):
         blank=True,
         related_name="paymentplan_feessheet",
     )
+    description = models.CharField(
+        max_length=100,
+        help_text="Description du plan (ex: Première tranche, Deuxième tranche, etc.)",
+        null=True,
+        blank=True,
+    )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     monthly_amount = models.DecimalField(
         max_digits=10, null=True, blank=True, decimal_places=2
@@ -128,9 +134,19 @@ class PaymentPlan(models.Model):
         db_table = "payment_plans"
 
     def __str__(self):
+        base_str = ""
         if self.feessheet:
-            return f"Plan {self.feessheet.wording.wording_name} - {self.total_amount}"
-        return f"Plan de paiement - {self.total_amount}"
+            base_str = (
+                f"Plan {self.feessheet.wording.wording_name} - {self.total_amount}"
+            )
+        else:
+            base_str = f"Plan de paiement - {self.total_amount}"
+
+        # Ajouter la description si elle existe
+        if self.description:
+            base_str += f" ({self.description})"
+
+        return base_str
 
 
 class PaymentInstallement(models.Model):

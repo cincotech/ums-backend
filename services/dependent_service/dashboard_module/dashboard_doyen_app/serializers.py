@@ -32,7 +32,12 @@ from services.dependent_service.scheduling_module.scheduling_app.models import (
     Attendance,
     ScheduleSlot,
     Timetable,
+    TimetableMerge,
 )
+from services.foundational_service.auth_module.authentication_app.serializers import (
+    UserSerializer,
+)
+from services.foundational_service.geo_module.serializers import CollineSerializer
 
 from .models import SecretaryNote, TeacherWorkload, TeachingProgress
 
@@ -46,7 +51,7 @@ class TeachingProgressSerializer(serializers.ModelSerializer):
     )
     teacher_name = serializers.SerializerMethodField()
     academic_year = serializers.CharField(
-        source="attribution.academic_year.year_name", read_only=True
+        source="attribution.academic_year.academic_year", read_only=True
     )
     faculty_name = serializers.CharField(source="faculty.faculty_name", read_only=True)
 
@@ -104,7 +109,7 @@ class TeachingProgressDetailSerializer(serializers.ModelSerializer):
                 if attribution.substitute_teacher
                 else None
             ),
-            "academic_year": attribution.academic_year.year_name,
+            "academic_year": attribution.academic_year.academic_year,
             "status": attribution.status_principal_teacher,
         }
 
@@ -132,8 +137,8 @@ class TeacherWorkloadSerializer(serializers.ModelSerializer):
     teacher_name = serializers.SerializerMethodField()
     teacher_email = serializers.CharField(source="teacher.email", read_only=True)
     faculty_name = serializers.CharField(source="faculty.faculty_name", read_only=True)
-    academic_year_name = serializers.CharField(
-        source="academic_year.year_name", read_only=True
+    academic_year = serializers.CharField(
+        source="academic_year.academic_year", read_only=True
     )
     workload_percentage = serializers.SerializerMethodField()
 
@@ -147,7 +152,7 @@ class TeacherWorkloadSerializer(serializers.ModelSerializer):
             "teacher_name",
             "teacher_email",
             "academic_year",
-            "academic_year_name",
+            "academic_year",
             "total_hours",
             "assigned_hours",
             "workload_percentage",
@@ -278,9 +283,11 @@ class CourseAttributionSerializer(serializers.ModelSerializer):
     course_code = serializers.CharField(source="course.course_code", read_only=True)
     principal_teacher_name = serializers.SerializerMethodField()
     substitute_teacher_name = serializers.SerializerMethodField()
-    academic_year_name = serializers.CharField(
-        source="academic_year.year_name", read_only=True
+    academic_year = serializers.CharField(
+        source="academic_year.academic_year", read_only=True
     )
+    class_name = serializers.SerializerMethodField()
+    department_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Attribution
@@ -294,11 +301,12 @@ class CourseAttributionSerializer(serializers.ModelSerializer):
             "substitute_teacher",
             "substitute_teacher_name",
             "academic_year",
-            "academic_year_name",
             "date_attribution",
             "status_principal_teacher",
             "status_substitute_teacher",
             "commentaire",
+            "class_name",
+            "department_name",
         ]
         read_only_fields = ["id", "date_attribution"]
 
@@ -311,6 +319,12 @@ class CourseAttributionSerializer(serializers.ModelSerializer):
             user = obj.substitute_teacher.user
             return f"{user.first_name} {user.last_name}"
         return None
+
+    def get_class_name(self, obj):
+        return obj.course.module.class_fk.class_name
+
+    def get_department_name(self, obj):
+        return obj.course.module.class_fk.department.department_name
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -365,9 +379,6 @@ class ClassSerializer(serializers.ModelSerializer):
 
 class ClassGroupSerializer(serializers.ModelSerializer):
     class_name = serializers.CharField(source="class_fk.class_name", read_only=True)
-    academic_year_name = serializers.CharField(
-        source="academic_year.year_name", read_only=True
-    )
     student_count = serializers.SerializerMethodField()
     timetable_count = serializers.SerializerMethodField()
 
@@ -378,7 +389,6 @@ class ClassGroupSerializer(serializers.ModelSerializer):
             "class_fk",
             "class_name",
             "academic_year",
-            "academic_year_name",
             "group_name",
             "created_date",
             "student_count",
@@ -398,29 +408,66 @@ class ClassGroupSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    user_info = serializers.SerializerMethodField()
+    user_obj = serializers.SerializerMethodField()
     current_class = serializers.SerializerMethodField()
     inscription_status = serializers.SerializerMethodField()
+    student_group = serializers.SerializerMethodField()
+    colline = serializers.SerializerMethodField()
 
     class Meta:
         model = Student
         fields = [
             "id",
             "user",
-            "user_info",
+            "user_obj",
             "matricule",
             "current_class",
             "inscription_status",
+            "student_group",
+            "colline",
         ]
         read_only_fields = ["id"]
 
-    def get_user_info(self, obj):
+    def get_user_obj(self, obj):
         return {
             "first_name": obj.user.first_name,
             "last_name": obj.user.last_name,
             "email": obj.user.email,
-            "phone": obj.user.phone,
+            "phone_number": obj.user.phone_number,
+            "marital_status": obj.user.marital_status,
+            "gender": obj.user.gender,
+            "role_name": obj.user.role.name,
+            "profile_picture": (
+                obj.user.profile_picture if obj.user.profile_picture else None
+            ),
         }
+
+    def get_student_group(self, obj):
+        """
+        Get the student's group via their current active class inscription.
+        """
+        current_inscription = (
+            Inscription.objects.filter(
+                student=obj, regist_status="Active", is_year_close=False
+            )
+            .select_related("class_fk")  # follow relation to groups
+            .first()
+        )
+
+        if (
+            current_inscription
+            and current_inscription.class_fk
+            and current_inscription.class_fk.groups
+        ):
+            group = current_inscription.class_fk.groups
+            return {
+                # "id": group.id,
+                "name": getattr(group, "name", "N/A")  # optional
+            }
+        return None
+
+    def get_colline(self, obj):
+        return CollineSerializer(obj.user.residence, many=True).data
 
     def get_current_class(self, obj):
         current_inscription = (
@@ -437,7 +484,7 @@ class StudentSerializer(serializers.ModelSerializer):
                     if current_inscription.class_fk
                     else "N/A"
                 ),
-                "academic_year": current_inscription.academic_year.year_name,
+                "academic_year": current_inscription.academic_year.academic_year,
                 "date_inscription": current_inscription.date_inscription,
             }
         return None
@@ -452,8 +499,8 @@ class StudentSerializer(serializers.ModelSerializer):
 class InscriptionSerializer(serializers.ModelSerializer):
     student_info = serializers.SerializerMethodField()
     class_name = serializers.CharField(source="class_fk.class_name", read_only=True)
-    academic_year_name = serializers.CharField(
-        source="academic_year.year_name", read_only=True
+    academic_year = serializers.CharField(
+        source="academic_year.academic_year", read_only=True
     )
     department_name = serializers.CharField(
         source="class_fk.department.department_name", read_only=True
@@ -466,7 +513,7 @@ class InscriptionSerializer(serializers.ModelSerializer):
             "student",
             "student_info",
             "academic_year",
-            "academic_year_name",
+            "academic_year",
             "class_fk",
             "class_name",
             "department_name",
@@ -641,7 +688,7 @@ class TimetableDetailSerializer(serializers.ModelSerializer):
                 "id": str(obj.class_group.id),
                 "group_name": obj.class_group.group_name,
                 "class_name": obj.class_group.class_fk.class_name,
-                "academic_year": obj.class_group.academic_year.year_name,
+                "academic_year": obj.class_group.academic_year.academic_year,
             }
         return None
 
@@ -802,8 +849,8 @@ class ExamSerializer(serializers.ModelSerializer):
     exam_type_name = serializers.CharField(
         source="exam_type.exam_type_name", read_only=True
     )
-    academic_year_name = serializers.CharField(
-        source="academic_year.year_name", read_only=True
+    academic_year = serializers.CharField(
+        source="academic_year.academic_year", read_only=True
     )
     created_by_name = serializers.SerializerMethodField()
 
@@ -817,7 +864,7 @@ class ExamSerializer(serializers.ModelSerializer):
             "exam_type",
             "exam_type_name",
             "academic_year",
-            "academic_year_name",
+            "academic_year",
             "exam_date",
             "start_time",
             "end_time",
@@ -1171,3 +1218,35 @@ class TeacherPaymentClaimSerializer(serializers.ModelSerializer):
         if obj.approved_by:
             return f"{obj.approved_by.first_name} {obj.approved_by.last_name}"
         return None
+
+
+class TimetableMergeSerializer(serializers.ModelSerializer):
+    timetable_ids = serializers.PrimaryKeyRelatedField(
+        source="timetables", many=True, queryset=Timetable.objects.all()
+    )
+
+    created_by = UserSerializer(read_only=True)
+
+    class Meta:
+        model = TimetableMerge
+        fields = [
+            "id",
+            "name",
+            "timetable_ids",
+            "created_at",
+            "created_by",
+        ]
+
+    def create(self, validated_data):
+        """
+        created_by vient automatiquement du request.user
+        """
+        request = self.context["request"]
+        timetables = validated_data.pop("timetables")
+
+        instance = TimetableMerge.objects.create(
+            created_by=request.user, **validated_data
+        )
+        instance.timetables.set(timetables)
+
+        return instance

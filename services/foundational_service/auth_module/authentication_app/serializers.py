@@ -8,10 +8,7 @@ from rest_framework import serializers
 from services.core_service.academic_module.university_app.models import University
 from services.foundational_service.auth_module.user_app.models import Role, User
 from services.foundational_service.geo_module.country_app.models import Country
-from services.foundational_service.geo_module.serializers import (
-    CollineSerializer,
-    CountrySerializer,
-)
+from services.foundational_service.geo_module.serializers import CollineSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +24,9 @@ class UserSerializer(serializers.ModelSerializer):
     role_id = serializers.PrimaryKeyRelatedField(
         queryset=Role.objects.all(), source="role", write_only=True, required=False
     )
-    nationality = CountrySerializer(read_only=True)
+    nationality_name = serializers.CharField(
+        read_only=True, source="nationality.country_name"
+    )
     nationality_id = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.all(),
         source="nationality",
@@ -53,6 +52,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "birth_date",
             "nationality",
+            "nationality_name",
             "residence",
             "marital_status",
             "role",
