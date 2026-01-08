@@ -109,10 +109,10 @@ class CourseManagementService:
         """Get all courses assigned to a class"""
         courses = Course.objects.filter(module__class_fk_id=class_id).distinct()
 
-        if academic_year_id:
-            courses = courses.filter(
-                attribution__academic_year_id=academic_year_id
-            ).distinct()
+        # if academic_year_id:
+        #     courses = courses.filter(
+        #         attribution__academic_year_id=academic_year_id
+        #     ).distinct()
 
         course_list = []
         for course in courses:

@@ -883,7 +883,7 @@ class RoleProfileViewSet(viewsets.ViewSet):
                         first_name=serializer.validated_data["first_name"],
                         last_name=serializer.validated_data["last_name"],
                         password=serializer.validated_data["password"],
-                        role_name=serializer.validated_data["role_name"],
+                        role_id=serializer.validated_data["role_id"],
                         profile_data=profile_data,
                     )
 
@@ -895,7 +895,7 @@ class RoleProfileViewSet(viewsets.ViewSet):
                         str(user.id),
                         {
                             "email": user.email,
-                            "role": serializer.validated_data["role_name"],
+                            "role": user.role.name if user.role else None,
                             "position": profile_data["position"],
                         },
                     )
@@ -1001,9 +1001,9 @@ class RoleProfileViewSet(viewsets.ViewSet):
                     "faculty_id": serializer.validated_data.get("faculty_id"),
                 }
 
-                role_name = user.role.name if user.role else "General"
+                role_id = user.role.name if user.role else "General"
                 profile = RoleProfileService.update_user_profile(
-                    user, role_name, profile_data
+                    user,role_id, profile_data
                 )
 
                 log_user_action(
