@@ -22,7 +22,7 @@ from services.dependent_service.dashboard_module.dashboard_doyen_app.course_mana
 from services.dependent_service.dashboard_module.dashboard_doyen_app.views import (
     BaseViewSet,
 )
-
+from .utils import get_faculty_for_request
 
 class CourseViewSet(BaseViewSet):
     queryset = Course.objects.all()
@@ -30,7 +30,7 @@ class CourseViewSet(BaseViewSet):
     permission_classes = [IsDean]
 
     def get_queryset(self):
-        faculty = self.request.user.profiles.faculty
+        faculty = get_faculty_for_request(self.request)
         if not faculty:
             return Course.objects.none()
 
@@ -51,7 +51,7 @@ class CourseViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
         """Get all courses for the dean's faculty"""
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:
@@ -183,7 +183,7 @@ class CourseViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def summary(self, request):
         """Get summary of all courses in faculty"""
-        faculty = request.user.profiles.faculty
+        faculty = get_faculty_for_request(request)
         academic_year_id = request.query_params.get("academic_year_id")
 
         if not faculty:

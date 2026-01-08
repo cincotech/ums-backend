@@ -34,7 +34,7 @@ urlpatterns = [
         include("services.foundational_service.auth_module.authentication_app.urls"),
     ),
     path(
-        "api/infrastructure/",
+        "api/academic/infrastructure/",
         include("services.dependent_service.infrastructure_module.urls"),
     ),
     path("api/academic/", include("services.core_service.academic_module.urls")),
