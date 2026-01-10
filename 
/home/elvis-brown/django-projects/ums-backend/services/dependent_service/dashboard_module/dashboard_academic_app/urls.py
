@@ -1,0 +1,47 @@
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    # Vue d'ensemble académique
+    path(
+        "overview/",
+        views.dashboard_overview,
+        name="dashboard-overview",
+    ),
+    # Attributions
+    path(
+        "attributions/pending/",
+        views.pending_attributions,
+        name="pending-attributions",
+    ),
+    path(
+        "attributions/<uuid:attribution_id>/validate/",
+        views.validate_attribution,
+        name="validate-attribution",
+    ),
+    path(
+        "attributions/<uuid:attribution_id>/suggestions/",
+        views.add_suggestion,
+        name="add-suggestion",
+    ),
+    # Suggestions
+    path(
+        "suggestions/",
+        views.suggestions_list,
+        name="suggestions-list",
+    ),
+    # Professeurs visiteurs
+    path(
+        "visiting-professors/",
+        views.visiting_professors,
+        name="visiting-professors",
+    ),
+    # Rapports
+    path(
+        "performance/academic/",
+        views.academic_performance_report,
+        name="academic-performance-report",
+    ),
+]
+

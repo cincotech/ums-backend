@@ -34,6 +34,11 @@ class Teacher(models.Model):
 
 class Attribution(models.Model):
     STATUS = (("Pending", "Pending"), ("Accepted", "Accepted"), ("Refused", "Refused"))
+    VALIDATION_STATUS = (
+        ("pending", "Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+    )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(Course, on_delete=models.RESTRICT)
     principal_teacher = models.ForeignKey(
@@ -47,7 +52,8 @@ class Attribution(models.Model):
         related_name="substitute_attributions",
     )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.RESTRICT)
-    date_attribution = models.DateField()
+    date_attribution = models.DateField(null=True, blank=True)
+
     status_principal_teacher = models.CharField(
         max_length=10, choices=STATUS, default="Pending"
     )
@@ -65,6 +71,16 @@ class Attribution(models.Model):
         blank=True,
         related_name="authorized_attributions",
     )
+    # Validation fields
+    validated_by = models.ForeignKey(
+        User,
+        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        related_name="validated_attributions",
+    )
+    validation_date = models.DateTimeField(null=True, blank=True)
+    validation_comments = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = "attributions"

@@ -1,6 +1,11 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from . import views
+
+# Router pour les ViewSets
+router = DefaultRouter()
+router.register(r"attributions", views.AttributionValidationViewSet, basename="attribution")
 
 urlpatterns = [
     path("overview/", views.dashboard_overview, name="dashboard-overview"),
@@ -26,3 +31,6 @@ urlpatterns = [
     ),
     path("reports/", views.quality_reports_list, name="quality-reports-list"),
 ]
+
+# Ajouter les URLs du router
+urlpatterns += router.urls

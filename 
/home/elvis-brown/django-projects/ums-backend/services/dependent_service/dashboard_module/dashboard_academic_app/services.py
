@@ -1,0 +1,353 @@
+from django.db.models import Count, Q
+from django.utils import timezone
+
+from services.core_service.academic_module.teacher_app.models import (
+    Attribution,
+    Suggestion,
+    Teacher,
+)
+
+
+class AcademicDashboardService:
+    """Service pour les operations du dashboard academic."""
+
+    @staticmethod
+    def get_attribution_stats(academic_year_id=None):
+        """
+        Obtenir les statistiques des attributions.
+        
+        Args:
+            academic_year_id: Filtrer par année académique (optionnel)
+            
+        Returns:
+            Dict avec total, pending, approved, rejected
+        """
+        queryset = Attribution.objects.all()
+        
+        if academic_year_id:
+            queryset = queryset.filter(academic_year_id=academic_year_id)
+
+        total = queryset.count()
+        pending = queryset.filter(validation_status="pending").count()
+        approved = queryset.filter(validation_status="approved").count()
+        rejected = queryset.filter(validation_status="rejected").count()
+
+        return {
+            "total": total,
+            "pending": pending,
+            "approved": approved,
+            "rejected": rejected,
+        }
+
+    @staticmethod
+    def get_suggestion_stats(academic_year_id=None):
+        """
+        Obtenir les statistiques des suggestions.
+        
+        Args:
+            academic_year_id: Filtrer par année académique (optionnel)
+            
+        Returns:
+            Dict avec total et pending
+        """
+        queryset = Suggestion.objects.all()
+
+        if academic_year_id:
+            queryset = queryset.filter(
+                attribution__academic_year_id=academic_year_id
+            )
+
+        total = queryset.count()
+        # Les suggestions sont liées aux attributions validées (approuvées)
+        pending = queryset.filter(
+            attribution__validation_status="approved"
+        ).count()
+
+        return {
+            "total": total,
+            "pending": pending,
+        }
+
+    @staticmethod
+    def get_academic_overview(academic_year_id=None):
+        """
+        Obtenir la vue d'ensemble académique complète.
+        
+        Args:
+            academic_year_id: Filtrer par année académique (optionnel)
+            
+        Returns:
+            Dict avec toutes les statistiques
+        """
+        attribution_stats = AcademicDashboardService.get_attribution_stats(
+            academic_year_id
+        )
+        suggestion_stats = AcademicDashboardService.get_suggestion_stats(
+            academic_year_id
+        )
+
+        # Calculer le taux de validation
+        total = attribution_stats["total"]
+        if total > 0:
+            validation_rate = (attribution_stats["approved"] / total) * 100
+        else:
+            validation_rate = 0
+
+        # Répartition par statut
+        attributions_by_status = {
+            "pending": attribution_stats["pending"],
+            "approved": attribution_stats["approved"],
+            "rejected": attribution_stats["rejected"],
+        }
+
+        return {
+            **attribution_stats,
+            **suggestion_stats,
+            "validation_rate": round(validation_rate, 2),
+            "attributions_by_status": attributions_by_status,
+        }
+
+    @staticmethod
+    def get_visiting_professors(academic_year_id=None, request=None):
+        """
+        Obtenir les données des professeurs visiteurs.
+        
+        Un professeur visiteur est identifié par:
+        - Université différente de l'université par défaut
+        - Ou absence d'université associée
+        
+        Args:
+            academic_year_id: Filtrer par année académique (optionnel)
+            request: Request Django pour permissions (optionnel)
+            
+        Returns:
+            Liste des professeurs visiteurs avec leurs attributions
+        """
+        # Récupérer l'université de l'utilisateur si disponible
+        user_university = None
+        if request and hasattr(request.user, "teacher"):
+            user_university = request.user.teacher.university
+
+        # Professeurs visiteurs: universités différentes de l'utilisateur
+        queryset = Teacher.objects.filter(
+            ~Q(university=user_university) if user_university else Q()
+        )
+
+        if academic_year_id:
+            queryset = queryset.filter(
+                principal_attributions__academic_year_id=academic_year_id
+            ).distinct()
+
+        result = []
+        for teacher in queryset.select_related("university", "user"):
+            attributions = teacher.principal_attributions.filter(
+                validation_status="pending"
+            )
+            if academic_year_id:
+                attributions = attributions.filter(academic_year_id=academic_year_id)
+
+            result.append({
+                "teacher_id": str(teacher.id),
+                "teacher_name": f"{teacher.user.first_name} {teacher.user.last_name}",
+                "teacher_grade": teacher.teacher_grade,
+                "speciality": teacher.speciality,
+                "university": teacher.university.university_name if teacher.university else None,
+                "attributions_count": attributions.count(),
+                "attributions": list(
+                    attributions.values(
+                        "id",
+                        "course__course_name",
+                        "academic_year__academic_year",
+                        "validation_status",
+                    )
+                ),
+            })
+
+        return result
+
+    @staticmethod
+    def get_attributions_by_teacher(academic_year_id=None, limit=10):
+        """
+        Obtenir les attributions groupées par enseignant.
+        
+        Args:
+            academic_year_id: Filtrer par année académique (optionnel)
+            limit: Nombre maximum d'enseignants à retourner
+            
+        Returns:
+            Liste des enseignants avec leur nombre d'attributions
+        """
+        queryset = Attribution.objects.values(
+            "principal_teacher",
+            "principal_teacher__user__first_name",
+            "principal_teacher__user__last_name",
+            "principal_teacher__teacher_grade",
+        )
+
+        if academic_year_id:
+            queryset = queryset.filter(academic_year_id=academic_year_id)
+
+        queryset = queryset.annotate(
+            attributions_count=Count("id")
+        ).order_by("-attributions_count")[:limit]
+
+        return [
+            {
+                "teacher_id": str(item["principal_teacher"]),
+                "teacher_name": f"{item['principal_teacher__user__first_name']} {item['principal_teacher__user__last_name']}",
+                "teacher_grade": item["principal_teacher__teacher_grade"],
+                "attributions_count": item["attributions_count"],
+            }
+            for item in queryset
+        ]
+
+    @staticmethod
+    def get_attributions_by_course(academic_year_id=None, limit=10):
+        """
+        Obtenir les attributions groupées par cours.
+        
+        Args:
+            academic_year_id: Filtrer par année académique (optionnel)
+            limit: Nombre maximum de cours à retourner
+            
+        Returns:
+            Liste des cours avec leur nombre d'attributions
+        """
+        queryset = Attribution.objects.values(
+            "course",
+            "course__course_name",
+            "course__course_code",
+        )
+
+        if academic_year_id:
+            queryset = queryset.filter(academic_year_id=academic_year_id)
+
+        queryset = queryset.annotate(
+            attributions_count=Count("id")
+        ).order_by("-attributions_count")[:limit]
+
+        return [
+            {
+                "course_id": str(item["course"]),
+                "course_name": item["course__course_name"],
+                "course_code": item["course__course_code"],
+                "attributions_count": item["attributions_count"],
+            }
+            for item in queryset
+        ]
+
+    @staticmethod
+    def get_academic_performance_report(academic_year_id=None, format="summary"):
+        """
+        Générer un rapport de performance académique.
+        
+        Args:
+            academic_year_id: Filtrer par année académique (optionnel)
+            format: 'summary' ou 'detailed'
+            
+        Returns:
+            Rapport de performance
+        """
+        # Si pas d'année académique spécifiée, utiliser l'année active
+        if not academic_year_id:
+            today = timezone.now().date()
+            from services.core_service.academic_module.university_app.models import (
+                AcademicYear,
+            )
+            active_year = AcademicYear.objects.filter(
+                start_date__lte=today, end_date__gte=today, is_closed=False
+            ).first()
+            academic_year_id = active_year.id if active_year else None
+
+        overview = AcademicDashboardService.get_academic_overview(academic_year_id)
+        by_teacher = AcademicDashboardService.get_attributions_by_teacher(
+            academic_year_id
+        )
+        by_course = AcademicDashboardService.get_attributions_by_course(
+            academic_year_id
+        )
+
+        if format == "summary":
+            return {
+                "academic_year_id": str(academic_year_id) if academic_year_id else None,
+                "overview": overview,
+                "top_teachers": by_teacher[:5],
+                "top_courses": by_course[:5],
+            }
+        else:
+            # Format détaillé
+            return {
+                "academic_year_id": str(academic_year_id) if academic_year_id else None,
+                "generated_at": timezone.now().isoformat(),
+                "overview": overview,
+                "by_teacher": by_teacher,
+                "by_course": by_course,
+            }
+
+    @staticmethod
+    def get_pending_attributions(academic_year_id=None, limit=50):
+        """
+        Obtenir les attributions en attente de validation.
+        
+        Args:
+            academic_year_id: Filtrer par année académique (optionnel)
+            limit: Nombre maximum d'attributions à retourner
+            
+        Returns:
+            Liste des attributions en attente
+        """
+        queryset = Attribution.objects.filter(
+            validation_status="pending"
+        ).select_related(
+            "course",
+            "principal_teacher",
+            "principal_teacher__user",
+            "academic_year",
+        )
+
+        if academic_year_id:
+            queryset = queryset.filter(academic_year_id=academic_year_id)
+
+        return list(
+            queryset.order_by("date_attribution")[:limit].values(
+                "id",
+                "course__course_name",
+                "principal_teacher__user__first_name",
+                "principal_teacher__user__last_name",
+                "academic_year__academic_year",
+                "date_attribution",
+                "status_principal_teacher",
+            )
+        )
+
+    @staticmethod
+    def get_recent_validations(days=7, limit=10):
+        """
+        Obtenir les validations récentes.
+        
+        Args:
+            days: Nombre de jours à regarder en arrière
+            limit: Nombre maximum de validations à retourner
+            
+        Returns:
+            Liste des validations récentes
+        """
+        from_date = timezone.now() - timezone.timedelta(days=days)
+
+        return list(
+            Attribution.objects.filter(
+                validation_status__in=["approved", "rejected"],
+                validation_date__gte=from_date,
+            )
+            .select_related("validated_by", "course")
+            .order_by("-validation_date")[:limit]
+            .values(
+                "id",
+                "validation_status",
+                "validation_date",
+                "validated_by__first_name",
+                "validated_by__last_name",
+                "course__course_name",
+            )
+        )
+
