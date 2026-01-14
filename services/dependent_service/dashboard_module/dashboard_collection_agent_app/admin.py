@@ -23,7 +23,7 @@ from .models import (
 class BankResource(resources.ModelResource):
     class Meta:
         model = Bank
-        fields = ("id", "bank_name", "bank_abreviation", "bank_account")
+        fields = ("id", "bank_name", "bank_abreviation", "account_number")
 
 
 class WordingResource(resources.ModelResource):
@@ -158,8 +158,8 @@ class PaymentForm(forms.ModelForm):
 @admin.register(Bank)
 class BankAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = BankResource
-    list_display = ("bank_name", "bank_abreviation", "bank_account")
-    search_fields = ("bank_name", "bank_abreviation", "bank_account")
+    list_display = ("bank_name", "bank_abreviation", "account_number")
+    search_fields = ("bank_name", "bank_abreviation", "account_number")
     ordering = ("bank_name",)
 
 
