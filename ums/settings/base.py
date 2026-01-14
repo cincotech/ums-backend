@@ -200,6 +200,9 @@ EMAIL_PORT = int(get_env_variable("EMAIL_PORT", 587))
 EMAIL_USE_TLS = get_env_variable("EMAIL_USE_TLS", "True").lower() == "true"
 EMAIL_HOST_USER = get_env_variable("EMAIL_HOST_USER", "testcomlab24@gmail.com")
 EMAIL_HOST_PASSWORD = get_env_variable("EMAIL_HOST_PASSWORD", "nyhbfgzcvhsadrpp")
+DEFAULT_FROM_EMAIL = get_env_variable(
+    "DEFAULT_FROM_EMAIL", "UMS Finance <testcomlab24@gmail.com>"
+)
 COMPANY_NAME = get_env_variable("COMPANY_NAME", "Upg")
 
 STORAGES = {
@@ -210,3 +213,12 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# Configuration Celery pour les rappels automatiques
+CELERY_BROKER_URL = get_env_variable("CELERY_BROKER_URL", "redis://localhost:6379")
+CELERY_RESULT_BACKEND = get_env_variable(
+    "CELERY_RESULT_BACKEND", "redis://localhost:6379"
+)
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
