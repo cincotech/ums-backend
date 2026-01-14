@@ -1,24 +1,22 @@
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from services.core_service.academic_module.quality_app.models import QualityReport
-
-from .models import AttributionValidation
+from services.core_service.academic_module.teacher_app.models import Attribution
 
 
 class AcademicDashboardService:
     @staticmethod
     def get_attribution_stats():
         """Obtenir les statistiques des attributions."""
-        total = AttributionValidation.objects.count()
-        pending = AttributionValidation.objects.filter(
-            validation_status="pending"
+        total = Attribution.objects.count()
+        # Count attributions with pending status for either teacher
+        pending = Attribution.objects.filter(
+            Q(status_principal_teacher="Pending") | Q(status_substitute_teacher="Pending")
         ).count()
-        approved = AttributionValidation.objects.filter(
-            validation_status="approved"
-        ).count()
-        rejected = AttributionValidation.objects.filter(
-            validation_status="rejected"
-        ).count()
+        # Count attributions with accepted principal teacher
+        approved = Attribution.objects.filter(status_principal_teacher="Accepted").count()
+        # Count attributions with refused principal teacher
+        rejected = Attribution.objects.filter(status_principal_teacher="Refused").count()
 
         return {
             "total": total,
