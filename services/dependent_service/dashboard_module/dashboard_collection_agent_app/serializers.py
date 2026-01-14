@@ -70,7 +70,7 @@ class FeesSheetInfoMixin:
 class BankSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bank
-        fields = ["id", "bank_name", "bank_abreviation", "bank_account"]
+        fields = ["id", "bank_name", "bank_abreviation", "account_number"]
 
 
 class WordingSerializer(serializers.ModelSerializer):
