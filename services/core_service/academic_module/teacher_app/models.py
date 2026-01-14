@@ -1,5 +1,7 @@
+from os import name
 import uuid
-
+from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from services.core_service.academic_module.course_app.models import Course
@@ -14,7 +16,7 @@ from services.foundational_service.auth_module.user_app.models import User
 class Teacher(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(
-        User, on_delete=models.RESTRICT, related_name="teachers"
+        User, on_delete=models.RESTRICT, related_name="teacher"
     )
     teacher_grade = models.CharField(max_length=200)
     degree = models.ForeignKey(UniversityDegree, on_delete=models.RESTRICT)
@@ -29,37 +31,47 @@ class Teacher(models.Model):
         db_table = "teachers"
 
     def __str__(self):
-        return self.user.email
+      if self.user:
+         full_name = f"{self.user.first_name} {self.user.last_name}".strip()
+         return full_name if full_name else self.user.email
+      return "Teacher (no user)"
 
 
 class Attribution(models.Model):
-    STATUS = (("Pending", "Pending"), ("Accepted", "Accepted"), ("Refused", "Refused"))
-    VALIDATION_STATUS = (
-        ("pending", "Pending"),
-        ("approved", "Approved"),
-        ("rejected", "Rejected"),
-    )
+    STATUS_PENDING = "Pending"
+    STATUS_ACCEPTED = "Accepted"
+    STATUS_REFUSED = "Refused"
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_ACCEPTED, "Accepted"),
+        (STATUS_REFUSED, "Refused"),
+    ]
+   
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(Course, on_delete=models.RESTRICT)
     principal_teacher = models.ForeignKey(
-        Teacher, on_delete=models.RESTRICT, related_name="principal_attributions"
+    Teacher,
+    on_delete=models.PROTECT,
+    related_name="principal_attributions",
     )
+    
     substitute_teacher = models.ForeignKey(
-        Teacher,
-        on_delete=models.RESTRICT,
-        null=True,
-        blank=True,
-        related_name="substitute_attributions",
+    Teacher,
+    on_delete=models.PROTECT,
+    null=True,
+    blank=True,
+    related_name="substitute_attributions",
     )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.RESTRICT)
     date_attribution = models.DateField(null=True, blank=True)
 
     status_principal_teacher = models.CharField(
-        max_length=10, choices=STATUS, default="Pending"
-    )
+    max_length=15, choices=STATUS_CHOICES, default=STATUS_PENDING
+)
     status_substitute_teacher = models.CharField(
-        max_length=10, choices=STATUS, default="Pending"
-    )
+    max_length=15, choices=STATUS_CHOICES, default=STATUS_PENDING
+)
     commentaire = models.TextField(null=True, blank=True)
     submitted_by = models.ForeignKey(
         User, on_delete=models.RESTRICT, related_name="submitted_attributions"
@@ -74,6 +86,7 @@ class Attribution(models.Model):
     # Validation fields
     validated_by = models.ForeignKey(
         User,
+        
         on_delete=models.RESTRICT,
         null=True,
         blank=True,
@@ -84,6 +97,18 @@ class Attribution(models.Model):
 
     class Meta:
         db_table = "attributions"
+
+    def clean(self):
+        """Validate that substitute_teacher is different from principal_teacher."""
+        super().clean()
+        if self.substitute_teacher_id and self.substitute_teacher_id == self.principal_teacher_id:
+            raise ValidationError({
+                "substitute_teacher": "Le professeur remplaçant doit être différent du professeur principal."
+            })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 
 class Suggestion(models.Model):
@@ -96,3 +121,24 @@ class Suggestion(models.Model):
 
     class Meta:
         db_table = "suggestions"
+def decide_principal_teacher(self, decision: str):
+        """
+        decision = Accepted | Refused
+        """
+        if decision not in [self.STATUS_ACCEPTED, self.STATUS_REFUSED]:
+            raise ValueError("Décision invalide")
+
+        self.status_principal_teacher = decision
+
+        # Règle miroir automatique
+        if decision == self.STATUS_ACCEPTED:
+            self.status_substitute_teacher = self.STATUS_REFUSED
+        else:
+            self.status_substitute_teacher = self.STATUS_ACCEPTED
+
+def refuse_principal_teacher(self):
+        """
+        Cas métier :
+        - Le teacher principal est refusé
+        """
+        self.status_principal_teacher = self.STATUS_REFUSED
