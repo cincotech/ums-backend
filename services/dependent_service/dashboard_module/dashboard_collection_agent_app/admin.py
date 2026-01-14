@@ -4,7 +4,17 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from unfold.admin import ModelAdmin
 
-from .models import Bank, FeesSheet, Payment, PaymentInstallement, PaymentPlan, Wording
+from .models import (
+    Bank,
+    CollectionCorrespondence,
+    FeesSheet,
+    Payment,
+    PaymentInstallement,
+    PaymentPlan,
+    PaymentPromise,
+    PaymentReminder,
+    Wording,
+)
 
 
 # ----------------------------
@@ -13,7 +23,7 @@ from .models import Bank, FeesSheet, Payment, PaymentInstallement, PaymentPlan, 
 class BankResource(resources.ModelResource):
     class Meta:
         model = Bank
-        fields = ("id", "bank_name", "bank_abreviation")
+        fields = ("id", "bank_name", "bank_abreviation", "bank_account")
 
 
 class WordingResource(resources.ModelResource):
@@ -148,8 +158,8 @@ class PaymentForm(forms.ModelForm):
 @admin.register(Bank)
 class BankAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = BankResource
-    list_display = ("bank_name", "bank_abreviation")
-    search_fields = ("bank_name", "bank_abreviation")
+    list_display = ("bank_name", "bank_abreviation", "bank_account")
+    search_fields = ("bank_name", "bank_abreviation", "bank_account")
     ordering = ("bank_name",)
 
 
@@ -273,3 +283,84 @@ class PaymentAdmin(ImportExportModelAdmin, ModelAdmin):
         "transaction_code",
     )
     ordering = ("-payment_date",)
+
+
+@admin.register(PaymentReminder)
+class PaymentReminderAdmin(ModelAdmin):
+    list_display = (
+        "student",
+        "reminder_type",
+        "amount_due",
+        "status",
+        "sent_at",
+        "sent_by",
+    )
+    list_filter = ("reminder_type", "status", "sent_at")
+    search_fields = (
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__matricule",
+    )
+    ordering = ("-sent_at",)
+    readonly_fields = ("sent_at",)
+
+    fieldsets = (
+        (
+            "Informations du rappel",
+            {"fields": ("student", "reminder_type", "amount_due")},
+        ),
+        ("Message", {"fields": ("message",)}),
+        ("Statut", {"fields": ("status", "sent_by", "sent_at")}),
+    )
+
+    actions = ["resend_reminders"]
+
+    def resend_reminders(self, request, queryset):
+        """Renvoyer les rappels sélectionnés"""
+        from .services import NotificationService
+
+        sent_count = 0
+        for reminder in queryset:
+            try:
+                NotificationService.send_payment_reminder(reminder)
+                reminder.status = "sent"
+                reminder.save()
+                sent_count += 1
+            except Exception:
+                reminder.status = "failed"
+                reminder.save()
+
+        self.message_user(request, f"{sent_count} rappel(s) renvoyé(s) avec succès.")
+
+    resend_reminders.short_description = "Renvoyer les rappels sélectionnés"
+
+
+@admin.register(PaymentPromise)
+class PaymentPromiseAdmin(ModelAdmin):
+    list_display = (
+        "student",
+        "promised_amount",
+        "promised_date",
+        "status",
+        "recorded_at",
+    )
+    list_filter = ("status", "promised_date", "recorded_at")
+    search_fields = (
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__matricule",
+    )
+    ordering = ("-promised_date",)
+
+
+@admin.register(CollectionCorrespondence)
+class CollectionCorrespondenceAdmin(ModelAdmin):
+    list_display = ("student", "correspondence_type", "subject", "sent_at", "sent_by")
+    list_filter = ("correspondence_type", "sent_at")
+    search_fields = (
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__matricule",
+        "subject",
+    )
+    ordering = ("-sent_at",)
