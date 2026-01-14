@@ -18,6 +18,7 @@ class Bank(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     bank_name = models.CharField(max_length=255)
     bank_abreviation = models.CharField(max_length=10)
+    bank_account = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         db_table = "banks"
