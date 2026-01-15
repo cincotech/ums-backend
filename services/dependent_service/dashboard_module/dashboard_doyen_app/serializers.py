@@ -381,6 +381,7 @@ class ClassGroupSerializer(serializers.ModelSerializer):
     class_name = serializers.CharField(source="class_fk.class_name", read_only=True)
     student_count = serializers.SerializerMethodField()
     timetable_count = serializers.SerializerMethodField()
+    department_name = serializers.CharField(source="class_fk.department.department_name", read_only=True)
 
     class Meta:
         model = ClassGroup
@@ -388,6 +389,7 @@ class ClassGroupSerializer(serializers.ModelSerializer):
             "id",
             "class_fk",
             "class_name",
+            "department_name",
             "academic_year",
             "group_name",
             "created_date",
@@ -448,22 +450,21 @@ class StudentSerializer(serializers.ModelSerializer):
         """
         current_inscription = (
             Inscription.objects.filter(
-                student=obj, regist_status="Active", is_year_close=False
+                student=obj,
+                regist_status="Active",
+                is_year_close=False
             )
-            .select_related("class_fk")  # follow relation to groups
+            .select_related("class_group")  # follow relation to the assigned group
             .first()
         )
 
-        if (
-            current_inscription
-            and current_inscription.class_fk
-            and current_inscription.class_fk.groups
-        ):
-            group = current_inscription.class_fk.groups
+        if current_inscription and current_inscription.class_group:
+            group = current_inscription.class_group
             return {
-                # "id": group.id,
-                "name": getattr(group, "name", "N/A")  # optional
+                "id": str(group.id),
+                "name": getattr(group, "group_name", "N/A")
             }
+
         return None
 
     def get_colline(self, obj):
@@ -528,6 +529,107 @@ class InscriptionSerializer(serializers.ModelSerializer):
         return {
             "matricule": obj.student.matricule,
             "first_name": obj.student.user.first_name,
+            "last_name": obj.student.user.last_name,
+            "email": obj.student.user.email,
+        }
+
+
+class JurySessionSerializer(serializers.ModelSerializer):
+    class_group_info = serializers.SerializerMethodField()
+    jury_members_info = serializers.SerializerMethodField()
+    created_by_info = serializers.SerializerMethodField()
+    decisions_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JurySession
+        fields = [
+            "id",
+            "session_name",
+            "session_date",
+            "class_group",
+            "class_group_info",
+            "jury_members",
+            "jury_members_info",
+            "status",
+            "minutes_document",
+            "created_by",
+            "created_by_info",
+            "created_at",
+            "decisions_count",
+        ]
+        read_only_fields = ["id", "created_at"]
+
+    def get_class_group_info(self, obj):
+        return {
+            "group_name": obj.class_group.group_name,
+            "class_name": obj.class_group.class_fk.class_name,
+            "department_name": obj.class_group.class_fk.department.department_name,
+            "academic_year": obj.class_group.academic_year.academic_year,
+        }
+
+    def get_jury_members_info(self, obj):
+        return [
+            {
+                "id": member.id,
+                "first_name": member.first_name,
+                "last_name": member.last_name,
+                "email": member.email,
+            }
+            for member in obj.jury_members.all()
+        ]
+
+    def get_created_by_info(self, obj):
+        return {
+            "first_name": obj.created_by.first_name,
+            "last_name": obj.created_by.last_name,
+            "email": obj.created_by.email,
+        }
+
+    def get_decisions_count(self, obj):
+        return obj.jury_decisions.count()
+
+
+class JuryDecisionSerializer(serializers.ModelSerializer):
+    student_info = serializers.SerializerMethodField()
+    jury_session_info = serializers.SerializerMethodField()
+    validated_by_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JuryDecision
+        fields = [
+            "id",
+            "jury_session",
+            "jury_session_info",
+            "student",
+            "student_info",
+            "decision",
+            "notes",
+            "validated_by",
+            "validated_by_info",
+            "validated_at",
+        ]
+        read_only_fields = ["id", "validated_at"]
+
+    def get_student_info(self, obj):
+        return {
+            "matricule": obj.student.matricule,
+            "first_name": obj.student.user.first_name,
+            "last_name": obj.student.user.last_name,
+            "email": obj.student.user.email,
+        }
+
+    def get_jury_session_info(self, obj):
+        return {
+            "session_name": obj.jury_session.session_name,
+            "session_date": obj.jury_session.session_date,
+            "status": obj.jury_session.status,
+        }
+
+    def get_validated_by_info(self, obj):
+        return {
+            "first_name": obj.validated_by.first_name,
+            "last_name": obj.validated_by.last_name,
+            "email": obj.validated_by.email,
             "last_name": obj.student.user.last_name,
             "email": obj.student.user.email,
         }

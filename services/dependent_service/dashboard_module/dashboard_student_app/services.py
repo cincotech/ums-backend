@@ -18,6 +18,7 @@ from services.dependent_service.exam_module.result_app.models import (
 from services.dependent_service.scheduling_module.scheduling_app.models import (
     Attendance,
 )
+from services.dependent_service.dashboard_module.dashboard_doyen_app.services import ClassGroupManagementService
 
 
 class StudentDashboardService:
@@ -39,10 +40,10 @@ class StudentDashboardService:
 
         # Calculate attendance rate
         total_attendance = Attendance.objects.filter(
-            inscription__student=student
+            student=student
         ).count()
         present_count = Attendance.objects.filter(
-            inscription__student=student, status__in=["present", "justified"]
+            student=student, status__in=["present", "justified"]
         ).count()
         attendance_rate = (
             (present_count / total_attendance * 100) if total_attendance > 0 else 0
@@ -199,32 +200,48 @@ class StudentDashboardService:
 
     @staticmethod
     def get_student_schedule(student):
-        """Get student class schedule"""
-        # Simplified schedule - would need proper scheduling system
-        schedule_data = []
+        """Get the student's class schedule based on their active inscription."""
+        from services.dependent_service.scheduling_module.scheduling_app.models import Timetable
 
-        inscription = Inscription.objects.filter(
-            student=student, regist_status="Active"
-        ).first()
-        if inscription:
-            # This would integrate with actual scheduling system
-            schedule_data = [
-                {
-                    "course_name": "Sample Course",
-                    "teacher_name": "Sample Teacher",
-                    "day_of_week": "Monday",
-                    "start_time": "08:00",
-                    "end_time": "10:00",
-                    "room": "Room 101",
-                }
-            ]
+        # Get the student's active inscription
+        inscription = (
+            Inscription.objects.filter(student=student, regist_status="Active")
+            .select_related('class_fk', 'academic_year') 
+            .first()
+        )
 
-        return schedule_data
+        if not inscription :
+            return Timetable.objects.none()
+      
+
+        # If no group assigned, assign default G1 automatically
+        if not inscription.class_group:
+            default_group = ClassGroupManagementService.get_or_create_default_group(
+                class_fk=inscription.class_fk,
+                academic_year=inscription.academic_year
+            )
+            inscription.class_group = default_group
+            inscription.save(update_fields=['class_group'])
+
+        class_group = inscription.class_group
+
+        # Only use the assigned class_group
+        class_group = inscription.class_group
+
+        # Return timetable entries for this class group
+        return Timetable.objects.filter(class_group=class_group) .select_related(
+                'class_group',
+                'attribution',
+                'attribution__course',
+                'attribution__principal_teacher',
+                'room'
+            ).prefetch_related('slots').order_by('start_date')[1:2]
+
 
     @staticmethod
     def get_student_attendance(student):
         """Get student attendance record"""
-        return Attendance.objects.filter(inscription__student=student).order_by("-date")
+        return Attendance.objects.filter(student=student)
 
     @staticmethod
     def send_message(student, recipient_id, subject, content, message_type):

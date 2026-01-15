@@ -155,10 +155,14 @@ def student_schedule(request):
     """Get student schedule"""
     try:
         student = request.user.students_users
-        schedule_data = StudentDashboardService.get_student_schedule(student)
-        serializer = StudentScheduleSerializer(schedule_data, many=True)
+        timetables = StudentDashboardService.get_student_schedule(student)
+        
+        from services.dependent_service.dashboard_module.dashboard_doyen_app.serializers import TimetableSerializer
+        
+        serializer = TimetableSerializer(timetables, many=True)
         return success_response(
-            data=serializer.data, message="Student schedule retrieved"
+            data=serializer.data, 
+            message="Student schedule retrieved"
         )
     except Exception as e:
         return error_response(
