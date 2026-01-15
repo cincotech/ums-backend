@@ -1,4 +1,4 @@
-# Create your views here.
+
 
 from core.views import BaseViewSet
 

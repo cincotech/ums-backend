@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ app_label|title }}</a>
+&rsaquo; <a href="{% url 'admin:%s_%s_changelist' app_label model_name %}">{{ opts.verbose_name_plural|title }}</a>
+&rsaquo; {% trans 'Delete' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form action="" method="post">{% csrf_token %}
+        <div>
+            {% blocktrans count counter=queryset.count %}Are you sure you want to delete the selected {{ opts.verbose_name }} object?{% plural %}Are you sure you want to delete the selected {{ opts.verbose_name }} objects?{% endblocktrans %}
+            <ul>{{ queryset|unordered_list }}</ul>
+        </div>
+        <div>
+            <input type="hidden" name="action" value="{{ action_name }}" />
+            <input type="hidden" name="post" value="yes" />
+            {% for obj in queryset %}
+                <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}" />
+            {% endfor %}
+            <input type="submit" value="{% trans 'Yes, I am sure' %}" />
+            <a href="{% url 'admin:%s_%s_changelist' app_label model_name %}" class="button cancel-link">{% trans 'No, take me back' %}</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
