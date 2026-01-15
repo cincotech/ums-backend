@@ -1,0 +1,222 @@
+
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from services.core_service.academic_module.quality_app.models import QualityReport
+
+from .permissions import IsDean
+from .serializers import (
+    AcademicOverviewSerializer,
+    AttributionSerializer,
+    AttributionValidationSerializer,
+    SuggestionCreateSerializer,
+    SuggestionSerializer,
+)
+from .services import AcademicDashboardService
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsDean])
+def dashboard_overview(request):
+    """
+    Vue d'ensemble académique avec statistiques complètes.
+    
+    Returns:
+        - total_attributions: Nombre total d'attributions
+        - pending_attributions: Attributions en attente de validation
+        - approved_attributions: Attributions approuvées
+        - rejected_attributions: Attributions rejetées
+        - total_suggestions: Nombre total de suggestions
+        - pending_suggestions: Suggestions en attente
+        - validation_rate: Pourcentage de validation
+        - attributions_by_status: Répartition par statut
+    """
+    overview = AcademicDashboardService.get_academic_overview()
+    serializer = AcademicOverviewSerializer(overview)
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsDean])
+def validate_attribution(request, attribution_id):
+    """
+    Valider ou rejeter une attribution.
+    
+    POST body:
+        - validation_status: 'approved' ou 'rejected'
+        - comments: Commentaires optionnels
+    """
+    try:
+        attribution = Attribution.objects.get(id=attribution_id)
+    except Attribution.DoesNotExist:
+        return Response(
+            {"error": "Attribution not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = AttributionValidationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    # Mettre à jour l'attribution
+    attribution.validation_status = serializer.validated_data["validation_status"]
+    attribution.validation_comments = serializer.validated_data.get("comments", "")
+    attribution.validated_by = request.user
+    attribution.validation_date = timezone.now()
+    attribution.save()
+
+    return Response(AttributionSerializer(attribution).data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsDean])
+def pending_attributions(request):
+    """
+    Lister les attributions en attente de validation.
+    
+    Query params:
+        - academic_year: Filtrer par année académique (optionnel)
+        - principal_teacher: Filtrer par enseignant principal (optionnel)
+    """
+    academic_year_id = request.query_params.get("academic_year")
+    principal_teacher_id = request.query_params.get("principal_teacher")
+
+    attributions = Attribution.objects.filter(validation_status="pending")
+
+    if academic_year_id:
+        attributions = attributions.filter(academic_year_id=academic_year_id)
+    if principal_teacher_id:
+        attributions = attributions.filter(principal_teacher_id=principal_teacher_id)
+
+    attributions = attributions.select_related(
+        "course",
+        "principal_teacher",
+        "principal_teacher__user",
+        "substitute_teacher",
+        "substitute_teacher__user",
+        "academic_year",
+    )
+
+    serializer = AttributionSerializer(attributions, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, IsDean])
+def add_suggestion(request, attribution_id):
+    """
+    Ajouter une suggestion après validation de l'attribution.
+    
+    POST body:
+        - suggestion: Texte de la suggestion
+    """
+    try:
+        attribution = Attribution.objects.get(id=attribution_id)
+    except Attribution.DoesNotExist:
+        return Response(
+            {"error": "Attribution not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Vérifier que l'attribution est déjà validée
+    if attribution.validation_status == "pending":
+        return Response(
+            {"error": "Attribution must be validated before adding suggestions"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    serializer = SuggestionCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    # Créer la suggestion
+    suggestion = Suggestion.objects.create(
+        suggestion_date=timezone.now().date(),
+        suggestion=serializer.validated_data["suggestion"],
+        attribution=attribution,
+        teacher=attribution.principal_teacher,
+        user=request.user,
+    )
+
+    return Response(SuggestionSerializer(suggestion).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsDean])
+def visiting_professors(request):
+    """
+    Lister les attributions des professeurs visiteurs.
+    
+    Un professeur visiteur est un enseignant sans université associée
+    ou avec un flag spécifique.
+    """
+    # Pour l'instant, on retourne tous les enseignants avec attributions
+    # filtrés par ceux qui n'ont pas d'université ou ont un statut visiteur
+    data = AcademicDashboardService.get_visiting_professors(request)
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsDean])
+def academic_performance_report(request):
+    """
+    Générer un rapport de performance académique.
+    
+    Query params:
+        - academic_year: Année académique (optionnel, défaut: année active)
+        - format: 'summary' ou 'detailed' (défaut: 'summary')
+    """
+    academic_year_id = request.query_params.get("academic_year")
+    report_format = request.query_params.get("format", "summary")
+
+    report = AcademicDashboardService.get_academic_performance_report(
+        academic_year_id=academic_year_id,
+        format=report_format,
+    )
+    return Response(report)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsDean])
+def suggestions_list(request):
+    """
+    Lister toutes les suggestions ou les suggestions en attente.
+    
+    Query params:
+        - attribution_id: Filtrer par attribution
+        - status: 'pending', 'all' (défaut: 'pending')
+    """
+    attribution_id = request.query_params.get("attribution_id")
+    status_filter = request.query_params.get("status", "pending")
+
+    suggestions = Suggestion.objects.all()
+
+    if attribution_id:
+        suggestions = suggestions.filter(attribution_id=attribution_id)
+
+    if status_filter != "all":
+        # Les suggestions sont liées aux attributions validées
+        # donc on filtre par le statut de validation de l'attribution
+        suggestions = suggestions.filter(
+            attribution__validation_status="approved"
+        )
+
+    suggestions = suggestions.select_related(
+        "attribution",
+        "attribution__course",
+        "teacher",
+        "teacher__user",
+        "user",
+    )
+
+    serializer = SuggestionSerializer(suggestions, many=True)
+    return Response(serializer.data)
+
+
+# Import nécessaire pour éviter les imports circulaires
+from services.core_service.academic_module.teacher_app.models import (
+    Attribution,
+    Suggestion,
+)
+

@@ -1,0 +1,207 @@
+from rest_framework import serializers
+
+from services.core_service.academic_module.teacher_app.models import (
+    Attribution,
+    Suggestion,
+    Teacher,
+)
+
+
+class TeacherBasicSerializer(serializers.ModelSerializer):
+    """Serializer basique pour Teacher (données essentielles)."""
+
+    teacher_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Teacher
+        fields = ["id", "teacher_name", "teacher_grade", "speciality"]
+
+    def get_teacher_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+
+class AttributionSerializer(serializers.ModelSerializer):
+    """Serializer complet pour Attribution avec validation."""
+
+    principal_teacher_details = TeacherBasicSerializer(
+        source="principal_teacher", read_only=True
+    )
+    substitute_teacher_details = TeacherBasicSerializer(
+        source="substitute_teacher", read_only=True
+    )
+    course_name = serializers.CharField(source="course.course_name", read_only=True)
+    course_code = serializers.CharField(source="course.course_code", read_only=True)
+    academic_year_name = serializers.CharField(
+        source="academic_year.academic_year", read_only=True
+    )
+    submitted_by_name = serializers.SerializerMethodField()
+    authorized_by_name = serializers.SerializerMethodField()
+    validated_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Attribution
+        fields = [
+            "id",
+            "course_name",
+            "course_code",
+            "principal_teacher",
+            "principal_teacher_details",
+            "substitute_teacher",
+            "substitute_teacher_details",
+            "academic_year",
+            "academic_year_name",
+            "date_attribution",
+            "status_principal_teacher",
+            "status_substitute_teacher",
+            "commentaire",
+            "submitted_by",
+            "submitted_by_name",
+            "authorized_by",
+            "authorized_by_name",
+            "validation_status",
+            "validated_by",
+            "validated_by_name",
+            "validation_date",
+            "validation_comments",
+        ]
+        read_only_fields = [
+            "id",
+            "course",
+            "principal_teacher",
+            "substitute_teacher",
+            "academic_year",
+            "date_attribution",
+            "status_principal_teacher",
+            "status_substitute_teacher",
+            "submitted_by",
+            "authorized_by",
+            "validated_by",
+            "validation_date",
+        ]
+
+    def get_submitted_by_name(self, obj):
+        if obj.submitted_by:
+            return f"{obj.submitted_by.first_name} {obj.submitted_by.last_name}"
+        return None
+
+    def get_authorized_by_name(self, obj):
+        if obj.authorized_by:
+            return f"{obj.authorized_by.first_name} {obj.authorized_by.last_name}"
+        return None
+
+    def get_validated_by_name(self, obj):
+        if obj.validated_by:
+            return f"{obj.validated_by.first_name} {obj.validated_by.last_name}"
+        return None
+
+
+class AttributionValidationSerializer(serializers.Serializer):
+    """Serializer pour valider une attribution."""
+
+    validation_status = serializers.ChoiceField(
+        choices=["approved", "rejected"], required=True
+    )
+    comments = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class SuggestionSerializer(serializers.ModelSerializer):
+    """Serializer pour Suggestion."""
+
+    teacher_name = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
+    attribution_id = serializers.UUIDField(source="attribution.id", read_only=True)
+
+    class Meta:
+        model = Suggestion
+        fields = [
+            "id",
+            "suggestion_date",
+            "suggestion",
+            "attribution",
+            "attribution_id",
+            "teacher",
+            "teacher_name",
+            "user",
+            "user_name",
+        ]
+        read_only_fields = ["id", "suggestion_date", "attribution", "teacher", "user"]
+
+    def get_teacher_name(self, obj):
+        return f"{obj.teacher.user.first_name} {obj.teacher.user.last_name}"
+
+    def get_user_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+
+class SuggestionCreateSerializer(serializers.Serializer):
+    """Serializer pour créer une suggestion."""
+
+    suggestion = serializers.CharField(required=True)
+
+
+class AttributionWithSuggestionsSerializer(serializers.ModelSerializer):
+    """Serializer pour Attribution avec ses suggestions."""
+
+    suggestions = SuggestionSerializer(many=True, read_only=True)
+    principal_teacher_details = TeacherBasicSerializer(
+        source="principal_teacher", read_only=True
+    )
+    course_name = serializers.CharField(source="course.course_name", read_only=True)
+
+    class Meta:
+        model = Attribution
+        fields = [
+            "id",
+            "course_name",
+            "principal_teacher",
+            "principal_teacher_details",
+            "academic_year",
+            "date_attribution",
+            "status_principal_teacher",
+            "validation_status",
+            "validation_date",
+            "validation_comments",
+            "suggestions",
+        ]
+
+
+class AcademicOverviewSerializer(serializers.Serializer):
+    """Serializer pour la vue d'ensemble académique."""
+
+    # Stats des attributions
+    total_attributions = serializers.IntegerField()
+    pending_attributions = serializers.IntegerField()
+    approved_attributions = serializers.IntegerField()
+    rejected_attributions = serializers.IntegerField()
+
+    # Stats des suggestions
+    total_suggestions = serializers.IntegerField()
+    pending_suggestions = serializers.IntegerField()
+
+    # Pourcentage de validation
+    validation_rate = serializers.FloatField()
+
+    # Répartition par statut
+    attributions_by_status = serializers.DictField()
+
+
+class AttributionStatsSerializer(serializers.Serializer):
+    """Serializer pour les statistiques d'attribution."""
+
+    total = serializers.IntegerField()
+    pending = serializers.IntegerField()
+    approved = serializers.IntegerField()
+    rejected = serializers.IntegerField()
+
+
+class VisitingProfessorSerializer(serializers.Serializer):
+    """Serializer pour les professeurs visiteurs."""
+
+    teacher_id = serializers.UUIDField()
+    teacher_name = serializers.CharField()
+    teacher_grade = serializers.CharField()
+    speciality = serializers.CharField(allow_null=True)
+    university = serializers.CharField()
+    attributions_count = serializers.IntegerField()
+    attributions = AttributionSerializer(many=True)
+

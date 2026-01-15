@@ -23,3 +23,4 @@ class Course(models.Model):
 
     def __str__(self):
         return f"{self.course_name} - {self.credits} credits -{self.module.class_fk.class_name}"
+    
