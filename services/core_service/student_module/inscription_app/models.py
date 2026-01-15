@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils import timezone
 
-from services.core_service.academic_module.class_app.models import Class
+from services.core_service.academic_module.class_app.models import Class,ClassGroup
 from services.core_service.academic_module.university_app.models import AcademicYear
 from services.core_service.student_module.student_profile_app.models import Student
 
@@ -36,6 +36,9 @@ class Inscription(models.Model):
         related_name="inscriptions",
         null=True,
         blank=True,
+    )
+    class_group = models.ForeignKey(
+        ClassGroup, on_delete=models.RESTRICT, null=True, blank=True
     )
     date_inscription = models.DateField()
     regist_status = models.CharField(
@@ -184,6 +187,28 @@ class Inscription(models.Model):
         self.student.save()
         return matricule
 
+    def get_or_create_default_group(self):
+        """
+        Returns the default class group (G1) for this inscription's class and academic year.
+        Creates it if it does not exist, and ensures it is marked as default.
+        """
+        if not self.class_fk or not self.academic_year:
+            return None
+
+        with transaction.atomic():
+            group, created = ClassGroup.objects.get_or_create(
+                class_fk=self.class_fk,
+                academic_year=self.academic_year,
+                group_name="G1",
+                defaults={"is_default": True},
+            )
+
+            if not group.is_default:
+                group.is_default = True
+                group.save(update_fields=["is_default"])
+
+            return group
+
     def clean(self):
         """
         Business rules:
@@ -273,6 +298,8 @@ class Inscription(models.Model):
     def save(self, *args, **kwargs):
         # Validate first
         self.clean()
+        if self._state.adding and self.class_group is None:
+            self.class_group = self.get_or_create_default_group()
 
         # Generate new matricule if it starts with X
         try:

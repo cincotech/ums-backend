@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 
+from services.core_service.academic_module.class_app.models import ClassGroup
 from services.core_service.academic_module.course_app.models import Course
 from services.core_service.academic_module.teacher_app.models import Teacher
 from services.core_service.student_module.student_profile_app.models import Student
@@ -14,10 +15,11 @@ class JurySession(models.Model):
         ("in_progress", "En Cours"),
         ("completed", "Terminé"),
     )
-    # add classgroup
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     session_name = models.CharField(max_length=255)
     session_date = models.DateTimeField()
+    class_group = models.ForeignKey(ClassGroup, on_delete=models.CASCADE, related_name="jury_sessions")
     jury_members = models.ManyToManyField(User, related_name="jury_sessions")
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="scheduled"
@@ -28,6 +30,9 @@ class JurySession(models.Model):
 
     class Meta:
         db_table = "jury_sessions"
+
+    def __str__(self):
+        return f"{self.session_name} - {self.class_group.class_fk.class_name} ({self.class_group.group_name}) - {self.session_date}"
 
 
 class JuryDecision(models.Model):

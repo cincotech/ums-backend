@@ -13,9 +13,17 @@ class Department(models.Model):
     faculty = models.ForeignKey(
         Faculty, on_delete=models.RESTRICT, related_name="departments"
     )
+    is_default = models.BooleanField(default=False)
 
     def __str__(self):
         return self.department_name
 
     class Meta:
         db_table = "departments"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["faculty"],
+                condition=models.Q(is_default=True),
+                name="one_default_department_per_faculty",
+            )
+        ]

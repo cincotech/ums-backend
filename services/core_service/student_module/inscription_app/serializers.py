@@ -7,6 +7,7 @@ from services.core_service.academic_module.faculty_app.models import Faculty
 from .models import Inscription
 
 
+
 class InscriptionSerializer(serializers.ModelSerializer):
     # ---------------------------
     # Read-only student fields
@@ -78,9 +79,12 @@ class InscriptionSerializer(serializers.ModelSerializer):
         # Auto-resolve class if missing
         if not class_fk and faculty_id:
             faculty = Faculty.objects.get(id=faculty_id)
-            first_department = faculty.departments.order_by("id").first()
-            if first_department:
-                class_fk = first_department.classes.order_by("id").first()
+
+            default_department = faculty.departments.filter(is_default=True).first()
+            if default_department:
+                default_class = default_department.classes.filter(is_default=True).first()
+                if default_class:
+                    class_fk = default_class
 
         # Create or get inscription
         inscription, created = Inscription.objects.get_or_create(

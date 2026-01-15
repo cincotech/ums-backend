@@ -1380,18 +1380,70 @@ class CompiledResultViewSet(BaseViewSet):
         except Exception as e:
             return error_response(message="Error compiling results", errors=str(e))
 
+    @action(detail=False, methods=["post"])
+    def bulk_compile_by_class_group(self, request):
+        class_group_id = request.data.get("class_group_id")
+        academic_year_id = request.data.get("academic_year_id")
+
+        if not class_group_id or not academic_year_id:
+            return error_response(message="class_group_id and academic_year_id are required")
+
+        try:
+            result = ResultCompilationService.bulk_compile_results_by_class_group(
+                class_group_id, academic_year_id
+            )
+
+            return success_response(
+                data=result,
+                message=f"Compiled {result['compiled_count']} out of {result['total_inscriptions']} results",
+            )
+        except Exception as e:
+            return error_response(
+                message="Error compiling results for class group", errors=str(e)
+            )
+
     @action(detail=False, methods=["get"])
     def promotion_statistics(self, request):
         class_id = request.query_params.get("class_id")
         academic_year_id = request.query_params.get("academic_year_id")
+        level = request.query_params.get("level", "class")  # university, faculty, department, class, class_group
+        entity_id = request.query_params.get("entity_id")
 
-        if not class_id or not academic_year_id:
-            return error_response(message="class_id and academic_year_id are required")
+        if not academic_year_id:
+            return error_response(message="academic_year_id is required")
 
         try:
-            stats = ResultCompilationService.get_promotion_statistics(
-                class_id, academic_year_id
-            )
+            if level == "university":
+                if not entity_id:
+                    return error_response(message="university_id is required")
+                stats = ResultCompilationService.get_promotion_statistics_by_university(
+                    entity_id, academic_year_id
+                )
+            elif level == "faculty":
+                faculty = get_faculty_for_request(request)
+                if not faculty:
+                    return error_response(message="Faculty is required")
+                stats = ResultCompilationService.get_promotion_statistics_by_faculty(
+                    faculty.id, academic_year_id
+                )
+            elif level == "department":
+                if not entity_id:
+                    return error_response(message="department_id is required")
+                stats = ResultCompilationService.get_promotion_statistics_by_department(
+                    entity_id, academic_year_id
+                )
+            elif level == "class_group":
+                if not entity_id:
+                    return error_response(message="class_group_id is required")
+                stats = ResultCompilationService.get_promotion_statistics_by_class_group(
+                    entity_id, academic_year_id
+                )
+            else:  # default to class
+                if not class_id:
+                    return error_response(message="class_id is required")
+                stats = ResultCompilationService.get_promotion_statistics_by_class(
+                    class_id, academic_year_id
+                )
 
             return success_response(
                 data=stats,
@@ -1467,6 +1519,7 @@ class JurySessionViewSet(BaseViewSet):
             jury_session = JurySessionService.create_jury_session(
                 session_name=request.data.get("session_name"),
                 session_date=request.data.get("session_date"),
+                class_group_id=request.data.get("class_group"),
                 jury_member_ids=request.data.get("jury_members", []),
                 created_by=request.user,
             )
@@ -1494,6 +1547,66 @@ class JurySessionViewSet(BaseViewSet):
         except Exception as e:
             return error_response(
                 message="Error updating jury session status", errors=str(e)
+            )
+
+    @action(detail=False, methods=["get"])
+    def by_faculty(self, request):
+        faculty = get_faculty_for_request(request)
+        
+        if not faculty:
+            return error_response(message="Faculty is required")
+        
+        try:
+            jury_sessions = JurySessionService.get_jury_sessions_by_faculty(faculty.id)
+            serializer = self.get_serializer(jury_sessions, many=True)
+            
+            return success_response(
+                data=serializer.data,
+                message="Faculty jury sessions retrieved successfully",
+            )
+        except Exception as e:
+            return error_response(
+                message="Error retrieving faculty jury sessions", errors=str(e)
+            )
+
+    @action(detail=False, methods=["get"])
+    def by_class_group(self, request):
+        class_group_id = request.query_params.get("class_group_id")
+        
+        if not class_group_id:
+            return error_response(message="Class group ID is required")
+        
+        try:
+            jury_sessions = JurySessionService.get_jury_sessions_by_class_group(class_group_id)
+            serializer = self.get_serializer(jury_sessions, many=True)
+            
+            return success_response(
+                data=serializer.data,
+                message="Class group jury sessions retrieved successfully",
+            )
+        except Exception as e:
+            return error_response(
+                message="Error retrieving class group jury sessions", errors=str(e)
+            )
+
+    @action(detail=False, methods=["get"])
+    def statistics(self, request):
+        faculty = get_faculty_for_request(request)
+        academic_year_id = request.query_params.get("academic_year_id")
+        
+        if not faculty:
+            return error_response(message="Faculty is required")
+        
+        try:
+            stats = JurySessionService.get_jury_session_statistics(faculty.id, academic_year_id)
+            
+            return success_response(
+                data=stats,
+                message="Jury session statistics retrieved successfully",
+            )
+        except Exception as e:
+            return error_response(
+                message="Error retrieving jury session statistics", errors=str(e)
             )
 
 

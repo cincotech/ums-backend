@@ -100,7 +100,7 @@ class UserService:
             )
             raise EmailDevice.DoesNotExist("Email 2FA device not found")
 
-    def setup_totp_2fa(user):
+    def setup_totp_2fa(self, user):
         """
         Sets up TOTP-based 2FA for the user without saving files.
         Returns (device, base64_qr_code)
