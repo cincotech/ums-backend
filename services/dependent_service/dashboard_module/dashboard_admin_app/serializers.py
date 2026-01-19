@@ -192,9 +192,12 @@ class RoleSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    faculty_abreviation = serializers.CharField(
+        source="faculty.faculty_abreviation", read_only=True
+    )
     class Meta:
         model = Profile
-        fields = ["id", "position", "start_date", "end_date"]
+        fields = ["id", "position", "start_date", "end_date", "faculty_abreviation"]
         read_only_fields = ["id"]
 
 
@@ -317,10 +320,13 @@ class AssignRoleSerializer(serializers.Serializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user_email = serializers.CharField(source="user.email", read_only=True)
+    faculty_abreviation = serializers.CharField(
+        source="faculty.faculty_abreviation", read_only=True
+    )
 
     class Meta:
         model = Profile
-        fields = ["id", "user_email", "position", "start_date", "end_date"]
+        fields = ["id", "user_email", "position", "start_date", "end_date", "faculty_abreviation"]
         read_only_fields = ["id"]
 
 
@@ -330,10 +336,13 @@ class RoleProfileSerializer(serializers.ModelSerializer):
     room_name = serializers.CharField(
         source="room.room_number", read_only=True, allow_null=True
     )
+    faculty_abreviation = serializers.CharField(
+        source="faculty.faculty_abreviation", read_only=True
+    )
 
     class Meta:
         model = Profile
-        fields = ["id", "position", "start_date", "end_date", "room_id", "room_name"]
+        fields = ["id", "position", "start_date", "end_date", "room_id", "room_name", "faculty_abreviation"]
         read_only_fields = ["id"]
 
 

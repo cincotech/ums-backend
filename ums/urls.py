@@ -14,6 +14,7 @@ urlpatterns = [
     path(
         "api/scheduling/", include("services.dependent_service.scheduling_module.urls")
     ),
+    path('api/infrastructure/', include('services.dependent_service.infrastructure_module.urls')),
     path("api/", include("services.dependent_service.notification_module.urls")),
     # Raw OpenAPI schema
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

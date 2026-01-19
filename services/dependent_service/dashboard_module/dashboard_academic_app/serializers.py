@@ -8,8 +8,8 @@ class AttributionValidationSerializer(serializers.ModelSerializer):
     substitute_teacher_details = TeacherSerializer(source='substitute_teacher', read_only=True)
     
     # Display fields for course and teachers
-    #course_name = serializers.CharField(source='course.course_name', read_only=True)
-    #course_code = serializers.CharField(source='course.course_code', read_only=True)
+    course_name = serializers.CharField(source='course.course_name', read_only=True)
+    course_code = serializers.CharField(source='course.course_code', read_only=True)
     course_credits = serializers.IntegerField(source='course.credits', read_only=True)
     principal_teacher_name = serializers.SerializerMethodField(read_only=True)
     substitute_teacher_name = serializers.SerializerMethodField(read_only=True)

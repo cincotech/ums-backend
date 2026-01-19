@@ -48,6 +48,11 @@ class Timetable(models.Model):
         blank=True,
         null=True,
     )
+    shared_with = models.ManyToManyField(
+        ClassGroup,
+        related_name="shared_timetables",
+        blank=True,
+    )
     attribution = models.ForeignKey(
         Attribution, on_delete=models.RESTRICT, blank=True, null=True
     )

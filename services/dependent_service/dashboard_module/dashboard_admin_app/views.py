@@ -180,36 +180,23 @@ class StatisticsViewSet(viewsets.ViewSet):
 
 
 # ============== Notifications ==============
-class NotificationViewSet(viewsets.ViewSet):
+class NotificationViewSet(BaseViewSet):
     """Professional ViewSet for university notifications"""
 
+    queryset = UniversityNotification.objects.all()
+    serializer_class = UniversityNotificationSerializer
     permission_classes = [IsAuthenticated]
 
-    # @action(detail=False, methods=['get'])
-    def list(self, request):
-        """Get notifications for admin"""
-        try:
-            notifications = UniversityNotification.objects.filter(
-                recipient=request.user
-            ).order_by("-created_at")[:50]
-
-            serializer = UniversityNotificationSerializer(notifications, many=True)
-            return success_response(
-                data=serializer.data, message="Notifications retrieved successfully"
-            )
-        except Exception as e:
-            return error_response(
-                message=f"Error: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+    def get_queryset(self):
+        return UniversityNotification.objects.filter(
+            recipient=self.request.user
+        ).order_by("-created_at")
 
     @action(detail=True, methods=["post"])
     def mark_read(self, request, pk=None):
         """Mark notification as read"""
         try:
-            notification = UniversityNotification.objects.get(
-                id=pk, recipient=request.user
-            )
+            notification = self.get_object()
             notification.mark_as_read()
             log_user_action(
                 request,
@@ -219,10 +206,6 @@ class NotificationViewSet(viewsets.ViewSet):
                 str(pk),
             )
             return success_response(message="Notification marked as read")
-        except UniversityNotification.DoesNotExist:
-            return error_response(
-                message="Notification not found", status_code=status.HTTP_404_NOT_FOUND
-            )
         except Exception as e:
             return error_response(
                 message=f"Error: {str(e)}",
@@ -231,36 +214,18 @@ class NotificationViewSet(viewsets.ViewSet):
 
 
 # ============== Audit Logs ==============
-class AuditLogViewSet(viewsets.ViewSet):
-    """Professional APIView for audit logs"""
+class AuditLogViewSet(BaseViewSet):
+    """Professional ViewSet for audit logs"""
 
+    queryset = AuditLog.objects.all()
+    serializer_class = AuditLogSerializer
     permission_classes = [IsAuthenticated]
 
-    # @action(detail=False, methods=['get'])
-    def list(self, request):
-        """Get audit logs for university"""
-        try:
-            university = getattr(request.user, "university", None)
-            if not university:
-                return error_response(
-                    message="University not found",
-                    status_code=status.HTTP_403_FORBIDDEN,
-                )
-
-            days = int(request.query_params.get("days", 7))
-            logs = AuditLog.objects.filter(
-                timestamp__gte=timezone.now() - timedelta(days=days)
-            ).order_by("-timestamp")[:100]
-
-            serializer = AuditLogSerializer(logs, many=True)
-            return success_response(
-                data=serializer.data, message="Audit logs retrieved successfully"
-            )
-        except Exception as e:
-            return error_response(
-                message=f"Error: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+    def get_queryset(self):
+        days = int(self.request.query_params.get("days", 7))
+        return AuditLog.objects.filter(
+            timestamp__gte=timezone.now() - timedelta(days=days)
+        ).order_by("-timestamp")
 
 
 # ============== Backup & Restore ==============
@@ -418,182 +383,47 @@ class BackupViewSet(viewsets.ViewSet):
 
 
 # ============== User Management ==============
-class UserViewSet(viewsets.ViewSet):
+class UserViewSet(BaseViewSet):
     """Professional ViewSet for user management"""
 
+    queryset = User.objects.all()
+    serializer_class = UserListSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_university(self):
-        """Get university from current user"""
-        university = getattr(self.request.user, "university", None)
-        if not university:
-            return error_response(
-                message="University not found",
-                status_code=status.HTTP_403_FORBIDDEN,
-            )
-        return university
+    def get_queryset(self):
+        return UniversityUserManagementService.get_all_users()
 
-    # @action(detail=False, methods=['get'])
-    def list(self, request):
-        """List users for university"""
-        try:
-            university = self.get_university()
-            if isinstance(university, Response):
-                return university
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UserCreateSerializer
+        elif self.action in ["retrieve", "update", "partial_update"]:
+            return UserDetailSerializer
+        return UserListSerializer
 
-            users = UniversityUserManagementService.get_university_users(university)
-            serializer = UserListSerializer(
-                users, many=True, context={"request": request}
-            )
-            log_user_action(
-                request, "view", "Listed university users", "User", str(university.id)
-            )
-            return success_response(
-                data=serializer.data, message="Users retrieved successfully"
-            )
-        except Exception as e:
-            return error_response(
-                message=f"Error: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-    # @action(detail=False, methods=['get'])
-    def create(self, request):
-        """Create new user for university"""
-        try:
-            university = self.get_university()
-            if isinstance(university, Response):
-                return university
-
-            serializer = UserCreateSerializer(data=request.data)
-            if serializer.is_valid():
-                try:
-                    user = UniversityUserManagementService.create_user(
-                        university=university,
-                        email=serializer.validated_data["email"],
-                        first_name=serializer.validated_data.get("first_name", ""),
-                        last_name=serializer.validated_data.get("last_name", ""),
-                        password=serializer.validated_data["password"],
-                        role_id=serializer.validated_data.get("role_id"),
-                    )
-
-                    log_user_action(
-                        request,
-                        "create",
-                        f"Created user: {user.email}",
-                        "User",
-                        str(user.id),
-                        {
-                            "email": user.email,
-                            "role": str(user.role.id) if user.role else None,
-                        },
-                    )
-
-                    result_serializer = UserDetailSerializer(user)
-                    return success_response(
-                        data=result_serializer.data,
-                        message="User created successfully",
-                        status_code=status.HTTP_201_CREATED,
-                    )
-                except ValueError as e:
-                    return error_response(
-                        message=str(e),
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                    )
-            return error_response(
-                message="Validation error",
-                errors=serializer.errors,
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as e:
-            log_security_event(
-                request,
-                "create",
-                f"User creation failed: {str(e)}",
-                severity="error",
-                success=False,
-            )
-            return error_response(
-                message=f"Error: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-    @action(detail=True, methods=["get", "put", "delete"])
-    def detail(self, request, pk=None):
-        """Get, update, or delete user"""
-        try:
-            university = self.get_university()
-            if isinstance(university, Response):
-                return university
-
-            user = User.objects.get(id=pk, university=university)
-
-            if request.method == "GET":
-                serializer = UserDetailSerializer(user)
-                log_user_action(
-                    request, "view", f"Viewed user: {user.email}", "User", str(user.id)
-                )
-                return success_response(
-                    data=serializer.data, message="User retrieved successfully"
-                )
-
-            elif request.method == "PUT":
-                serializer = UserUpdateSerializer(user, data=request.data, partial=True)
-                if serializer.is_valid():
-                    user = serializer.save()
-                    log_user_action(
-                        request,
-                        "update",
-                        f"Updated user: {user.email}",
-                        "User",
-                        str(user.id),
-                        request.data,
-                    )
-                    result_serializer = UserDetailSerializer(user)
-                    return success_response(
-                        data=result_serializer.data,
-                        message="User updated successfully",
-                    )
-                return error_response(
-                    message="Validation error",
-                    errors=serializer.errors,
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                )
-
-            elif request.method == "DELETE":
-                user_email = user.email
-                user.delete()
-                log_user_action(
-                    request, "delete", f"Deleted user: {user_email}", "User", str(pk)
-                )
-                return success_response(message="User deleted successfully")
-
-        except User.DoesNotExist:
-            return error_response(
-                message="User not found", status_code=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            log_security_event(
-                request,
-                "update",
-                f"User operation failed: {str(e)}",
-                severity="error",
-                success=False,
-            )
-            return error_response(
-                message=f"Error: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+    def perform_create(self, serializer):
+        user = UniversityUserManagementService.create_user(
+            email=serializer.validated_data["email"],
+            first_name=serializer.validated_data.get("first_name", ""),
+            last_name=serializer.validated_data.get("last_name", ""),
+            password=serializer.validated_data["password"],
+            university=serializer.validated_data.get("university"),
+            role_id=serializer.validated_data.get("role_id"),
+        )
+        log_user_action(
+            self.request,
+            "create",
+            f"Created user: {user.email}",
+            "User",
+            str(user.id),
+            {"email": user.email, "role": str(user.role.id) if user.role else None},
+        )
+        return user
 
     @action(detail=True, methods=["post"])
     def change_password(self, request, pk=None):
         """Change user password"""
         try:
-            university = self.get_university()
-            if isinstance(university, Response):
-                return university
-
-            user = User.objects.get(id=pk, university=university)
+            user = self.get_object()
             serializer = ChangePasswordSerializer(data=request.data)
 
             if serializer.is_valid():
@@ -635,11 +465,7 @@ class UserViewSet(viewsets.ViewSet):
     def assign_role(self, request, pk=None):
         """Assign role to user"""
         try:
-            university = self.get_university()
-            if isinstance(university, Response):
-                return university
-
-            user = User.objects.get(id=pk, university=university)
+            user = self.get_object()
             serializer = AssignRoleSerializer(data=request.data)
 
             if serializer.is_valid():
@@ -692,11 +518,7 @@ class UserViewSet(viewsets.ViewSet):
     def profile(self, request, pk=None):
         """Get or update user profile"""
         try:
-            university = self.get_university()
-            if isinstance(university, Response):
-                return university
-
-            user = User.objects.get(id=pk, university=university)
+            user = self.get_object()
 
             if request.method == "GET":
                 profile = UniversityUserManagementService.get_user_profile(user)
@@ -762,11 +584,7 @@ class UserViewSet(viewsets.ViewSet):
     def deactivate(self, request, pk=None):
         """Deactivate user"""
         try:
-            university = self.get_university()
-            if isinstance(university, Response):
-                return university
-
-            user = User.objects.get(id=pk, university=university)
+            user = self.get_object()
             UniversityUserManagementService.deactivate_user(user)
             log_user_action(
                 request,
@@ -790,11 +608,7 @@ class UserViewSet(viewsets.ViewSet):
     def activate(self, request, pk=None):
         """Activate user"""
         try:
-            university = self.get_university()
-            if isinstance(university, Response):
-                return university
-
-            user = User.objects.get(id=pk, university=university)
+            user = self.get_object()
             UniversityUserManagementService.activate_user(user)
             log_user_action(
                 request, "update", f"Activated user: {user.email}", "User", str(user.id)
@@ -809,6 +623,19 @@ class UserViewSet(viewsets.ViewSet):
                 message=f"Error: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+# ============== Student User Management ==============
+class StudentUserViewSet(BaseViewSet):
+    """Professional ViewSet for student user management with academic year filtering"""
+
+    queryset = User.objects.all()
+    serializer_class = UserListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        academic_year_id = self.request.query_params.get('academic_year')
+        return UniversityUserManagementService.get_students(academic_year_id=academic_year_id)
 
 
 # ============== Roles Management ==============

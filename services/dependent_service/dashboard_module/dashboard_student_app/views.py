@@ -152,16 +152,24 @@ def academic_progress(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsStudent])
 def student_schedule(request):
-    """Get student schedule"""
+    """Get student schedule including merged timetables"""
     try:
         student = request.user.students_users
-        timetables = StudentDashboardService.get_student_schedule(student)
+        schedule_data = StudentDashboardService.get_student_schedule(student)
         
-        from services.dependent_service.dashboard_module.dashboard_doyen_app.serializers import TimetableSerializer
+        from services.dependent_service.dashboard_module.dashboard_doyen_app.serializers import (
+            TimetableSerializer,
+            TimetableMergeSerializer
+        )
         
-        serializer = TimetableSerializer(timetables, many=True)
+        timetables_serializer = TimetableSerializer(schedule_data['timetables'], many=True)
+        merged_serializer = TimetableMergeSerializer(schedule_data['merged_timetables'], many=True)
+        
         return success_response(
-            data=serializer.data, 
+            data={
+                'timetables': timetables_serializer.data,
+                'merged_timetables': merged_serializer.data
+            },
             message="Student schedule retrieved"
         )
     except Exception as e:

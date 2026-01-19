@@ -1,4 +1,36 @@
 from rest_framework import serializers
+from django.db.models import Count, Q, Case, When, IntegerField
+from datetime import date, timedelta
+from services.core_service.student_module.student_profile_app.models import Student
+from services.core_service.student_module.inscription_app.models import Inscription
+
+
+class PopulationDataSerializer(serializers.Serializer):
+    """Serializer for student population data with age and gender breakdown"""
+    
+    id = serializers.IntegerField()
+    faculty_abreviation = serializers.CharField(max_length=20)
+    departement_name = serializers.CharField(max_length=255)
+    class_name = serializers.CharField(max_length=50)
+    sexe = serializers.CharField(max_length=1)
+    less_than_nineteen = serializers.IntegerField()
+    nineteen = serializers.IntegerField()
+    twenty = serializers.IntegerField()
+    twenty_one = serializers.IntegerField()
+    twenty_two = serializers.IntegerField()
+    twenty_three = serializers.IntegerField()
+    twenty_four = serializers.IntegerField()
+    twenty_five = serializers.IntegerField()
+    twenty_six = serializers.IntegerField()
+    twenty_seven = serializers.IntegerField()
+    twenty_eight = serializers.IntegerField()
+    twenty_nine = serializers.IntegerField()
+    thirty = serializers.IntegerField()
+    thirty_one = serializers.IntegerField()
+    greater_than_thirty_one = serializers.IntegerField()
+    total_female = serializers.IntegerField()
+    total_male = serializers.IntegerField()
+    student_count = serializers.IntegerField()
 
 from .models import (
     AbsenceJustification,
