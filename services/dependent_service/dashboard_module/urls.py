@@ -26,7 +26,7 @@ urlpatterns = [
         ),
     ),
     path(
-        "dashboard/",
+        "dashboard/student-services/",
         include(
             "services.dependent_service.dashboard_module.dashboard_student_services_app.urls"
         ),

@@ -689,8 +689,10 @@ class TimetableManagementService:
     def check_class_group_conflict(
         class_group_id, start_date, end_date, slot_ids, exclude_timetable_id=None
     ):
+        from django.db.models import Q
+        
         conflicts = Timetable.objects.filter(
-            class_group_id=class_group_id,
+            Q(class_group_id=class_group_id) | Q(shared_with=class_group_id),
             start_date__lte=end_date,
             end_date__gte=start_date,
             slots__id__in=slot_ids,
@@ -741,6 +743,53 @@ class TimetableManagementService:
 
         timetable.slots.set(slot_ids)
         return timetable
+
+    @staticmethod
+    def share_timetable_with_groups(timetable_id, class_group_ids):
+        """Share timetable with additional class groups"""
+        timetable = Timetable.objects.get(id=timetable_id)
+        
+        for group_id in class_group_ids:
+            if TimetableManagementService.check_class_group_conflict(
+                group_id,
+                timetable.start_date,
+                timetable.end_date,
+                list(timetable.slots.values_list('id', flat=True)),
+                exclude_timetable_id=timetable_id
+            ):
+                raise ValueError(f"Class group {group_id} has a conflict")
+        
+        timetable.shared_with.add(*class_group_ids)
+        return timetable
+
+    @staticmethod
+    def remove_shared_group(timetable_id, class_group_id):
+        """Remove a class group from shared timetable"""
+        timetable = Timetable.objects.get(id=timetable_id)
+        timetable.shared_with.remove(class_group_id)
+        
+        # Update attendance for removed group
+        Attendance.objects.filter(
+            timetable=timetable,
+            student__inscriptions__class_group_id=class_group_id
+        ).delete()
+        
+        return timetable
+
+    @staticmethod
+    def get_shared_groups(timetable_id):
+        """Get all groups sharing a timetable"""
+        timetable = Timetable.objects.get(id=timetable_id)
+        return timetable.shared_with.all()
+
+    @staticmethod
+    def get_all_groups_in_timetable(timetable_id):
+        """Get primary and shared groups"""
+        timetable = Timetable.objects.get(id=timetable_id)
+        groups = list(timetable.shared_with.all())
+        if timetable.class_group:
+            groups.insert(0, timetable.class_group)
+        return groups
 
     @staticmethod
     def update_timetable(
@@ -892,16 +941,16 @@ class AttendanceManagementService:
     @staticmethod
     def bulk_create_attendance(timetable_id, attendance_data):
         timetable = Timetable.objects.get(id=timetable_id)
-        class_group = timetable.class_group
+        
+        # Get all groups (primary + shared)
+        all_groups = TimetableManagementService.get_all_groups_in_timetable(timetable_id)
+        
+        if not all_groups:
+            raise ValueError("Timetable must have at least one class group")
 
-        if not class_group:
-            raise ValueError(
-                "Timetable must have a class group to create bulk attendance"
-            )
-
-        Inscription.objects.filter(
-            class_fk=class_group.class_fk,
-            academic_year=class_group.academic_year,
+        # Get students from all groups
+        inscriptions = Inscription.objects.filter(
+            class_group__in=all_groups,
             regist_status="Active",
         ).select_related("student")
 

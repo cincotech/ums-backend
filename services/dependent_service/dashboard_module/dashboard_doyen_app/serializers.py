@@ -711,6 +711,9 @@ class TimetableSerializer(serializers.ModelSerializer):
     class_name = serializers.CharField(
         source="class_group.class_fk.class_name", read_only=True
     )
+    class_id = serializers.CharField(
+        source="class_group.class_fk.id", read_only=True
+    )
     course_name = serializers.CharField(
         source="attribution.course.course_name", read_only=True
     )
@@ -718,6 +721,11 @@ class TimetableSerializer(serializers.ModelSerializer):
     room_name = serializers.CharField(source="room.room_name", read_only=True)
     slot_details = ScheduleSlotSerializer(source="slots", many=True, read_only=True)
     created_by_name = serializers.SerializerMethodField()
+    shared_groups = serializers.SerializerMethodField()
+    faculty_abreviation = serializers.CharField(
+        source="class_group.class_fk.department.faculty.faculty_abreviation", read_only=True
+    )
+  
 
     class Meta:
         model = Timetable
@@ -725,7 +733,10 @@ class TimetableSerializer(serializers.ModelSerializer):
             "id",
             "class_group",
             "class_group_name",
+            "class_id",
             "class_name",
+            "faculty_abreviation",
+            "shared_groups",
             "attribution",
             "course_name",
             "teacher_name",
@@ -751,6 +762,18 @@ class TimetableSerializer(serializers.ModelSerializer):
 
     def get_created_by_name(self, obj):
         return f"{obj.created_by.first_name} {obj.created_by.last_name}"
+
+    def get_shared_groups(self, obj):
+        """Get all groups sharing this timetable"""
+        return [
+            {
+                "id": str(group.id),
+                "group_name": group.group_name,
+                "class_name": group.class_fk.class_name,
+                "department_abreviation": group.class_fk.department.abreviation,
+            }
+            for group in obj.shared_with.all()
+        ]
 
 
 class TimetableDetailSerializer(serializers.ModelSerializer):

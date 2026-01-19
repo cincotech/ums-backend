@@ -78,19 +78,12 @@ class UniversityAdminService:
     def get_dashboard_stats(university):
         """Get comprehensive statistics for a single university"""
         return {
-            "total_students": Student.objects.filter(
-                user__university=university
-            ).count(),
-            "total_teachers": Teacher.objects.filter(
-                user__university=university
-            ).count(),
-            "total_faculties": Faculty.objects.filter(university=university).count(),
-            "total_departments": Department.objects.filter(
-                faculty__university=university
-            ).count(),
+            "total_students": Student.objects.all().count(),
+            "total_teachers": Teacher.objects.all().count(),
+            "total_faculties": Faculty.objects.all().count(),
+            "total_departments": Department.objects.all().count(),
             "total_courses": Course.objects.all().count(),
             "active_enrollments": Inscription.objects.filter(
-                academic_year__university=university,
                 is_year_close=False,
                 regist_status="Active",
             ).count(),
@@ -178,8 +171,8 @@ class UniversityUserManagementService:
     """Service for managing users within a university"""
 
     @staticmethod
-    def create_user(university, email, first_name, last_name, password, role_id=None):
-        """Create new user for university"""
+    def create_user(email, first_name, last_name, password, university=None, role_id=None):
+        """Create new user"""
         if User.objects.filter(email=email).exists():
             raise ValueError(f"User with email {email} already exists")
 
@@ -203,9 +196,25 @@ class UniversityUserManagementService:
         return user
 
     @staticmethod
-    def get_university_users(university):
-        """Get all users for university"""
-        return User.objects.filter(university=university).select_related("role")
+    def get_all_users():
+        """Get all users"""
+        return User.objects.all().select_related('role')
+
+    @staticmethod
+    def get_students(academic_year_id=None):
+        """Get all student users with optional academic year filter"""
+        student_role = Role.objects.filter(name='student').first()
+        if not student_role:
+            return User.objects.none()
+        
+        queryset = User.objects.filter(role=student_role)
+        
+        if academic_year_id:
+            queryset = queryset.filter(
+                student__inscription__academic_year_id=academic_year_id
+            ).distinct()
+        
+        return queryset
 
     @staticmethod
     def update_user(user, **kwargs):

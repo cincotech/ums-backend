@@ -200,21 +200,20 @@ class StudentDashboardService:
 
     @staticmethod
     def get_student_schedule(student):
-        """Get the student's class schedule based on their active inscription."""
-        from services.dependent_service.scheduling_module.scheduling_app.models import Timetable
+        """Get student class schedule including merged timetables"""
+        from services.dependent_service.scheduling_module.scheduling_app.models import Timetable, TimetableMerge
+        from django.db.models import Q
 
-        # Get the student's active inscription
-        inscription = (
-            Inscription.objects.filter(student=student, regist_status="Active")
-            .select_related('class_fk', 'academic_year') 
-            .first()
-        )
+        inscription = Inscription.objects.filter(
+            student=student, regist_status="Active"
+        ).select_related('class_fk', 'academic_year').first()
 
-        if not inscription :
-            return Timetable.objects.none()
-      
+        if not inscription:
+            return {
+                'timetables': Timetable.objects.none(),
+                'merged_timetables': TimetableMerge.objects.none()
+            }
 
-        # If no group assigned, assign default G1 automatically
         if not inscription.class_group:
             default_group = ClassGroupManagementService.get_or_create_default_group(
                 class_fk=inscription.class_fk,
@@ -223,19 +222,27 @@ class StudentDashboardService:
             inscription.class_group = default_group
             inscription.save(update_fields=['class_group'])
 
-        class_group = inscription.class_group
-
-        # Only use the assigned class_group
-        class_group = inscription.class_group
-
-        # Return timetable entries for this class group
-        return Timetable.objects.filter(class_group=class_group) .select_related(
-                'class_group',
-                'attribution',
-                'attribution__course',
-                'attribution__principal_teacher',
-                'room'
-            ).prefetch_related('slots').order_by('start_date')[1:2]
+        # Get regular timetables (primary + shared)
+        timetables = Timetable.objects.filter(
+            Q(class_group=inscription.class_group) | Q(shared_with=inscription.class_group)
+        ).select_related(
+            'class_group',
+            'attribution',
+            'attribution__course',
+            'attribution__principal_teacher',
+            'room'
+        ).prefetch_related('slots', 'shared_with').distinct()
+        
+        # Get merged timetables (check both primary and shared)
+        merged_timetables = TimetableMerge.objects.filter(
+            Q(timetables__class_group=inscription.class_group) | 
+            Q(timetables__shared_with=inscription.class_group)
+        ).prefetch_related('timetables', 'timetables__slots').distinct()
+        
+        return {
+            'timetables': timetables.order_by('start_date'),
+            'merged_timetables': merged_timetables
+        }
 
 
     @staticmethod

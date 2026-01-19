@@ -472,17 +472,20 @@ class CourseAttributionViewSet(BaseViewSet):
         if not class_id:
             return error_response(message="Class ID is required")
 
-        queryset = self.get_queryset().filter(course__module__class_fk__id=class_id)
+        queryset = self.get_queryset().filter(
+            course__module__class_fk__id=class_id
+        )
 
         if academic_year_id:
-            queryset = queryset.filter(academic_year_id=academic_year_id)
+            queryset = queryset.filter(
+                academic_year__id=academic_year_id
+            )
 
-        queryset = queryset.distinct()
         serializer = self.get_serializer(queryset, many=True)
 
         return success_response(
             data=serializer.data,
-            message="Class course attributions retrieved successfully",
+            message=f"{queryset.count()} class course attributions retrieved successfully",
         )
 
 
