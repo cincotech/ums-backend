@@ -417,10 +417,7 @@ def student_payments(request):
         student = request.user.students_users
         payments = StudentDashboardService.get_student_payments(student)
 
-        from .serializers import StudentPaymentSerializer
-
-        serializer = StudentPaymentSerializer(payments, many=True)
-        return success_response(data=serializer.data, message="Payments retrieved")
+        return success_response(data=payments, message="Payments retrieved")
     except Exception as e:
         return error_response(
             message=f"Error: {str(e)}",
