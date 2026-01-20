@@ -15,13 +15,49 @@ from services.foundational_service.auth_module.user_app.models import User
 
 
 class Bank(models.Model):
+    STATUS_CHOICES = (
+        ("active", "Actif"),
+        ("inactive", "Inactif"),
+        ("suspended", "Suspendu"),
+        ("closed", "Fermé"),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     bank_name = models.CharField(max_length=255)
     bank_abreviation = models.CharField(max_length=10)
     account_number = models.CharField(max_length=50, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
 
     class Meta:
         db_table = "banks"
+
+    def __str__(self):
+        return f"{self.bank_name} ({self.get_status_display()})"
+
+    def activate(self):
+        """Active la banque"""
+        self.status = "active"
+        self.save()
+
+    def deactivate(self):
+        """Désactive la banque"""
+        self.status = "inactive"
+        self.save()
+
+    def suspend(self):
+        """Suspend la banque"""
+        self.status = "suspended"
+        self.save()
+
+    def close(self):
+        """Ferme la banque"""
+        self.status = "closed"
+        self.save()
+
+    @property
+    def is_active(self):
+        """Vérifie si la banque est active"""
+        return self.status == "active"
 
 
 class Wording(models.Model):

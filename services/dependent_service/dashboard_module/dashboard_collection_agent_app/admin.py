@@ -23,7 +23,7 @@ from .models import (
 class BankResource(resources.ModelResource):
     class Meta:
         model = Bank
-        fields = ("id", "bank_name", "bank_abreviation", "account_number")
+        fields = ("id", "bank_name", "bank_abreviation", "account_number", "status")
 
 
 class WordingResource(resources.ModelResource):
@@ -158,9 +158,31 @@ class PaymentForm(forms.ModelForm):
 @admin.register(Bank)
 class BankAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = BankResource
-    list_display = ("bank_name", "bank_abreviation", "account_number")
+    list_display = ("bank_name", "bank_abreviation", "account_number", "status")
+    list_filter = ("status",)
     search_fields = ("bank_name", "bank_abreviation", "account_number")
     ordering = ("bank_name",)
+
+    actions = ["activate_banks", "deactivate_banks", "suspend_banks"]
+
+    def activate_banks(self, request, queryset):
+        """Active les banques sélectionnées"""
+        updated = queryset.update(status="active")
+        self.message_user(request, f"{updated} banque(s) activée(s).")
+
+    def deactivate_banks(self, request, queryset):
+        """Désactive les banques sélectionnées"""
+        updated = queryset.update(status="inactive")
+        self.message_user(request, f"{updated} banque(s) désactivée(s).")
+
+    def suspend_banks(self, request, queryset):
+        """Suspend les banques sélectionnées"""
+        updated = queryset.update(status="suspended")
+        self.message_user(request, f"{updated} banque(s) suspendue(s).")
+
+    activate_banks.short_description = "Activer les banques sélectionnées"
+    deactivate_banks.short_description = "Désactiver les banques sélectionnées"
+    suspend_banks.short_description = "Suspendre les banques sélectionnées"
 
 
 @admin.register(Wording)
