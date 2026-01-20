@@ -70,7 +70,7 @@ class FeesSheetInfoMixin:
 class BankSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bank
-        fields = ["id", "bank_name", "bank_abreviation", "account_number"]
+        fields = ["id", "bank_name", "bank_abreviation", "account_number", "status"]
 
 
 class WordingSerializer(serializers.ModelSerializer):
@@ -358,18 +358,32 @@ class PaymentSerializer(serializers.ModelSerializer):
         if user_role == "student":
             try:
                 student = Student.objects.get(user=user)
-                # Si pas d'inscription fournie, prendre la plus récente de l'étudiant
+                # Si pas d'inscription fournie, prendre l'inscription Active en priorité
                 if not inscription_uuid:
+                    # D'abord chercher une inscription Active
                     inscription = (
-                        Inscription.objects.filter(student=student)
+                        Inscription.objects.filter(
+                            student=student, regist_status="Active"
+                        )
                         .order_by("-date_inscription")
                         .first()
                     )
+
+                    # Si pas d'Active, chercher une Pending
+                    if not inscription:
+                        inscription = (
+                            Inscription.objects.filter(
+                                student=student, regist_status="Pending"
+                            )
+                            .order_by("-date_inscription")
+                            .first()
+                        )
+
                     if inscription:
                         validated_data["inscription"] = inscription
                     else:
                         raise serializers.ValidationError(
-                            "Aucune inscription trouvée pour cet étudiant."
+                            "Aucune inscription active ou en attente trouvée pour cet étudiant."
                         )
             except Student.DoesNotExist:
                 raise serializers.ValidationError("Profil étudiant non trouvé.")

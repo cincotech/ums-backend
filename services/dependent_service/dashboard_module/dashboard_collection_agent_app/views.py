@@ -37,8 +37,9 @@ class BankViewSet(BaseViewSet):
     queryset = Bank.objects.all()
     serializer_class = BankSerializer
     permission_classes = [IsFinanceService]
-    filter_backends = [SearchFilter]
-    search_fields = ["bank_name", "bank_abreviation"]
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ["bank_name", "bank_abreviation", "account_number"]
+    filterset_fields = ["status"]
 
 
 class WordingViewSet(BaseViewSet):
