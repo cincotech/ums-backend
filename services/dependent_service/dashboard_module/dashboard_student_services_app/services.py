@@ -184,7 +184,7 @@ class PopulationDataService:
             search_term = filters['search'].lower()
             population_data = [
                 item for item in population_data
-                if search_term in item['faculty_faculty_abreviation'].lower() or
+                if search_term in item['faculty_abreviation'].lower() or
                    search_term in item['departement_name'].lower() or
                    search_term in item['class_name'].lower()
             ]
