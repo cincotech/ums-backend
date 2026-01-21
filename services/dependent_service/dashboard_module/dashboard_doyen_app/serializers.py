@@ -488,7 +488,7 @@ class StudentSerializer(serializers.ModelSerializer):
                 "academic_year": current_inscription.academic_year.academic_year,
                 "date_inscription": current_inscription.date_inscription,
                 "department_abreviation": (
-                    current_inscription.class_fk.department.department_abreviation
+                    current_inscription.class_fk.department.abreviation
                     if current_inscription.class_fk and current_inscription.class_fk.department
                     else "N/A"
                 ),
