@@ -384,10 +384,40 @@ class PaymentPlanViewSet(BaseViewSet):
         "feessheet__academic_year",
     ).all()
     serializer_class = PaymentPlanSerializer
-    permission_classes = [IsFinanceService]
+    permission_classes = [IsStudentOrFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ["feessheet", "status", "created_by"]
     ordering_fields = ["start_date", "total_amount"]
+
+    def get_queryset(self):
+        """Filtre les plans de paiement selon le rôle de l'utilisateur"""
+        user = self.request.user
+
+        if not hasattr(user, "role") or not user.role:
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied("Utilisateur sans rôle défini.")
+
+        if user.role.name == "finance_service":
+            # Finance voit tous les plans
+            return self.queryset
+        elif user.role.name == "student":
+            # Étudiant voit seulement les plans applicables à sa classe/département/faculté
+            try:
+                from services.core_service.student_module.student_profile_app.models import (
+                    Student,
+                )
+
+                student = Student.objects.get(user=user)
+                return PaymentPlan.get_plans_for_student(student)
+            except Student.DoesNotExist:
+                from rest_framework.exceptions import PermissionDenied
+
+                raise PermissionDenied("Profil étudiant non trouvé.")
+        else:
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied(f"Accès refusé pour le rôle '{user.role.name}'.")
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
