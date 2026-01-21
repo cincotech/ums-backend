@@ -234,36 +234,6 @@ class PaymentInstallementSerializer(serializers.ModelSerializer):
         }
 
 
-class PaymentReminderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PaymentReminder
-        fields = [
-            "id",
-            "student",
-            "reminder_type",
-            "amount_due",
-            "message",
-            "status",
-            "sent_by",
-            "sent_at",
-        ]
-
-
-class PaymentPromiseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PaymentPromise
-        fields = [
-            "id",
-            "student",
-            "promised_amount",
-            "promised_date",
-            "status",
-            "notes",
-            "recorded_by",
-            "recorded_at",
-        ]
-
-
 class PaymentSerializer(serializers.ModelSerializer):
     inscription = serializers.UUIDField(required=False, allow_null=True)
     remittance_slip_uri = serializers.ImageField(required=False, allow_null=True)
@@ -411,6 +381,36 @@ class PaymentSerializer(serializers.ModelSerializer):
             "verified_at",
         ]
         read_only_fields = ["user", "verified_by", "verified_at"]
+
+
+class PaymentReminderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentReminder
+        fields = [
+            "id",
+            "student",
+            "reminder_type",
+            "amount_due",
+            "message",
+            "status",
+            "sent_by",
+            "sent_at",
+        ]
+
+
+class PaymentPromiseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentPromise
+        fields = [
+            "id",
+            "student",
+            "promised_amount",
+            "promised_date",
+            "status",
+            "notes",
+            "recorded_by",
+            "recorded_at",
+        ]
 
 
 class CollectionCorrespondenceSerializer(serializers.ModelSerializer):
