@@ -1,6 +1,5 @@
-from django.utils import timezone
 from rest_framework import viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -9,12 +8,13 @@ from services.core_service.academic_module.quality_app.serializers import (
     QualityReportSerializer,
 )
 
-from .models import AttributionValidation
+# from .models import AttributionValidation
 from .permissions import IsDean
-from .serializers import (
-    AttributionValidationDecisionSerializer,
-    AttributionValidationSerializer,
-)
+
+# from .serializers import (
+#     AttributionValidationDecisionSerializer,
+#     AttributionValidationSerializer,
+# )
 
 
 class QualityReportViewSet(viewsets.ModelViewSet):
@@ -26,24 +26,24 @@ class QualityReportViewSet(viewsets.ModelViewSet):
         serializer.save(generated_by=self.request.user)
 
 
-class AttributionValidationViewSet(viewsets.ModelViewSet):
-    queryset = AttributionValidation.objects.all()
-    serializer_class = AttributionValidationSerializer
-    permission_classes = [IsAuthenticated, IsDean]
+# class AttributionValidationViewSet(viewsets.ModelViewSet):
+#     queryset = AttributionValidation.objects.all()
+#     serializer_class = AttributionValidationSerializer
+#     permission_classes = [IsAuthenticated, IsDean]
 
-    @action(detail=True, methods=["POST"])
-    def validate(self, request, pk=None):
-        validation = self.get_object()
-        serializer = AttributionValidationDecisionSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+#     @action(detail=True, methods=["POST"])
+#     def validate(self, request, pk=None):
+#         validation = self.get_object()
+#         serializer = AttributionValidationDecisionSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
 
-        validation.validation_status = serializer.validated_data["validation_status"]
-        validation.comments = serializer.validated_data.get("comments", "")
-        validation.validated_by = request.user
-        validation.validation_date = timezone.now()
-        validation.save()
+#         validation.validation_status = serializer.validated_data["validation_status"]
+#         validation.comments = serializer.validated_data.get("comments", "")
+#         validation.validated_by = request.user
+#         validation.validation_date = timezone.now()
+#         validation.save()
 
-        return Response(AttributionValidationSerializer(validation).data)
+#         return Response(AttributionValidationSerializer(validation).data)
 
 
 @api_view(["GET"])
