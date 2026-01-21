@@ -23,6 +23,7 @@ from .serializers import (
     StudentMessageSerializer,
     StudentNotificationSerializer,
     StudentOfficialDocumentSerializer,
+    StudentPaymentInfoSerializer,
     StudentProfileSerializer,
     StudentScheduleSerializer,
     StudentTranscriptSerializer,
@@ -412,12 +413,13 @@ def student_official_documents(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsStudent, CanViewGrades])
 def student_payments(request):
-    """Get student payment history"""
+    """Get student payment history with installments"""
     try:
         student = request.user.students_users
-        payments = StudentDashboardService.get_student_payments(student)
-
-        return success_response(data=payments, message="Payments retrieved")
+        payment_data = StudentDashboardService.get_student_payments(student)
+        
+        serializer = StudentPaymentInfoSerializer(payment_data)
+        return success_response(data=serializer.data, message="Payment information retrieved")
     except Exception as e:
         return error_response(
             message=f"Error: {str(e)}",
