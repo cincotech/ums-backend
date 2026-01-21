@@ -170,6 +170,54 @@ class PaymentPlan(models.Model):
     class Meta:
         db_table = "payment_plans"
 
+    @classmethod
+    def get_plans_for_student(cls, student):
+        """Retourne les plans de paiement applicables à un étudiant avec recherche hiérarchique"""
+        # Récupérer l'inscription active avec relations préchargées
+        active_inscription = (
+            student.inscriptions.select_related("class_fk__department__faculty")
+            .filter(regist_status__in=["Active", "Pending"])
+            .order_by("-date_inscription")
+            .first()
+        )
+
+        if not active_inscription or not active_inscription.class_fk:
+            return cls.objects.none()
+
+        student_class = active_inscription.class_fk
+        student_department = student_class.department
+        student_faculty = student_department.faculty if student_department else None
+
+        # Base queryset avec relations préchargées
+        base_queryset = cls.objects.select_related(
+            "feessheet__wording",
+            "feessheet__class_fk",
+            "feessheet__department",
+            "feessheet__faculty",
+        ).filter(status="active")
+
+        # 1. D'abord chercher les plans pour SA CLASSE
+        class_plans = base_queryset.filter(feessheet__class_fk=student_class)
+        if class_plans.exists():
+            return class_plans
+
+        # 2. Si pas de plans pour la classe, chercher pour SON DÉPARTEMENT
+        if student_department:
+            department_plans = base_queryset.filter(
+                feessheet__department=student_department
+            )
+            if department_plans.exists():
+                return department_plans
+
+        # 3. Si pas de plans pour le département, chercher pour SA FACULTÉ
+        if student_faculty:
+            faculty_plans = base_queryset.filter(feessheet__faculty=student_faculty)
+            if faculty_plans.exists():
+                return faculty_plans
+
+        # 4. Aucun plan trouvé
+        return cls.objects.none()
+
     def __str__(self):
         base_str = ""
         if self.feessheet:
