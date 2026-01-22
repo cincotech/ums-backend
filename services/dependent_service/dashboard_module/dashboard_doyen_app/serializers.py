@@ -431,17 +431,23 @@ class StudentSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def get_user_obj(self, obj):
+        user = obj.user
+        request = self.context.get("request")  # Make sure 'request' is passed in context
+        profile_picture_url = (
+            request.build_absolute_uri(user.profile_picture.url)
+            if user.profile_picture
+            else None
+        )
+
         return {
-            "first_name": obj.user.first_name,
-            "last_name": obj.user.last_name,
-            "email": obj.user.email,
-            "phone_number": obj.user.phone_number,
-            "marital_status": obj.user.marital_status,
-            "gender": obj.user.gender,
-            "role_name": obj.user.role.name,
-            "profile_picture": (
-                obj.user.profile_picture if obj.user.profile_picture else None
-            ),
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "marital_status": user.marital_status,
+            "gender": user.gender,
+            "role_name": user.role.name if user.role else None,
+            "profile_picture": profile_picture_url,
         }
 
     def get_student_group(self, obj):
