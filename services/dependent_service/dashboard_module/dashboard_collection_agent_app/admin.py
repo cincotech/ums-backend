@@ -1,4 +1,3 @@
-from django import forms
 from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
@@ -102,57 +101,6 @@ class PaymentResource(resources.ModelResource):
 
 
 # ----------------------------
-# Forms
-# ----------------------------
-class FeesSheetForm(forms.ModelForm):
-    class Meta:
-        model = FeesSheet
-        fields = "__all__"
-
-    def clean(self):
-        cleaned_data = super().clean()
-        class_fk = cleaned_data.get("class_fk")
-        department = cleaned_data.get("department")
-        faculty = cleaned_data.get("faculty")
-
-        levels_set = sum([bool(class_fk), bool(department), bool(faculty)])
-
-        if levels_set == 0:
-            raise forms.ValidationError(
-                "Vous devez sélectionner exactement un niveau : classe, département ou faculté."
-            )
-        elif levels_set > 1:
-            raise forms.ValidationError(
-                "Vous ne pouvez sélectionner qu'un seul niveau à la fois."
-            )
-
-        return cleaned_data
-
-
-class PaymentForm(forms.ModelForm):
-    class Meta:
-        model = Payment
-        fields = "__all__"
-
-    def clean(self):
-        cleaned_data = super().clean()
-        inscription = cleaned_data.get("inscription")
-
-        if inscription:
-            # Vérifier s'il y a des PaymentInstallement non payés pour cet étudiant
-            unpaid_installments = PaymentInstallement.objects.filter(
-                student=inscription.student, status__in=["pending", "overdue"]
-            )
-
-            if unpaid_installments.exists():
-                raise forms.ValidationError(
-                    f"Impossible de créer ce paiement. L'étudiant {inscription.student.user.get_full_name()} ({inscription.student.matricule}) a encore des échéanciers de paiement non terminés."
-                )
-
-        return cleaned_data
-
-
-# ----------------------------
 # Admin Classes
 # ----------------------------
 @admin.register(Bank)
@@ -195,7 +143,6 @@ class WordingAdmin(ImportExportModelAdmin, ModelAdmin):
 
 @admin.register(FeesSheet)
 class FeesSheetAdmin(ImportExportModelAdmin, ModelAdmin):
-    form = FeesSheetForm
     resource_class = FeesSheetResource
     list_display = ("wording", "base_amount", "academic_year", "get_level")
     list_filter = ("academic_year", "wording", "faculty", "department")
@@ -206,20 +153,6 @@ class FeesSheetAdmin(ImportExportModelAdmin, ModelAdmin):
         "faculty__faculty_name",
     )
     ordering = ("-academic_year", "wording")
-
-    fieldsets = (
-        (
-            "Informations générales",
-            {"fields": ("wording", "academic_year", "base_amount")},
-        ),
-        (
-            "Niveau d'application (choisir UN SEUL)",
-            {
-                "fields": ("class_fk", "department", "faculty"),
-                "description": "Sélectionnez exactement un niveau : soit une classe, soit un département, soit une faculté.",
-            },
-        ),
-    )
 
     def get_level(self, obj):
         if obj.class_fk:
@@ -286,7 +219,6 @@ class PaymentInstallementAdmin(ImportExportModelAdmin, ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(ImportExportModelAdmin, ModelAdmin):
-    form = PaymentForm
     resource_class = PaymentResource
     list_display = (
         "paymentplan",
@@ -295,7 +227,6 @@ class PaymentAdmin(ImportExportModelAdmin, ModelAdmin):
         "payment_method",
         "payment_status",
         "user",
-        # "verified_by",  # Temporairement commenté jusqu'à la migration
     )
     list_filter = ("payment_status", "payment_method", "payment_date", "reception_date")
     search_fields = (
