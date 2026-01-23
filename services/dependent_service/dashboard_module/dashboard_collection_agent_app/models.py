@@ -308,10 +308,7 @@ class Payment(models.Model):
     bank = models.ForeignKey(
         Bank, on_delete=models.RESTRICT, null=True, related_name="bank"
     )
-    bank_slip_ref = models.CharField(max_length=128, null=True, blank=True, unique=True)
-    transaction_code = models.CharField(
-        max_length=50, null=True, blank=True, unique=True
-    )
+    transaction_code = models.CharField(max_length=50, null=True, blank=True)
     inscription = models.ForeignKey(
         Inscription,
         on_delete=models.RESTRICT,
@@ -355,10 +352,14 @@ class Payment(models.Model):
 
     @classmethod
     def create_payment(cls, created_by_user, **payment_data):
-        """Crée un paiement - finance_service ou student peuvent créer"""
-        if created_by_user.role.name not in ["finance_service", "student"]:
+        """Crée un paiement - finance_service, student ou student_service peuvent créer"""
+        if created_by_user.role.name not in [
+            "finance_service",
+            "student",
+            "student_service",
+        ]:
             raise ValueError(
-                "Seuls le service financier et les étudiants peuvent créer les paiements."
+                "Seuls le service financier, les étudiants et le service aux étudiants peuvent créer les paiements."
             )
 
         payment_data["user"] = created_by_user
