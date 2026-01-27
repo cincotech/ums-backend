@@ -255,7 +255,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         user_role = user.role.name
 
-        if user_role not in ["student", "finance_service"]:
+        if user_role not in ["student", "finance_service", "student_service"]:
             raise serializers.ValidationError(
                 "Rôle non autorisé pour créer des paiements."
             )
@@ -370,7 +370,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             "reception_date",
             "payment_method",
             "bank",
-            "bank_slip_ref",
             "transaction_code",
             "inscription",
             "user",
