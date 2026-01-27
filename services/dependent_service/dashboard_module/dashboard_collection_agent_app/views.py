@@ -4,7 +4,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from core.permissions import IsFinanceService, IsStudent, IsStudentOrFinanceService
+from core.permissions import (
+    IsFinanceService,
+    IsStudent,
+    IsStudentOrFinanceService,
+    IsStudentService,
+)
 from core.views import BaseViewSet
 
 from .models import (
@@ -100,6 +105,8 @@ class PaymentInstallementViewSet(BaseViewSet):
         "student__inscriptions__class_fk__department",  # Filtrage par département
         "student__inscriptions__class_fk__department__faculty",  # Filtrage par faculté
         "student__matricule",  # Filtrage par matricule
+        "student__inscriptions__academic_year",  # Filtrage par année académique
+        "payment_plan__feessheet__academic_year",  # Filtrage par année académique du plan
     ]
     search_fields = [
         "student__matricule",
@@ -470,13 +477,29 @@ class PaymentViewSet(BaseViewSet):
     ordering_fields = ["payment_date", "amount_paid"]
 
     def get_permissions(self):
-        if self.action in ["update", "partial_update"]:
+        if self.action == "create":
+            # Création : student, finance_service, student_service
+            return [IsStudentOrFinanceService() or IsStudentService()]
+        elif self.action in ["update", "partial_update"]:
+            # Modification : seulement finance_service
             return [IsFinanceService()]
-        return [IsStudentOrFinanceService()]
+        else:
+            # Lecture : student, finance_service, student_service
+            return [IsStudentOrFinanceService() or IsStudentService()]
 
     def get_queryset(self):
         """Filtre les paiements selon le rôle de l'utilisateur"""
-        return Payment.get_payments_for_user(self.request.user)
+        user = self.request.user
+
+        if user.role.name == "finance_service":
+            return self.queryset
+        elif user.role.name == "student":
+            return self.queryset.filter(inscription__student__user=user)
+        elif user.role.name == "student_service":
+            # Service aux étudiants voit tous les paiements
+            return self.queryset
+        else:
+            return Payment.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

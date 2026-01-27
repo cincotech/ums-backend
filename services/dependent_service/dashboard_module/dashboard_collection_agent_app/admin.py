@@ -97,6 +97,7 @@ class PaymentResource(resources.ModelResource):
             "payment_date",
             "payment_method",
             "payment_status",
+            "transaction_code",
         )
 
 
@@ -232,7 +233,6 @@ class PaymentAdmin(ImportExportModelAdmin, ModelAdmin):
     search_fields = (
         "user__first_name",
         "user__last_name",
-        "bank_slip_ref",
         "transaction_code",
     )
     ordering = ("-payment_date",)
