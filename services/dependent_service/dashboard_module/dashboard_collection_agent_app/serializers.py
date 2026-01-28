@@ -104,21 +104,38 @@ class FeesSheetSerializer(FeesSheetInfoMixin, serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        # Récupérer les valeurs des niveaux depuis les données ou l'instance existante
         class_fk = data.get("class_fk")
         department = data.get("department")
         faculty = data.get("faculty")
 
-        # Vérifier qu'exactement un seul niveau est défini
-        levels_set = sum([bool(class_fk), bool(department), bool(faculty)])
+        # Pour les mises à jour (PUT/PATCH), récupérer les valeurs existantes si non fournies
+        if self.instance:
+            # Utiliser les valeurs existantes si elles ne sont pas dans les données
+            if "class_fk" not in data:
+                class_fk = self.instance.class_fk
+            if "department" not in data:
+                department = self.instance.department
+            if "faculty" not in data:
+                faculty = self.instance.faculty
 
-        if levels_set == 0:
-            raise serializers.ValidationError(
-                "Vous devez définir exactement un niveau : classe, département ou faculté."
-            )
-        elif levels_set > 1:
-            raise serializers.ValidationError(
-                "Vous ne pouvez définir qu'un seul niveau à la fois : classe, département ou faculté."
-            )
+        # Vérifier qu'exactement un seul niveau est défini seulement si au moins un niveau est mentionné
+        level_fields_in_data = any(
+            field in data for field in ["class_fk", "department", "faculty"]
+        )
+
+        if level_fields_in_data or not self.instance:
+            # Compter les niveaux définis
+            levels_set = sum([bool(class_fk), bool(department), bool(faculty)])
+
+            if levels_set == 0:
+                raise serializers.ValidationError(
+                    "Vous devez définir exactement un niveau : classe, département ou faculté."
+                )
+            elif levels_set > 1:
+                raise serializers.ValidationError(
+                    "Vous ne pouvez définir qu'un seul niveau à la fois : classe, département ou faculté."
+                )
 
         return data
 
