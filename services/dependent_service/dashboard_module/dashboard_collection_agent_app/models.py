@@ -1,7 +1,7 @@
 import uuid
 
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Q, Sum
 
 from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.department_app.models import Department
@@ -308,10 +308,7 @@ class Payment(models.Model):
     bank = models.ForeignKey(
         Bank, on_delete=models.RESTRICT, null=True, related_name="bank"
     )
-    bank_slip_ref = models.CharField(max_length=128, null=True, blank=True, unique=True)
-    transaction_code = models.CharField(
-        max_length=50, null=True, blank=True, unique=True
-    )
+    transaction_code = models.CharField(max_length=50, null=True, blank=True)
     inscription = models.ForeignKey(
         Inscription,
         on_delete=models.RESTRICT,
@@ -355,10 +352,14 @@ class Payment(models.Model):
 
     @classmethod
     def create_payment(cls, created_by_user, **payment_data):
-        """Crée un paiement - finance_service ou student peuvent créer"""
-        if created_by_user.role.name not in ["finance_service", "student"]:
+        """Crée un paiement - finance_service, student ou student_service peuvent créer"""
+        if created_by_user.role.name not in [
+            "finance_service",
+            "student",
+            "student_service",
+        ]:
             raise ValueError(
-                "Seuls le service financier et les étudiants peuvent créer les paiements."
+                "Seuls le service financier, les étudiants et le service aux étudiants peuvent créer les paiements."
             )
 
         payment_data["user"] = created_by_user
@@ -422,7 +423,7 @@ class Payment(models.Model):
             self._update_payment_installment(old_amount)
 
     def _update_payment_installment(self, old_amount=0):
-        """Met à jour le PaymentInstallement correspondant"""
+        """Met à jour le PaymentInstallement correspondant et gère le surplus automatiquement"""
         student = self.inscription.student if self.inscription else None
         if not student:
             return
@@ -450,6 +451,80 @@ class Payment(models.Model):
 
         installment.paid_amount = total_verified_payments
         installment.save()
+
+        # Gérer le surplus automatiquement
+        if total_verified_payments > installment.amount:
+            surplus = total_verified_payments - installment.amount
+            self._handle_payment_surplus(student, surplus)
+
+    def _handle_payment_surplus(self, student, surplus_amount):
+        """Gère automatiquement le surplus de paiement"""
+        # Chercher le plan suivant pour cet étudiant
+        next_plan = self._find_next_payment_plan(student)
+
+        if next_plan:
+            # Créer ou mettre à jour l'échéancier du plan suivant
+            next_installment, created = PaymentInstallement.objects.get_or_create(
+                payment_plan=next_plan,
+                student=student,
+                defaults={
+                    "amount": next_plan.total_amount,
+                    "due_date": next_plan.end_date,
+                    "created_by": self.user,
+                },
+            )
+
+            # Ajouter le surplus au montant payé du plan suivant
+            next_installment.paid_amount += surplus_amount
+            next_installment.save()
+
+            # Créer un paiement automatique pour traçabilité
+            Payment.objects.create(
+                paymentplan=next_plan,
+                amount_paid=surplus_amount,
+                payment_date=self.payment_date,
+                reception_date=self.reception_date,
+                payment_method=self.payment_method,
+                bank=self.bank,
+                transaction_code=self.transaction_code,
+                inscription=self.inscription,
+                user=self.user,
+                description=f"Surplus automatique du plan {self.paymentplan.id}",
+                payment_status="verified",  # Déjà vérifié
+                verified_by=self.verified_by,
+                verified_at=self.verified_at,
+            )
+
+    def _find_next_payment_plan(self, student):
+        """Trouve le plan de paiement suivant pour un étudiant"""
+        # Récupérer l'inscription active de l'étudiant
+        active_inscription = (
+            student.inscriptions.filter(regist_status__in=["Active", "Pending"])
+            .order_by("-date_inscription")
+            .first()
+        )
+
+        if not active_inscription or not active_inscription.class_fk:
+            return None
+
+        student_class = active_inscription.class_fk
+        student_department = student_class.department
+        student_faculty = student_department.faculty if student_department else None
+
+        # Chercher le plan suivant (date de début postérieure au plan actuel)
+        next_plans = (
+            PaymentPlan.objects.filter(
+                start_date__gt=self.paymentplan.start_date, status="active"
+            )
+            .filter(
+                Q(feessheet__class_fk=student_class)
+                | Q(feessheet__department=student_department)
+                | Q(feessheet__faculty=student_faculty)
+            )
+            .order_by("start_date")
+        )
+
+        return next_plans.first()
 
     def can_pay_plan(self, student, target_plan):
         """Vérifie si l'étudiant peut payer ce plan (plans précédents payés)"""

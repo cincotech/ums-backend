@@ -4,7 +4,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from core.permissions import IsFinanceService, IsStudent, IsStudentOrFinanceService
+from core.permissions import (
+    IsFinanceService,
+    IsStudent,
+    IsStudentOrFinanceService,
+    IsStudentService,
+)
 from core.views import BaseViewSet
 
 from .models import (
@@ -63,7 +68,7 @@ class FeesSheetViewSet(BaseViewSet):
     ).all()
     serializer_class = FeesSheetSerializer
     permission_classes = [IsFinanceService]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = [
         "class_fk",
         "department",
@@ -71,7 +76,133 @@ class FeesSheetViewSet(BaseViewSet):
         "academic_year",
         "wording",
     ]
-    ordering_fields = ["base_amount"]
+    search_fields = [
+        "wording__wording_name",
+        "base_amount",
+    ]
+    ordering_fields = [
+        "base_amount",
+        "wording__wording_name",
+        "academic_year__academic_year",
+    ]
+
+    def get_queryset(self):
+        """Filtrage personnalisé pour FeesSheet"""
+        queryset = super().get_queryset()
+
+        # Filtrage par academic_year_id
+        academic_year_id = self.request.query_params.get("academic_year_id")
+        if academic_year_id:
+            queryset = queryset.filter(academic_year_id=academic_year_id)
+
+        # Filtrage par wording_name
+        wording_name = self.request.query_params.get("wording_name")
+        if wording_name:
+            queryset = queryset.filter(wording__wording_name__icontains=wording_name)
+
+        # Filtrage par base_amount
+        base_amount = self.request.query_params.get("base_amount")
+        if base_amount:
+            try:
+                queryset = queryset.filter(base_amount=int(base_amount))
+            except ValueError:
+                pass  # Ignorer si pas un nombre valide
+
+        return queryset
+
+    def update(self, request, *args, **kwargs):
+        """Mise à jour complète (PUT)"""
+        from core.response_handler import error_response, success_response
+
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return success_response(
+                data=serializer.data, message="FeesSheet mis à jour avec succès"
+            )
+        return error_response(message="Erreur de validation", errors=serializer.errors)
+
+    def partial_update(self, request, *args, **kwargs):
+        """Mise à jour partielle (PATCH)"""
+        from core.response_handler import error_response, success_response
+
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return success_response(
+                data=serializer.data, message="FeesSheet mis à jour avec succès"
+            )
+        return error_response(message="Erreur de validation", errors=serializer.errors)
+
+    @action(detail=False, methods=["get"], url_path="grouped-options")
+    def grouped_options(self, request):
+        """Retourne les options groupées (classes, départements, facultés) des FeesSheets"""
+        from core.response_handler import success_response
+
+        queryset = self.get_queryset()
+        classes = []
+        departments = []
+        faculties = []
+        seen_classes = set()
+        seen_departments = set()
+        seen_faculties = set()
+
+        for item in queryset:
+            # Classes
+            if item.class_fk and item.class_fk.id not in seen_classes:
+                classes.append(
+                    {
+                        "id": str(item.class_fk.id),
+                        "label": f"{item.class_fk.class_name} {item.class_fk.department.department_name if item.class_fk.department else ''}",
+                        "value": str(item.class_fk.id),
+                    }
+                )
+                seen_classes.add(item.class_fk.id)
+
+            # Départements
+            if item.department and item.department.id not in seen_departments:
+                departments.append(
+                    {
+                        "id": str(item.department.id),
+                        "label": item.department.department_name,
+                        "value": str(item.department.id),
+                    }
+                )
+                seen_departments.add(item.department.id)
+
+            # Facultés
+            if item.faculty and item.faculty.id not in seen_faculties:
+                faculties.append(
+                    {
+                        "id": str(item.faculty.id),
+                        "label": item.faculty.faculty_name,
+                        "value": str(item.faculty.id),
+                    }
+                )
+                seen_faculties.add(item.faculty.id)
+
+        return success_response(
+            data=[
+                {
+                    "group": "Classes",
+                    "options": classes,
+                },
+                {
+                    "group": "Départements",
+                    "options": departments,
+                },
+                {
+                    "group": "Faculties",
+                    "options": faculties,
+                },
+            ],
+            message="Options groupées récupérées avec succès",
+        )
 
 
 class PaymentInstallementViewSet(BaseViewSet):
@@ -100,11 +231,17 @@ class PaymentInstallementViewSet(BaseViewSet):
         "student__inscriptions__class_fk__department",  # Filtrage par département
         "student__inscriptions__class_fk__department__faculty",  # Filtrage par faculté
         "student__matricule",  # Filtrage par matricule
+        "student__inscriptions__academic_year",  # Filtrage par année académique
+        "payment_plan__feessheet__academic_year",  # Filtrage par année académique du plan
     ]
     search_fields = [
         "student__matricule",
         "student__user__first_name",
         "student__user__last_name",
+        "amount",
+        "paid_amount",
+        "payment_plan__feessheet__wording__wording_name",
+        "status",
     ]
     ordering_fields = ["due_date", "amount"]
 
@@ -367,8 +504,16 @@ class PaymentReminderViewSet(BaseViewSet):
     queryset = PaymentReminder.objects.all()
     serializer_class = PaymentReminderSerializer
     permission_classes = [IsFinanceService]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ["student", "reminder_type", "status"]
+    search_fields = [
+        "student__matricule",
+        "student__user__first_name",
+        "student__user__last_name",
+        "reminder_type",
+        "amount_due",
+        "message",
+    ]
     ordering_fields = ["sent_at"]
 
 
@@ -385,8 +530,14 @@ class PaymentPlanViewSet(BaseViewSet):
     ).all()
     serializer_class = PaymentPlanSerializer
     permission_classes = [IsStudentOrFinanceService]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ["feessheet", "status", "created_by"]
+    search_fields = [
+        "feessheet__wording__wording_name",
+        "description",
+        "total_amount",
+        "status",
+    ]
     ordering_fields = ["start_date", "total_amount"]
 
     def get_queryset(self):
@@ -457,7 +608,7 @@ class PaymentViewSet(BaseViewSet):
         "verified_by",
     ).all()
     serializer_class = PaymentSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = [
         "paymentplan",
         "payment_method",
@@ -466,17 +617,42 @@ class PaymentViewSet(BaseViewSet):
         "inscription",
         "user",
     ]
-
+    search_fields = [
+        "inscription__student__matricule",
+        "inscription__student__user__first_name",
+        "inscription__student__user__last_name",
+        "amount_paid",
+        "transaction_code",
+        "payment_method",
+        "payment_status",
+        "description",
+    ]
     ordering_fields = ["payment_date", "amount_paid"]
 
     def get_permissions(self):
-        if self.action in ["update", "partial_update"]:
+        if self.action == "create":
+            # Création : student, finance_service, student_service
+            return [IsStudentOrFinanceService() or IsStudentService()]
+        elif self.action in ["update", "partial_update"]:
+            # Modification : seulement finance_service
             return [IsFinanceService()]
-        return [IsStudentOrFinanceService()]
+        else:
+            # Lecture : student, finance_service, student_service
+            return [IsStudentOrFinanceService() or IsStudentService()]
 
     def get_queryset(self):
         """Filtre les paiements selon le rôle de l'utilisateur"""
-        return Payment.get_payments_for_user(self.request.user)
+        user = self.request.user
+
+        if user.role.name == "finance_service":
+            return self.queryset
+        elif user.role.name == "student":
+            return self.queryset.filter(inscription__student__user=user)
+        elif user.role.name == "student_service":
+            # Service aux étudiants voit tous les paiements
+            return self.queryset
+        else:
+            return Payment.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
