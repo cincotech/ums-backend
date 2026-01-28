@@ -110,6 +110,35 @@ class FeesSheetViewSet(BaseViewSet):
 
         return queryset
 
+    def update(self, request, *args, **kwargs):
+        """Mise à jour complète (PUT)"""
+        from core.response_handler import error_response, success_response
+
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return success_response(
+                data=serializer.data, message="FeesSheet mis à jour avec succès"
+            )
+        return error_response(message="Erreur de validation", errors=serializer.errors)
+
+    def partial_update(self, request, *args, **kwargs):
+        """Mise à jour partielle (PATCH)"""
+        from core.response_handler import error_response, success_response
+
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return success_response(
+                data=serializer.data, message="FeesSheet mis à jour avec succès"
+            )
+        return error_response(message="Erreur de validation", errors=serializer.errors)
+
     @action(detail=False, methods=["get"], url_path="grouped-options")
     def grouped_options(self, request):
         """Retourne les options groupées (classes, départements, facultés) des FeesSheets"""
@@ -168,7 +197,7 @@ class FeesSheetViewSet(BaseViewSet):
                     "options": departments,
                 },
                 {
-                    "group": "Facultés",
+                    "group": "Faculties",
                     "options": faculties,
                 },
             ],
