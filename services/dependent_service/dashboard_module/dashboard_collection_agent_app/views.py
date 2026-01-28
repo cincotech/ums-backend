@@ -78,11 +78,7 @@ class FeesSheetViewSet(BaseViewSet):
     ]
     search_fields = [
         "wording__wording_name",
-        "class_fk__class_name",
-        "department__department_name",
-        "faculty__faculty_name",
         "base_amount",
-        "academic_year__academic_year",
     ]
     ordering_fields = [
         "base_amount",
@@ -113,6 +109,62 @@ class FeesSheetViewSet(BaseViewSet):
                 pass  # Ignorer si pas un nombre valide
 
         return queryset
+
+    @action(detail=False, methods=["get"], url_path="grouped-options")
+    def grouped_options(self, request):
+        """Retourne les options groupées (classes, départements, facultés) des FeesSheets"""
+        from core.response_handler import success_response
+
+        queryset = self.get_queryset()
+        classes = []
+        departments = []
+        faculties = []
+        seen_classes = set()
+        seen_departments = set()
+        seen_faculties = set()
+
+        for item in queryset:
+            # Classes
+            if item.class_fk and item.class_fk.id not in seen_classes:
+                classes.append(
+                    {
+                        "id": str(item.class_fk.id),
+                        "label": f"{item.class_fk.class_name} {item.class_fk.department.department_name if item.class_fk.department else ''}",
+                        "value": str(item.class_fk.id),
+                    }
+                )
+                seen_classes.add(item.class_fk.id)
+
+            # Départements
+            if item.department and item.department.id not in seen_departments:
+                departments.append(
+                    {
+                        "id": str(item.department.id),
+                        "label": item.department.department_name,
+                        "value": str(item.department.id),
+                    }
+                )
+                seen_departments.add(item.department.id)
+
+            # Facultés
+            if item.faculty and item.faculty.id not in seen_faculties:
+                faculties.append(
+                    {
+                        "id": str(item.faculty.id),
+                        "label": item.faculty.faculty_name,
+                        "value": str(item.faculty.id),
+                    }
+                )
+                seen_faculties.add(item.faculty.id)
+
+        return success_response(
+            data={
+                "classes": classes,
+                "departments": departments,
+                "faculties": faculties,
+            },
+            message="Options groupées récupérées avec succès",
+        )
 
 
 class PaymentInstallementViewSet(BaseViewSet):
