@@ -68,7 +68,7 @@ class FeesSheetViewSet(BaseViewSet):
     ).all()
     serializer_class = FeesSheetSerializer
     permission_classes = [IsFinanceService]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = [
         "class_fk",
         "department",
@@ -76,7 +76,43 @@ class FeesSheetViewSet(BaseViewSet):
         "academic_year",
         "wording",
     ]
-    ordering_fields = ["base_amount"]
+    search_fields = [
+        "wording__wording_name",
+        "class_fk__class_name",
+        "department__department_name",
+        "faculty__faculty_name",
+        "base_amount",
+        "academic_year__academic_year",
+    ]
+    ordering_fields = [
+        "base_amount",
+        "wording__wording_name",
+        "academic_year__academic_year",
+    ]
+
+    def get_queryset(self):
+        """Filtrage personnalisé pour FeesSheet"""
+        queryset = super().get_queryset()
+
+        # Filtrage par academic_year_id
+        academic_year_id = self.request.query_params.get("academic_year_id")
+        if academic_year_id:
+            queryset = queryset.filter(academic_year_id=academic_year_id)
+
+        # Filtrage par wording_name
+        wording_name = self.request.query_params.get("wording_name")
+        if wording_name:
+            queryset = queryset.filter(wording__wording_name__icontains=wording_name)
+
+        # Filtrage par base_amount
+        base_amount = self.request.query_params.get("base_amount")
+        if base_amount:
+            try:
+                queryset = queryset.filter(base_amount=int(base_amount))
+            except ValueError:
+                pass  # Ignorer si pas un nombre valide
+
+        return queryset
 
 
 class PaymentInstallementViewSet(BaseViewSet):
@@ -112,6 +148,10 @@ class PaymentInstallementViewSet(BaseViewSet):
         "student__matricule",
         "student__user__first_name",
         "student__user__last_name",
+        "amount",
+        "paid_amount",
+        "payment_plan__feessheet__wording__wording_name",
+        "status",
     ]
     ordering_fields = ["due_date", "amount"]
 
@@ -374,8 +414,16 @@ class PaymentReminderViewSet(BaseViewSet):
     queryset = PaymentReminder.objects.all()
     serializer_class = PaymentReminderSerializer
     permission_classes = [IsFinanceService]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ["student", "reminder_type", "status"]
+    search_fields = [
+        "student__matricule",
+        "student__user__first_name",
+        "student__user__last_name",
+        "reminder_type",
+        "amount_due",
+        "message",
+    ]
     ordering_fields = ["sent_at"]
 
 
@@ -392,8 +440,14 @@ class PaymentPlanViewSet(BaseViewSet):
     ).all()
     serializer_class = PaymentPlanSerializer
     permission_classes = [IsStudentOrFinanceService]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = ["feessheet", "status", "created_by"]
+    search_fields = [
+        "feessheet__wording__wording_name",
+        "description",
+        "total_amount",
+        "status",
+    ]
     ordering_fields = ["start_date", "total_amount"]
 
     def get_queryset(self):
@@ -464,7 +518,7 @@ class PaymentViewSet(BaseViewSet):
         "verified_by",
     ).all()
     serializer_class = PaymentSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_fields = [
         "paymentplan",
         "payment_method",
@@ -473,7 +527,16 @@ class PaymentViewSet(BaseViewSet):
         "inscription",
         "user",
     ]
-
+    search_fields = [
+        "inscription__student__matricule",
+        "inscription__student__user__first_name",
+        "inscription__student__user__last_name",
+        "amount_paid",
+        "transaction_code",
+        "payment_method",
+        "payment_status",
+        "description",
+    ]
     ordering_fields = ["payment_date", "amount_paid"]
 
     def get_permissions(self):
