@@ -158,11 +158,20 @@ class FeesSheetViewSet(BaseViewSet):
                 seen_faculties.add(item.faculty.id)
 
         return success_response(
-            data={
-                "classes": classes,
-                "departments": departments,
-                "faculties": faculties,
-            },
+            data=[
+                {
+                    "group": "Classes",
+                    "options": classes,
+                },
+                {
+                    "group": "Départements",
+                    "options": departments,
+                },
+                {
+                    "group": "Facultés",
+                    "options": faculties,
+                },
+            ],
             message="Options groupées récupérées avec succès",
         )
 
