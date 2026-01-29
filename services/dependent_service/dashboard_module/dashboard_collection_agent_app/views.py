@@ -670,6 +670,34 @@ class PaymentViewSet(BaseViewSet):
             status_code=status.HTTP_201_CREATED,
         )
 
+    def update(self, request, *args, **kwargs):
+        """Mise à jour complète (PUT) d'un paiement par ID"""
+        from core.response_handler import error_response, success_response
+
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=False)
+
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return success_response(
+                data=serializer.data, message="Paiement mis à jour avec succès"
+            )
+        return error_response(message="Erreur de validation", errors=serializer.errors)
+
+    def partial_update(self, request, *args, **kwargs):
+        """Mise à jour partielle (PATCH) d'un paiement par ID"""
+        from core.response_handler import error_response, success_response
+
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return success_response(
+                data=serializer.data, message="Paiement mis à jour avec succès"
+            )
+        return error_response(message="Erreur de validation", errors=serializer.errors)
+
 
 class CollectionCorrespondenceViewSet(BaseViewSet):
     queryset = CollectionCorrespondence.objects.all()
