@@ -30,7 +30,7 @@ class University(models.Model):
 class AcademicYear(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     academic_year = models.CharField(max_length=15)
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, null=True, blank=True)
     university = models.ForeignKey(
         University,
         on_delete=models.CASCADE,
