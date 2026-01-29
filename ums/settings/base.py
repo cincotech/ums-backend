@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     "services.dependent_service.dashboard_module.dashboard_doyen_app",
     "services.dependent_service.dashboard_module.dashboard_academic_app",
     "services.dependent_service.dashboard_module.dashboard_shared_app",
+    "services.foundational_service.auth_module.guest_app",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_totp",
