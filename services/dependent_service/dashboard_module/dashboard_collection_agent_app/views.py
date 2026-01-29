@@ -193,7 +193,7 @@ class FeesSheetViewSet(BaseViewSet):
                     "options": classes,
                 },
                 {
-                    "group": "Départements",
+                    "group": "Departements",
                     "options": departments,
                 },
                 {
