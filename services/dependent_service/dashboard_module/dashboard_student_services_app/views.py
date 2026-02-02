@@ -41,7 +41,7 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
         try:
             # Extract filters
             filters = {
-                "academic_year": request.query_params.get("academic_year"),
+                "academic_year": request.query_params.get("academic_year_id"),
                 "faculty": request.query_params.get("faculty"),
                 "department": request.query_params.get("department"),
                 "class_name": request.query_params.get("class_name"),
