@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
 from rest_framework import parsers
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -14,6 +13,17 @@ from core.permissions import (
 )
 from core.views import BaseViewSet
 
+from .filters import (
+    BankFilter,
+    CollectionCorrespondenceFilter,
+    FeesSheetFilter,
+    PaymentFilter,
+    PaymentInstallementFilter,
+    PaymentPlanFilter,
+    PaymentPromiseFilter,
+    PaymentReminderFilter,
+    WordingFilter,
+)
 from .models import (
     Bank,
     CollectionCorrespondence,
@@ -24,17 +34,6 @@ from .models import (
     PaymentPromise,
     PaymentReminder,
     Wording,
-)
-from .filters import (
-    BankFilter,
-    WordingFilter,
-    FeesSheetFilter,
-    PaymentInstallementFilter,
-    PaymentReminderFilter,
-    PaymentPlanFilter,
-    PaymentPromiseFilter,
-    PaymentFilter,
-    CollectionCorrespondenceFilter,
 )
 from .serializers import (
     BankSerializer,

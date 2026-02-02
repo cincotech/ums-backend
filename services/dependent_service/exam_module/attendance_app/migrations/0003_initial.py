@@ -9,14 +9,16 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('attendance_app', '0002_initial'),
-        ('exam_app', '0001_initial'),
+        ("attendance_app", "0002_initial"),
+        ("exam_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='examattendance',
-            name='examroom',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='exam_app.examroom'),
+            model_name="examattendance",
+            name="examroom",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT, to="exam_app.examroom"
+            ),
         ),
     ]

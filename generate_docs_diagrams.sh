@@ -51,18 +51,18 @@ generate_group_diagram() {
     local group_name=$1
     shift
     local apps=("$@")
-    
+
     DOT_FILE="$DOT_DIR/${group_name}.dot"
     PNG_FILE="$IMG_DIR/${group_name}.png"
-    
+
     echo "➡️ Generating group diagram for [$group_name] with apps: ${apps[*]}"
-    
+
     # Generate .dot for all apps in this group
     python manage.py graph_models "${apps[@]}" --dot -o "$DOT_FILE"
-    
+
     # Convert to PNG
     dot -Tpng "$DOT_FILE" -o "$PNG_FILE"
-    
+
     echo "✅ Diagram generated: $PNG_FILE"
 }
 

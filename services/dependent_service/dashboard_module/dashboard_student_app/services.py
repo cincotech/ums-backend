@@ -5,8 +5,11 @@ from services.core_service.student_module.inscription_app.models import Inscript
 from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
     FeesSheet,
     Payment,
-    PaymentPlan,
     PaymentInstallement,
+    PaymentPlan,
+)
+from services.dependent_service.dashboard_module.dashboard_doyen_app.services import (
+    ClassGroupManagementService,
 )
 from services.dependent_service.dashboard_module.dashboard_shared_app.models import (
     Message,
@@ -20,7 +23,7 @@ from services.dependent_service.exam_module.result_app.models import (
 from services.dependent_service.scheduling_module.scheduling_app.models import (
     Attendance,
 )
-from services.dependent_service.dashboard_module.dashboard_doyen_app.services import ClassGroupManagementService
+
 
 class StudentDashboardService:
 
@@ -40,9 +43,7 @@ class StudentDashboardService:
         current_gpa = results.aggregate(avg=Avg("mark"))["avg"] or 0.0
 
         # Calculate attendance rate
-        total_attendance = Attendance.objects.filter(
-            student=student
-        ).count()
+        total_attendance = Attendance.objects.filter(student=student).count()
         present_count = Attendance.objects.filter(
             student=student, status__in=["present", "justified"]
         ).count()
@@ -52,7 +53,7 @@ class StudentDashboardService:
 
         # Get payment information
         payment_info = StudentDashboardService._get_payment_info(student)
-        
+
         # Credits earned (simplified)
         credits_earned = (
             CompiledResult.objects.filter(
@@ -199,72 +200,90 @@ class StudentDashboardService:
     @staticmethod
     def get_student_schedule(student):
         """Get student class schedule: current day and full week"""
-        from services.dependent_service.scheduling_module.scheduling_app.models import Timetable, TimetableMerge
         from django.db.models import Q
         from django.utils import timezone
 
-        inscription = Inscription.objects.filter(
-            student=student, regist_status="Active"
-        ).select_related('class_fk', 'academic_year').first()
+        from services.dependent_service.scheduling_module.scheduling_app.models import (
+            Timetable,
+        )
+
+        inscription = (
+            Inscription.objects.filter(student=student, regist_status="Active")
+            .select_related("class_fk", "academic_year")
+            .first()
+        )
 
         if not inscription:
-            return {'day_of_week': None, 'merge': []}
+            return {"day_of_week": None, "merge": []}
 
         if not inscription.class_group:
             default_group = ClassGroupManagementService.get_or_create_default_group(
-                class_fk=inscription.class_fk,
-                academic_year=inscription.academic_year
+                class_fk=inscription.class_fk, academic_year=inscription.academic_year
             )
             inscription.class_group = default_group
-            inscription.save(update_fields=['class_group'])
+            inscription.save(update_fields=["class_group"])
 
         today = timezone.now().date()
-        current_day = today.strftime('%A')
-        days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        
+        current_day = today.strftime("%A")
+        days_order = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ]
+
         # Get current day timetable
-        current_timetable = Timetable.objects.filter(
-            Q(class_group=inscription.class_group) | Q(shared_with=inscription.class_group),
-            start_date__lte=today,
-            end_date__gte=today,
-            slots__day_of_week=current_day
-        ).select_related(
-            'class_group',
-            'attribution',
-            'attribution__course',
-            'attribution__principal_teacher',
-            'attribution__principal_teacher__user',
-            'room'
-        ).prefetch_related('slots', 'shared_with').first()
-        
+        current_timetable = (
+            Timetable.objects.filter(
+                Q(class_group=inscription.class_group)
+                | Q(shared_with=inscription.class_group),
+                start_date__lte=today,
+                end_date__gte=today,
+                slots__day_of_week=current_day,
+            )
+            .select_related(
+                "class_group",
+                "attribution",
+                "attribution__course",
+                "attribution__principal_teacher",
+                "attribution__principal_teacher__user",
+                "room",
+            )
+            .prefetch_related("slots", "shared_with")
+            .first()
+        )
+
         # Get full week schedule
         week_schedule = []
         for day in days_order:
-            timetables = Timetable.objects.filter(
-                Q(class_group=inscription.class_group) | Q(shared_with=inscription.class_group),
-                start_date__lte=today,
-                end_date__gte=today,
-                slots__day_of_week=day
-            ).select_related(
-                'class_group',
-                'attribution',
-                'attribution__course',
-                'attribution__principal_teacher',
-                'attribution__principal_teacher__user',
-                'room'
-            ).prefetch_related('slots', 'shared_with')
-            
-            if timetables.exists():
-                week_schedule.append({
-                    'day_of_week': day,
-                    'timetables': list(timetables)
-                })
-        
-        return {
-            'day_of_week': current_timetable,
-            'merge': week_schedule
-        }
+            timetables = (
+                Timetable.objects.filter(
+                    Q(class_group=inscription.class_group)
+                    | Q(shared_with=inscription.class_group),
+                    start_date__lte=today,
+                    end_date__gte=today,
+                    slots__day_of_week=day,
+                )
+                .select_related(
+                    "class_group",
+                    "attribution",
+                    "attribution__course",
+                    "attribution__principal_teacher",
+                    "attribution__principal_teacher__user",
+                    "room",
+                )
+                .prefetch_related("slots", "shared_with")
+            )
 
+            if timetables.exists():
+                week_schedule.append(
+                    {"day_of_week": day, "timetables": list(timetables)}
+                )
+
+        return {"day_of_week": current_timetable, "merge": week_schedule}
 
     @staticmethod
     def get_student_attendance(student):
@@ -354,13 +373,19 @@ class StudentDashboardService:
     def _get_fees_sheets_for_inscription(inscription):
         """Get applicable fees sheets for inscription (class -> department -> faculty)"""
         from django.db.models import Q
-        
+
         fees_sheets = FeesSheet.objects.filter(
-            Q(class_fk=inscription.class_fk, academic_year=inscription.academic_year) |
-            Q(department=inscription.class_fk.department, academic_year=inscription.academic_year) |
-            Q(faculty=inscription.class_fk.department.faculty, academic_year=inscription.academic_year)
-        ).order_by('class_fk', 'department', 'faculty') 
-        
+            Q(class_fk=inscription.class_fk, academic_year=inscription.academic_year)
+            | Q(
+                department=inscription.class_fk.department,
+                academic_year=inscription.academic_year,
+            )
+            | Q(
+                faculty=inscription.class_fk.department.faculty,
+                academic_year=inscription.academic_year,
+            )
+        ).order_by("class_fk", "department", "faculty")
+
         return fees_sheets
 
     @staticmethod
@@ -385,42 +410,42 @@ class StudentDashboardService:
             return False
 
         # Get fees sheets for current inscription
-        fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(active_inscription)
-        
+        fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(
+            active_inscription
+        )
+
         if not fees_sheets.exists():
             return True
 
         # Check payment status for all applicable fees sheets
         today = timezone.now().date()
-        
+
         for fees_sheet in fees_sheets:
             # Get payment plans for this fees sheet
             payment_plans = PaymentPlan.objects.filter(feessheet=fees_sheet)
-            
+
             if payment_plans.exists():
                 # Check installments for each payment plan
                 for payment_plan in payment_plans:
                     due_installments = PaymentInstallement.objects.filter(
-                        payment_plan=payment_plan,
-                        student=student,
-                        due_date__lte=today
+                        payment_plan=payment_plan, student=student, due_date__lte=today
                     )
-                    
-                    required_amount = due_installments.aggregate(
-                        total=Sum("amount")
-                    )["total"] or 0
-                    
+
+                    required_amount = (
+                        due_installments.aggregate(total=Sum("amount"))["total"] or 0
+                    )
+
                     if required_amount > 0:
                         # Get total verified payments for this inscription
                         total_paid = (
                             Payment.objects.filter(
-                                inscription=active_inscription, 
+                                inscription=active_inscription,
                                 payment_status="verified",
-                                paymentplan=payment_plan
+                                paymentplan=payment_plan,
                             ).aggregate(total=Sum("amount_paid"))["total"]
                             or 0
                         )
-                        
+
                         if total_paid < required_amount:
                             return False
             else:
@@ -431,7 +456,7 @@ class StudentDashboardService:
                     ).aggregate(total=Sum("amount_paid"))["total"]
                     or 0
                 )
-                
+
                 if total_paid < fees_sheet.base_amount:
                     return False
 
@@ -460,27 +485,26 @@ class StudentDashboardService:
 
         # Get total amount required from fees sheets
         total_amount = 0
-        
-        fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(active_inscription)
+
+        fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(
+            active_inscription
+        )
         print(fees_sheets)
         for fees_sheet in fees_sheets:
             # Try to get from payment plans first
             payment_plans = PaymentPlan.objects.filter(feessheet=fees_sheet)
-            
+
             if payment_plans.exists():
                 # Sum all payment plan amounts
-                plan_total = payment_plans.aggregate(
-                    total=Sum("total_amount")
-                )["total"] or 0
+                plan_total = (
+                    payment_plans.aggregate(total=Sum("total_amount"))["total"] or 0
+                )
                 total_amount += float(plan_total)
             else:
                 # Fall back to fees sheet base amount
                 total_amount += float(fees_sheet.base_amount)
 
-        return {
-            "amount_paid": float(amount_paid),
-            "total_amount": total_amount
-        }
+        return {"amount_paid": float(amount_paid), "total_amount": total_amount}
 
     @staticmethod
     def _get_payment_status(student):
@@ -602,51 +626,47 @@ class StudentDashboardService:
     def get_student_payments(student):
         """Get student payment history with installments"""
         from services.dependent_service.dashboard_module.dashboard_collection_agent_app.serializers import (
-            PaymentSerializer,
             PaymentInstallementSerializer,
+            PaymentSerializer,
         )
-        
+
         # Get student's active inscription
         inscription = Inscription.objects.filter(
             student=student, regist_status="Active"
         ).first()
 
         if not inscription:
-            return {
-                "payments": [],
-                "installments": []
-            }
+            return {"payments": [], "installments": []}
 
         # Get payments
         payments = Payment.objects.filter(inscription=inscription).order_by(
             "-payment_date"
         )
-        
+
         # Get payment plan and installments
         installments = []
         try:
-            fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(inscription)
-            
+            fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(
+                inscription
+            )
+
             for fees_sheet in fees_sheets:
                 payment_plans = PaymentPlan.objects.filter(feessheet=fees_sheet)
                 for payment_plan in payment_plans:
                     plan_installments = PaymentInstallement.objects.filter(
-                        payment_plan=payment_plan,
-                        student=student
+                        payment_plan=payment_plan, student=student
                     )
                     installments.extend(plan_installments)
-                    
+
         except Exception:
             # Fallback to get all installments for student
-            installments = PaymentInstallement.objects.filter(
-                student=student
-            )
-            
+            installments = PaymentInstallement.objects.filter(student=student)
+
         installments = sorted(installments, key=lambda x: x.due_date)
 
         return {
             "payments": PaymentSerializer(payments, many=True).data,
-            "installments": PaymentInstallementSerializer(installments, many=True).data
+            "installments": PaymentInstallementSerializer(installments, many=True).data,
         }
 
     @staticmethod

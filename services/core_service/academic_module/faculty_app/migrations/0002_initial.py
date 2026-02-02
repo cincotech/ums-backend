@@ -9,19 +9,29 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('faculty_app', '0001_initial'),
-        ('university_app', '0001_initial'),
+        ("faculty_app", "0001_initial"),
+        ("university_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='faculty',
-            name='university',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, related_name='faculties', to='university_app.university'),
+            model_name="faculty",
+            name="university",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="faculties",
+                to="university_app.university",
+            ),
         ),
         migrations.AddField(
-            model_name='faculty',
-            name='types',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='typeformation', to='faculty_app.typeformation'),
+            model_name="faculty",
+            name="types",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="typeformation",
+                to="faculty_app.typeformation",
+            ),
         ),
     ]

@@ -10,59 +10,83 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('class_app', '0003_initial'),
-        ('room_app', '0001_initial'),
-        ('scheduling_app', '0003_initial'),
+        ("class_app", "0003_initial"),
+        ("room_app", "0001_initial"),
+        ("scheduling_app", "0003_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='timetable',
-            name='created_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='created_timetables', to=settings.AUTH_USER_MODEL),
+            model_name="timetable",
+            name="created_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="created_timetables",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='timetable',
-            name='room',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='room_app.room'),
+            model_name="timetable",
+            name="room",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT, to="room_app.room"
+            ),
         ),
         migrations.AddField(
-            model_name='timetable',
-            name='shared_with',
-            field=models.ManyToManyField(blank=True, related_name='shared_timetables', to='class_app.classgroup'),
+            model_name="timetable",
+            name="shared_with",
+            field=models.ManyToManyField(
+                blank=True, related_name="shared_timetables", to="class_app.classgroup"
+            ),
         ),
         migrations.AddField(
-            model_name='timetable',
-            name='slots',
-            field=models.ManyToManyField(to='scheduling_app.scheduleslot'),
+            model_name="timetable",
+            name="slots",
+            field=models.ManyToManyField(to="scheduling_app.scheduleslot"),
         ),
         migrations.AddField(
-            model_name='attendance',
-            name='timetable',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='attendances', to='scheduling_app.timetable'),
+            model_name="attendance",
+            name="timetable",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="attendances",
+                to="scheduling_app.timetable",
+            ),
         ),
         migrations.AddField(
-            model_name='activityreport',
-            name='timetable',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='activity_reports', to='scheduling_app.timetable'),
+            model_name="activityreport",
+            name="timetable",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="activity_reports",
+                to="scheduling_app.timetable",
+            ),
         ),
         migrations.AddField(
-            model_name='timetablemerge',
-            name='created_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_timetable_merges', to=settings.AUTH_USER_MODEL),
+            model_name="timetablemerge",
+            name="created_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="created_timetable_merges",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='timetablemerge',
-            name='timetables',
-            field=models.ManyToManyField(related_name='timetable_merges', to='scheduling_app.timetable'),
+            model_name="timetablemerge",
+            name="timetables",
+            field=models.ManyToManyField(
+                related_name="timetable_merges", to="scheduling_app.timetable"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='timetable',
-            unique_together={('class_group', 'room', 'start_date', 'end_date')},
+            name="timetable",
+            unique_together={("class_group", "room", "start_date", "end_date")},
         ),
         migrations.AlterUniqueTogether(
-            name='attendance',
-            unique_together={('timetable', 'student')},
+            name="attendance",
+            unique_together={("timetable", "student")},
         ),
     ]

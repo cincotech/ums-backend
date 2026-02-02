@@ -1,7 +1,4 @@
 # Create your views here.
-from django.db.models import Q
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework import permissions
 
 from core.views import BaseViewSet
@@ -11,7 +8,6 @@ from services.core_service.student_module.card_app.models import (
 )
 
 from .serializers import StudentCardLogSerializer, StudentCardSerializer
-from .filters import StudentCardFilter
 
 
 class StudentCardViewSet(BaseViewSet):

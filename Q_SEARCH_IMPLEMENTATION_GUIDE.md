@@ -21,8 +21,8 @@ class UserViewSet(BaseViewSet):
 
 **Behind the scenes, SearchFilter creates:**
 ```python
-Q(email__icontains=search) | 
-Q(first_name__icontains=search) | 
+Q(email__icontains=search) |
+Q(first_name__icontains=search) |
 Q(last_name__icontains=search)
 ```
 
@@ -39,7 +39,7 @@ search_fields = ['email', 'first_name', 'last_name', 'phone_number', 'role__name
 # Usage: GET /api/users/?search=john
 # Searches: email OR first_name OR last_name OR phone_number OR role name
 
-# NotificationViewSet  
+# NotificationViewSet
 search_fields = ['title', 'message', 'notification_type']
 # Usage: GET /api/notifications/?search=payment
 # Searches: title OR message OR notification_type

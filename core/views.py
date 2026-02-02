@@ -1,28 +1,59 @@
 import logging
 
 from rest_framework import status, viewsets
-from rest_framework.views import APIView
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
+from core.health_check import HealthCheckService
 from core.pagination import StandardResultsSetPagination
 from core.response_handler import error_response, success_response, validate_serializer
 
 logger = logging.getLogger("core")
 
 
-class HelloView(APIView):
-    def get(self, request):
-        logger.debug("Debug info for developers")
-        logger.info("User logged in successfully")
-        logger.warning("Low disk space")
-        logger.error("Payment process failed")
-        logger.critical("Database connection lost!")
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Health check endpoint for monitoring system status
+    Returns overall system health including database and cache status
+    """
+    health_data = HealthCheckService.perform_health_check()
 
-        try:
-            data = {"message": 10 / 0}
-            return success_response(data=data)
-        except Exception as e:
-            logger.error("An error occurred", exc_info=True)
-            return error_response(message="Something went wrong", errors=str(e))
+    http_status = (
+        status.HTTP_200_OK
+        if health_data["status"] == "healthy"
+        else status.HTTP_503_SERVICE_UNAVAILABLE
+    )
+
+    return Response(health_data, status=http_status)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def readiness_check(request):
+    """
+    Readiness check endpoint - checks if service is ready to accept traffic
+    """
+    db_status = HealthCheckService.check_database()
+
+    if db_status["status"] == "healthy":
+        return Response({"status": "ready"}, status=status.HTTP_200_OK)
+
+    return Response(
+        {"status": "not_ready", "reason": db_status["message"]},
+        status=status.HTTP_503_SERVICE_UNAVAILABLE,
+    )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def liveness_check(request):
+    """
+    Liveness check endpoint - checks if service is alive
+    """
+    return Response({"status": "alive"}, status=status.HTTP_200_OK)
 
 
 class BaseViewSet(viewsets.ModelViewSet):

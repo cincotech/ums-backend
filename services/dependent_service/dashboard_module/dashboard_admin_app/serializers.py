@@ -195,6 +195,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     faculty_abreviation = serializers.CharField(
         source="faculty.faculty_abreviation", read_only=True
     )
+
     class Meta:
         model = Profile
         fields = ["id", "position", "start_date", "end_date", "faculty_abreviation"]
@@ -326,7 +327,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["id", "user_email", "position", "start_date", "end_date", "faculty_abreviation"]
+        fields = [
+            "id",
+            "user_email",
+            "position",
+            "start_date",
+            "end_date",
+            "faculty_abreviation",
+        ]
         read_only_fields = ["id"]
 
 
@@ -342,7 +350,15 @@ class RoleProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["id", "position", "start_date", "end_date", "room_id", "room_name", "faculty_abreviation"]
+        fields = [
+            "id",
+            "position",
+            "start_date",
+            "end_date",
+            "room_id",
+            "room_name",
+            "faculty_abreviation",
+        ]
         read_only_fields = ["id"]
 
 
@@ -422,7 +438,7 @@ class CreateUserWithProfileSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True, min_length=8)
 
-    role_id = serializers.UUIDField()   # 🔥 UUID instead of name
+    role_id = serializers.UUIDField()  # 🔥 UUID instead of name
 
     position = serializers.CharField(max_length=100)
     start_date = serializers.DateField()

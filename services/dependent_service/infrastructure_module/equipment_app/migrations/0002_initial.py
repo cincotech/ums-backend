@@ -10,35 +10,52 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('equipment_app', '0001_initial'),
-        ('room_app', '0001_initial'),
+        ("equipment_app", "0001_initial"),
+        ("room_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='equipmentallocation',
-            name='allocated_to',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to=settings.AUTH_USER_MODEL),
+            model_name="equipmentallocation",
+            name="allocated_to",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='equipmentallocation',
-            name='equipment',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='equipment_app.equipment'),
+            model_name="equipmentallocation",
+            name="equipment",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="equipment_app.equipment",
+            ),
         ),
         migrations.AddField(
-            model_name='equipmentallocation',
-            name='room',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='room_app.room'),
+            model_name="equipmentallocation",
+            name="room",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT, to="room_app.room"
+            ),
         ),
         migrations.AddField(
-            model_name='equipmentmaintenance',
-            name='equipment',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='maintenances', to='equipment_app.equipment'),
+            model_name="equipmentmaintenance",
+            name="equipment",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="maintenances",
+                to="equipment_app.equipment",
+            ),
         ),
         migrations.AddField(
-            model_name='equipment',
-            name='equipment_type',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='equipment_app.equipmenttype'),
+            model_name="equipment",
+            name="equipment_type",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="equipment_app.equipmenttype",
+            ),
         ),
     ]

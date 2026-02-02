@@ -10,71 +10,112 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('department_app', '0002_initial'),
-        ('highschool_info_app', '0001_initial'),
-        ('student_profile_app', '0001_initial'),
-        ('university_app', '0001_initial'),
+        ("department_app", "0002_initial"),
+        ("highschool_info_app", "0001_initial"),
+        ("student_profile_app", "0001_initial"),
+        ("university_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='student',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.RESTRICT, related_name='students_users', to=settings.AUTH_USER_MODEL),
+            model_name="student",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="students_users",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='studentfile',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='files', to='student_profile_app.student'),
+            model_name="studentfile",
+            name="student",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="files",
+                to="student_profile_app.student",
+            ),
         ),
         migrations.AddField(
-            model_name='studentfile',
-            name='verified_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_student_files', to=settings.AUTH_USER_MODEL),
+            model_name="studentfile",
+            name="verified_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="verified_student_files",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='studentgraduateinfo',
-            name='degree',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='university_app.universitydegree'),
+            model_name="studentgraduateinfo",
+            name="degree",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="university_app.universitydegree",
+            ),
         ),
         migrations.AddField(
-            model_name='studentgraduateinfo',
-            name='department',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='department_app.department'),
+            model_name="studentgraduateinfo",
+            name="department",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="department_app.department",
+            ),
         ),
         migrations.AddField(
-            model_name='studentgraduateinfo',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='graduate_infos', to='student_profile_app.student'),
+            model_name="studentgraduateinfo",
+            name="student",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="graduate_infos",
+                to="student_profile_app.student",
+            ),
         ),
         migrations.AddField(
-            model_name='studenthsinfo',
-            name='certificate',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='highschool_info_app.certificate'),
+            model_name="studenthsinfo",
+            name="certificate",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="highschool_info_app.certificate",
+            ),
         ),
         migrations.AddField(
-            model_name='studenthsinfo',
-            name='highschool',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='highschool_info_app.highschool'),
+            model_name="studenthsinfo",
+            name="highschool",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="highschool_info_app.highschool",
+            ),
         ),
         migrations.AddField(
-            model_name='studenthsinfo',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='hs_infos', to='student_profile_app.student'),
+            model_name="studenthsinfo",
+            name="student",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="hs_infos",
+                to="student_profile_app.student",
+            ),
         ),
         migrations.AddField(
-            model_name='training',
-            name='training_center',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to='highschool_info_app.trainingcenter'),
+            model_name="training",
+            name="training_center",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="highschool_info_app.trainingcenter",
+            ),
         ),
         migrations.AddField(
-            model_name='studenthsinfo',
-            name='formation',
-            field=models.ManyToManyField(related_name='formations', to='student_profile_app.training'),
+            model_name="studenthsinfo",
+            name="formation",
+            field=models.ManyToManyField(
+                related_name="formations", to="student_profile_app.training"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='studentfile',
-            unique_together={('student', 'file_type')},
+            name="studentfile",
+            unique_together={("student", "file_type")},
         ),
     ]

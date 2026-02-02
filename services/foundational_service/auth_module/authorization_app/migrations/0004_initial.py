@@ -10,19 +10,27 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('authorization_app', '0003_initial'),
+        ("authorization_app", "0003_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='profile',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='profiles', to=settings.AUTH_USER_MODEL),
+            model_name="profile",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="profiles",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='supervisor',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.RESTRICT, related_name='supervisor', to=settings.AUTH_USER_MODEL),
+            model_name="supervisor",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="supervisor",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

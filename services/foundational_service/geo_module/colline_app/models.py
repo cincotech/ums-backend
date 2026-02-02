@@ -12,6 +12,7 @@ class Colline(models.Model):
 
     class Meta:
         db_table = "collines"
+
     def __str__(self):
         """Retourne le nom lisible de la colline."""
         return self.colline_name

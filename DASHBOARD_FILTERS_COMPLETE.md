@@ -86,11 +86,11 @@ from .models import *
 
 class ModelNameFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method='filter_search')
-    
+
     class Meta:
         model = ModelName
         fields = []
-    
+
     def filter_search(self, queryset, name, value):
         return queryset.filter(
             Q(field1__icontains=value) |

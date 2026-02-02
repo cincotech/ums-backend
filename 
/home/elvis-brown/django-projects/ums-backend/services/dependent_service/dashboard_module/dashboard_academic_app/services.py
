@@ -15,15 +15,15 @@ class AcademicDashboardService:
     def get_attribution_stats(academic_year_id=None):
         """
         Obtenir les statistiques des attributions.
-        
+
         Args:
             academic_year_id: Filtrer par année académique (optionnel)
-            
+
         Returns:
             Dict avec total, pending, approved, rejected
         """
         queryset = Attribution.objects.all()
-        
+
         if academic_year_id:
             queryset = queryset.filter(academic_year_id=academic_year_id)
 
@@ -43,10 +43,10 @@ class AcademicDashboardService:
     def get_suggestion_stats(academic_year_id=None):
         """
         Obtenir les statistiques des suggestions.
-        
+
         Args:
             academic_year_id: Filtrer par année académique (optionnel)
-            
+
         Returns:
             Dict avec total et pending
         """
@@ -72,10 +72,10 @@ class AcademicDashboardService:
     def get_academic_overview(academic_year_id=None):
         """
         Obtenir la vue d'ensemble académique complète.
-        
+
         Args:
             academic_year_id: Filtrer par année académique (optionnel)
-            
+
         Returns:
             Dict avec toutes les statistiques
         """
@@ -111,15 +111,15 @@ class AcademicDashboardService:
     def get_visiting_professors(academic_year_id=None, request=None):
         """
         Obtenir les données des professeurs visiteurs.
-        
+
         Un professeur visiteur est identifié par:
         - Université différente de l'université par défaut
         - Ou absence d'université associée
-        
+
         Args:
             academic_year_id: Filtrer par année académique (optionnel)
             request: Request Django pour permissions (optionnel)
-            
+
         Returns:
             Liste des professeurs visiteurs avec leurs attributions
         """
@@ -169,11 +169,11 @@ class AcademicDashboardService:
     def get_attributions_by_teacher(academic_year_id=None, limit=10):
         """
         Obtenir les attributions groupées par enseignant.
-        
+
         Args:
             academic_year_id: Filtrer par année académique (optionnel)
             limit: Nombre maximum d'enseignants à retourner
-            
+
         Returns:
             Liste des enseignants avec leur nombre d'attributions
         """
@@ -205,11 +205,11 @@ class AcademicDashboardService:
     def get_attributions_by_course(academic_year_id=None, limit=10):
         """
         Obtenir les attributions groupées par cours.
-        
+
         Args:
             academic_year_id: Filtrer par année académique (optionnel)
             limit: Nombre maximum de cours à retourner
-            
+
         Returns:
             Liste des cours avec leur nombre d'attributions
         """
@@ -240,11 +240,11 @@ class AcademicDashboardService:
     def get_academic_performance_report(academic_year_id=None, format="summary"):
         """
         Générer un rapport de performance académique.
-        
+
         Args:
             academic_year_id: Filtrer par année académique (optionnel)
             format: 'summary' ou 'detailed'
-            
+
         Returns:
             Rapport de performance
         """
@@ -288,11 +288,11 @@ class AcademicDashboardService:
     def get_pending_attributions(academic_year_id=None, limit=50):
         """
         Obtenir les attributions en attente de validation.
-        
+
         Args:
             academic_year_id: Filtrer par année académique (optionnel)
             limit: Nombre maximum d'attributions à retourner
-            
+
         Returns:
             Liste des attributions en attente
         """
@@ -324,11 +324,11 @@ class AcademicDashboardService:
     def get_recent_validations(days=7, limit=10):
         """
         Obtenir les validations récentes.
-        
+
         Args:
             days: Nombre de jours à regarder en arrière
             limit: Nombre maximum de validations à retourner
-            
+
         Returns:
             Liste des validations récentes
         """
@@ -350,4 +350,3 @@ class AcademicDashboardService:
                 "course__course_name",
             )
         )
-

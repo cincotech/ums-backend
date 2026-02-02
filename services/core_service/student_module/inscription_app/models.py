@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils import timezone
 
-from services.core_service.academic_module.class_app.models import Class,ClassGroup
+from services.core_service.academic_module.class_app.models import Class, ClassGroup
 from services.core_service.academic_module.university_app.models import AcademicYear
 from services.core_service.student_module.student_profile_app.models import Student
 
@@ -50,9 +50,7 @@ class Inscription(models.Model):
     class Meta:
         db_table = "inscriptions"
         unique_together = ("student", "academic_year", "class_fk")
-        indexes = [
-            models.Index(fields=['student','academic_year','class_fk'])
-        ]
+        indexes = [models.Index(fields=["student", "academic_year", "class_fk"])]
 
     def __str__(self):
         return f"{self.student} - {self.class_fk} ({self.regist_status})"

@@ -44,4 +44,3 @@ urlpatterns = [
         name="academic-performance-report",
     ),
 ]
-

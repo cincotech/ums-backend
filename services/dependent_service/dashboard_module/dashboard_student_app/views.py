@@ -1,6 +1,3 @@
-from django.db.models import Q
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -28,11 +25,9 @@ from .serializers import (
     StudentOfficialDocumentSerializer,
     StudentPaymentInfoSerializer,
     StudentProfileSerializer,
-    StudentScheduleSerializer,
-    StudentTranscriptSerializer,
     StudentTimetableMergeSerializer,
     StudentTimetableSerializer,
-    
+    StudentTranscriptSerializer,
 )
 from .services import StudentDashboardService
 
@@ -163,22 +158,25 @@ def student_schedule(request):
     try:
         student = request.user.students_users
         schedule_data = StudentDashboardService.get_student_schedule(student)
-        
+
         response_data = {}
-        
-        if schedule_data['day_of_week']:
-            response_data['day_of_week'] = StudentTimetableSerializer(schedule_data['day_of_week']).data
+
+        if schedule_data["day_of_week"]:
+            response_data["day_of_week"] = StudentTimetableSerializer(
+                schedule_data["day_of_week"]
+            ).data
         else:
-            response_data['day_of_week'] = None
-            
-        if schedule_data['merge']:
-            response_data['merge'] = StudentTimetableMergeSerializer(schedule_data['merge'], many=True).data
+            response_data["day_of_week"] = None
+
+        if schedule_data["merge"]:
+            response_data["merge"] = StudentTimetableMergeSerializer(
+                schedule_data["merge"], many=True
+            ).data
         else:
-            response_data['merge'] = []
-        
+            response_data["merge"] = []
+
         return success_response(
-            data=response_data,
-            message="Student schedule retrieved"
+            data=response_data, message="Student schedule retrieved"
         )
     except Exception as e:
         return error_response(
@@ -424,9 +422,11 @@ def student_payments(request):
     try:
         student = request.user.students_users
         payment_data = StudentDashboardService.get_student_payments(student)
-        
+
         serializer = StudentPaymentInfoSerializer(payment_data)
-        return success_response(data=serializer.data, message="Payment information retrieved")
+        return success_response(
+            data=serializer.data, message="Payment information retrieved"
+        )
     except Exception as e:
         return error_response(
             message=f"Error: {str(e)}",

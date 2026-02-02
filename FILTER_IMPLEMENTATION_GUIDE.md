@@ -19,17 +19,17 @@ from .models import ModelName
 class ModelNameFilter(django_filters.FilterSet):
     # Exact filters (UUID, Boolean, Date, etc.)
     field_name = django_filters.UUIDFilter(field_name='field_name')
-    
+
     # Search filters (icontains for individual fields)
     field_name = django_filters.CharFilter(field_name='field_name', lookup_expr='icontains')
-    
+
     # Q-based multi-field search
     search = django_filters.CharFilter(method='filter_search')
-    
+
     class Meta:
         model = ModelName
         fields = ['exact_filter_fields']
-    
+
     def filter_search(self, queryset, name, value):
         return queryset.filter(
             Q(field1__icontains=value) |
@@ -58,7 +58,7 @@ class ModelNameViewSet(BaseViewSet):
 1. **inscription_app** ✅
    - InscriptionFilter with academic year filtering
    - Search: student name, matricule, class name, status
-   
+
 2. **student_profile_app** ✅
    - StudentFilter
    - Search: first name, last name, email, matricule

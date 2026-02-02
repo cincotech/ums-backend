@@ -22,7 +22,9 @@ from services.dependent_service.dashboard_module.dashboard_doyen_app.course_mana
 from services.dependent_service.dashboard_module.dashboard_doyen_app.views import (
     BaseViewSet,
 )
+
 from .utils import get_faculty_for_request
+
 
 class CourseViewSet(BaseViewSet):
     queryset = Course.objects.all()

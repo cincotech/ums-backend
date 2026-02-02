@@ -204,4 +204,3 @@ class VisitingProfessorSerializer(serializers.Serializer):
     university = serializers.CharField()
     attributions_count = serializers.IntegerField()
     attributions = AttributionSerializer(many=True)
-

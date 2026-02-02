@@ -10,29 +10,46 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('dashboard_recteur_app', '0001_initial'),
+        ("dashboard_recteur_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='paymentderogation',
-            name='rector_decision_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='rector_derogations', to=settings.AUTH_USER_MODEL),
+            model_name="paymentderogation",
+            name="rector_decision_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="rector_derogations",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='paymentderogation',
-            name='requested_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='derogation_requests', to=settings.AUTH_USER_MODEL),
+            model_name="paymentderogation",
+            name="requested_by",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="derogation_requests",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='paymentderogation',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='derogations', to=settings.AUTH_USER_MODEL),
+            model_name="paymentderogation",
+            name="student",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="derogations",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='visitorcourseattribution',
-            name='professor',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="visitorcourseattribution",
+            name="professor",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

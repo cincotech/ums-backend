@@ -171,7 +171,9 @@ class UniversityUserManagementService:
     """Service for managing users within a university"""
 
     @staticmethod
-    def create_user(email, first_name, last_name, password, university=None, role_id=None):
+    def create_user(
+        email, first_name, last_name, password, university=None, role_id=None
+    ):
         """Create new user"""
         if User.objects.filter(email=email).exists():
             raise ValueError(f"User with email {email} already exists")
@@ -198,22 +200,22 @@ class UniversityUserManagementService:
     @staticmethod
     def get_all_users():
         """Get all users"""
-        return User.objects.all().select_related('role')
+        return User.objects.all().select_related("role")
 
     @staticmethod
     def get_students(academic_year_id=None):
         """Get all student users with optional academic year filter"""
-        student_role = Role.objects.filter(name='student').first()
+        student_role = Role.objects.filter(name="student").first()
         if not student_role:
             return User.objects.none()
-        
+
         queryset = User.objects.filter(role=student_role)
-        
+
         if academic_year_id:
             queryset = queryset.filter(
                 student__inscription__academic_year_id=academic_year_id
             ).distinct()
-        
+
         return queryset
 
     @staticmethod
@@ -350,7 +352,9 @@ class RoleProfileService:
     @staticmethod
     def create_profile_for_user(user, role_id, profile_data):
         """Create role-specific profile for user"""
-        profile, created = Profile.objects.get_or_create(user=user,defaults={"start_date": profile_data.get("start_date")})
+        profile, created = Profile.objects.get_or_create(
+            user=user, defaults={"start_date": profile_data.get("start_date")}
+        )
 
         role_name_lower = role_id.lower().replace(" ", "_")
         # Set common fields
