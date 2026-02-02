@@ -59,4 +59,4 @@ class ClassGroup(models.Model):
         )
 
     def __str__(self):
-        return f"{self.group_name} ({self.class_fk.class_name} - {self.academic_year})"
+        return f"{self.group_name} ({self.class_fk.class_name} {self.class_fk.department.faculty} - {self.academic_year})"

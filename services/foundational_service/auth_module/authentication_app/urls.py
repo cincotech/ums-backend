@@ -70,5 +70,6 @@ urlpatterns = [
         "hr/",
         include("services.foundational_service.auth_module.authorization_app.urls"),
     ),
+    path("guest/", include("services.foundational_service.auth_module.guest_app.urls")),
     path("logout/", views.LogoutAPIView.as_view(), name="logout"),
 ]

@@ -50,13 +50,9 @@ class StudentDashboardService:
             (present_count / total_attendance * 100) if total_attendance > 0 else 0
         )
 
-        # Check payment status using payment plans
-        payment_status = (
-            "paid"
-            if StudentDashboardService._check_payment_status(student)
-            else "pending"
-        )
-
+        # Get payment information
+        payment_info = StudentDashboardService._get_payment_info(student)
+        
         # Credits earned (simplified)
         credits_earned = (
             CompiledResult.objects.filter(
@@ -70,7 +66,8 @@ class StudentDashboardService:
             "pending_documents": pending_documents,
             "current_gpa": round(current_gpa, 2),
             "attendance_rate": round(attendance_rate, 2),
-            "payment_status": payment_status,
+            "amount_paid": payment_info["amount_paid"],
+            "total_amount": payment_info["total_amount"],
             "credits_earned": credits_earned,
         }
 
@@ -331,6 +328,19 @@ class StudentDashboardService:
         return notification
 
     @staticmethod
+    def _get_fees_sheets_for_inscription(inscription):
+        """Get applicable fees sheets for inscription (class -> department -> faculty)"""
+        from django.db.models import Q
+        
+        fees_sheets = FeesSheet.objects.filter(
+            Q(class_fk=inscription.class_fk, academic_year=inscription.academic_year) |
+            Q(department=inscription.class_fk.department, academic_year=inscription.academic_year) |
+            Q(faculty=inscription.class_fk.department.faculty, academic_year=inscription.academic_year)
+        ).order_by('class_fk', 'department', 'faculty') 
+        
+        return fees_sheets
+
+    @staticmethod
     def _check_payment_status(student):
         """Check if student has paid required installment using PaymentPlan and PaymentInstallement
 
@@ -351,52 +361,103 @@ class StudentDashboardService:
         if not active_inscription:
             return False
 
-        # Get payment plan for current inscription
-        try:
-            payment_plan = PaymentPlan.objects.get(
-                inscription=active_inscription
-            )
-        except PaymentPlan.DoesNotExist:
-            # If no payment plan exists, check direct payments
-            total_paid = (
-                Payment.objects.filter(
-                    inscription=active_inscription, payment_status="verified"
-                ).aggregate(total=Sum("amount_paid"))["total"]
-                or 0
-            )
-            # Get fees sheet to compare
-            try:
-                fees_sheet = FeesSheet.objects.get(
-                    class_fk=active_inscription.class_fk,
-                    academic_year=active_inscription.academic_year,
-                )
-                return total_paid >= fees_sheet.base_amount
-            except FeesSheet.DoesNotExist:
-                return True
+        # Get fees sheets for current inscription
+        fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(active_inscription)
+        
+        if not fees_sheets.exists():
+            return True
 
-        # Check which installments should be paid by now
+        # Check payment status for all applicable fees sheets
         today = timezone.now().date()
-        required_amount = 0
+        
+        for fees_sheet in fees_sheets:
+            # Get payment plans for this fees sheet
+            payment_plans = PaymentPlan.objects.filter(feessheet=fees_sheet)
+            
+            if payment_plans.exists():
+                # Check installments for each payment plan
+                for payment_plan in payment_plans:
+                    due_installments = PaymentInstallement.objects.filter(
+                        payment_plan=payment_plan,
+                        student=student,
+                        due_date__lte=today
+                    )
+                    
+                    required_amount = due_installments.aggregate(
+                        total=Sum("amount")
+                    )["total"] or 0
+                    
+                    if required_amount > 0:
+                        # Get total verified payments for this inscription
+                        total_paid = (
+                            Payment.objects.filter(
+                                inscription=active_inscription, 
+                                payment_status="verified",
+                                paymentplan=payment_plan
+                            ).aggregate(total=Sum("amount_paid"))["total"]
+                            or 0
+                        )
+                        
+                        if total_paid < required_amount:
+                            return False
+            else:
+                # No payment plan, check direct payments against fees sheet
+                total_paid = (
+                    Payment.objects.filter(
+                        inscription=active_inscription, payment_status="verified"
+                    ).aggregate(total=Sum("amount_paid"))["total"]
+                    or 0
+                )
+                
+                if total_paid < fees_sheet.base_amount:
+                    return False
 
-        # Get due installments
-        due_installments = PaymentInstallement.objects.filter(
-            payment_plan=payment_plan,
-            due_date__lte=today
+        return True
+
+    @staticmethod
+    def _get_payment_info(student):
+        """Get payment amounts for student"""
+        # Get active inscription
+        active_inscription = (
+            Inscription.objects.filter(student=student, regist_status="Active")
+            .order_by("-academic_year__start_date")
+            .first()
         )
 
-        required_amount = due_installments.aggregate(
-            total=Sum("amount")
-        )["total"] or 0
+        if not active_inscription:
+            return {"amount_paid": 0, "total_amount": 0}
 
-        # Get total verified payments for this inscription
-        total_paid = (
+        # Get total amount paid
+        amount_paid = (
             Payment.objects.filter(
                 inscription=active_inscription, payment_status="verified"
             ).aggregate(total=Sum("amount_paid"))["total"]
             or 0
         )
 
-        return total_paid >= required_amount
+        # Get total amount required from fees sheets
+        total_amount = 0
+        
+        fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(active_inscription)
+        print(fees_sheets)
+        for fees_sheet in fees_sheets:
+            # Try to get from payment plans first
+            payment_plans = PaymentPlan.objects.filter(feessheet=fees_sheet)
+            
+            if payment_plans.exists():
+                # Sum all payment plan amounts
+                plan_total = payment_plans.aggregate(
+                    total=Sum("total_amount")
+                )["total"] or 0
+                total_amount += float(plan_total)
+            else:
+                # Fall back to fees sheet base amount
+                total_amount += float(fees_sheet.base_amount)
+
+        return {
+            "amount_paid": float(amount_paid),
+            "total_amount": total_amount
+        }
 
     @staticmethod
     def _get_payment_status(student):
@@ -541,11 +602,24 @@ class StudentDashboardService:
         # Get payment plan and installments
         installments = []
         try:
+            fees_sheets = StudentDashboardService._get_fees_sheets_for_inscription(inscription)
+            
+            for fees_sheet in fees_sheets:
+                payment_plans = PaymentPlan.objects.filter(feessheet=fees_sheet)
+                for payment_plan in payment_plans:
+                    plan_installments = PaymentInstallement.objects.filter(
+                        payment_plan=payment_plan,
+                        student=student
+                    )
+                    installments.extend(plan_installments)
+                    
+        except Exception:
+            # Fallback to get all installments for student
             installments = PaymentInstallement.objects.filter(
                 student=student
-            ).order_by("due_date")
-        except PaymentPlan.DoesNotExist:
-            pass
+            )
+            
+        installments = sorted(installments, key=lambda x: x.due_date)
 
         return {
             "payments": PaymentSerializer(payments, many=True).data,

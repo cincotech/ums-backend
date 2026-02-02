@@ -22,7 +22,8 @@ class StudentDashboardStatsSerializer(serializers.Serializer):
     pending_documents = serializers.IntegerField()
     current_gpa = serializers.FloatField()
     attendance_rate = serializers.FloatField()
-    payment_status = serializers.CharField()
+    amount_paid = serializers.FloatField()
+    total_amount = serializers.FloatField()
     credits_earned = serializers.IntegerField()
 
 
@@ -110,11 +111,27 @@ class StudentMessageSerializer(serializers.ModelSerializer):
         return f"{obj.sender.first_name} {obj.sender.last_name}"
 
 
-class StudentPaymentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payment
-        fields = ["id", "amount_paid", "payment_date", "payment_method", "reference"]
-        read_only_fields = ["id", "payment_date"]
+class StudentPaymentInfoSerializer(serializers.Serializer):
+    """Serializer for payment information with installments"""
+    payments = serializers.ListField(child=serializers.DictField())
+    installments = serializers.ListField(child=serializers.DictField())
+    payment_summary = serializers.SerializerMethodField()
+    
+    def get_payment_summary(self, obj):
+        """Get payment summary information"""
+        payments = obj.get('payments', [])
+        installments = obj.get('installments', [])
+        
+        total_paid = sum(float(p.get('amount_paid', 0)) for p in payments)
+        total_due = sum(float(i.get('amount', 0)) for i in installments)
+        
+        return {
+            'total_paid': total_paid,
+            'total_due': total_due,
+            'balance': total_due - total_paid,
+            'payment_count': len(payments),
+            'installment_count': len(installments)
+        }
 
 
 class AcademicProgressSerializer(serializers.Serializer):
