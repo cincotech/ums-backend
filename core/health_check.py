@@ -2,11 +2,34 @@ import time
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.mail import send_mail
 from django.db import connection
 
 
 class HealthCheckService:
     """Service to check system health"""
+
+    @staticmethod
+    def send_error_notification(error_type, error_message):
+        """Send email notification when error occurs"""
+        try:
+            subject = f"UMS System Health Alert: {error_type}"
+            message = f"""System Health Check Failed
+
+Error Type: {error_type}
+Error Message: {error_message}
+Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}
+
+Please check the system immediately."""
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.ADMIN_EMAIL],
+                fail_silently=True,
+            )
+        except Exception as e:
+            print(f"Failed to send error notification: {str(e)}")
 
     @staticmethod
     def check_database():
@@ -16,7 +39,9 @@ class HealthCheckService:
                 cursor.execute("SELECT 1")
             return {"status": "healthy", "message": "Database connection successful"}
         except Exception as e:
-            return {"status": "unhealthy", "message": f"Database error: {str(e)}"}
+            error_msg = f"Database error: {str(e)}"
+            HealthCheckService.send_error_notification("Database", error_msg)
+            return {"status": "unhealthy", "message": error_msg}
 
     @staticmethod
     def check_cache():
@@ -30,9 +55,13 @@ class HealthCheckService:
 
             if result == test_value:
                 return {"status": "healthy", "message": "Cache working properly"}
-            return {"status": "unhealthy", "message": "Cache read/write failed"}
+            error_msg = "Cache read/write failed"
+            HealthCheckService.send_error_notification("Cache", error_msg)
+            return {"status": "unhealthy", "message": error_msg}
         except Exception as e:
-            return {"status": "unhealthy", "message": f"Cache error: {str(e)}"}
+            error_msg = f"Cache error: {str(e)}"
+            HealthCheckService.send_error_notification("Cache", error_msg)
+            return {"status": "unhealthy", "message": error_msg}
 
     @staticmethod
     def get_system_info():
