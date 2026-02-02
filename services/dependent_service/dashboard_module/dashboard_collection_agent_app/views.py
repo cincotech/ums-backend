@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import parsers
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 
@@ -628,6 +629,7 @@ class PaymentViewSet(BaseViewSet):
         "description",
     ]
     ordering_fields = ["payment_date", "amount_paid"]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
 
     def get_permissions(self):
         if self.action == "create":
@@ -658,12 +660,28 @@ class PaymentViewSet(BaseViewSet):
         serializer = self.get_serializer(data=request.data)
         from rest_framework import status
 
-        from core.response_handler import success_response, validate_serializer
+        from core.response_handler import (
+            error_response,
+            success_response,
+            validate_serializer,
+        )
 
         validation_error = validate_serializer(serializer)
         if validation_error:
             return validation_error
-        serializer.save(user=request.user)
+
+        payment = serializer.save(user=request.user)
+
+        # Gérer l'image base64 si fournie
+        if "remittance_slip_base64" in request.data:
+            try:
+                payment.save_remittance_slip_from_base64(
+                    request.data["remittance_slip_base64"]
+                )
+                payment.save()
+            except ValueError as e:
+                return error_response(message=str(e), status_code=400)
+
         return success_response(
             data=serializer.data,
             message=f"{self.queryset.model.__name__} created successfully",
