@@ -41,14 +41,24 @@ class PopulationDataService:
     """Service for generating student population statistics"""
     
     @staticmethod
-    def get_population_data(filters=None):
+    def get_population_data(filters=None, academic_year_id=None):
         """Get student population data with age and gender breakdown"""
         if filters is None:
             filters = {}
         
-        # Base queryset for active inscriptions
+        # Get current academic year based on date if not specified
+        if not academic_year_id:
+        
+            current_year = AcademicYear.objects.filter(is_closed=False).first()
+            if current_year:
+                academic_year_id = current_year
+            else:
+                return []
+    
+        # Base queryset for active inscriptions filtered by academic year
         queryset = Inscription.objects.filter(
-            regist_status='Active'
+            regist_status='Active',
+            academic_year=academic_year_id
         ).select_related(
             'student__user',
             'class_fk__department__faculty',
@@ -57,9 +67,7 @@ class PopulationDataService:
             'academic_year'
         )
         
-        # Apply filters
-        if filters.get('academic_year'):
-            queryset = queryset.filter(academic_year_id=filters['academic_year'])
+        # Apply additional filters
         
         if filters.get('faculty'):
             queryset = queryset.filter(class_fk__department__faculty_id=filters['faculty'])

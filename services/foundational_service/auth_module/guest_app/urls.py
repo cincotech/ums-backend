@@ -1,7 +1,13 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from . import admin_views
 from . import views
 
+router = DefaultRouter()
+router.register(r'account-requests', admin_views.AccountRequestViewSet, basename='account-request')
+
 urlpatterns = [
+    path('', include(router.urls)),
     path('profile', views.guest_profile, name='guest-profile'),
     path('status', views.account_status, name='guest-status'),
     path('notifications', views.notifications, name='guest-notifications'),

@@ -1358,9 +1358,9 @@ class TeacherPaymentClaimSerializer(serializers.ModelSerializer):
 
 class TimetableMergeSerializer(serializers.ModelSerializer):
     timetable_ids = serializers.PrimaryKeyRelatedField(
-        source="timetables", many=True, queryset=Timetable.objects.all()
+        source="timetables", many=True, queryset=Timetable.objects.all(), write_only=True
     )
-
+    timetables = TimetableSerializer(many=True, read_only=True)
     created_by = UserSerializer(read_only=True)
 
     class Meta:
@@ -1369,6 +1369,7 @@ class TimetableMergeSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "timetable_ids",
+            "timetables",
             "created_at",
             "created_by",
         ]
