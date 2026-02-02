@@ -1,16 +1,22 @@
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from core.views import BaseViewSet
 
 from .models import Attribution, Suggestion, Teacher
 from .serializers import AttributionSerializer, SuggestionSerializer, TeacherSerializer
+from .filters import TeacherFilter
 
 
 class TeacherViewSet(BaseViewSet):
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['user__first_name', 'user__last_name', 'user__email', 'teacher_grade', 'speciality']
+    filterset_class = TeacherFilter
+    ordering_fields = ['user__first_name', 'user__last_name', 'teacher_grade']
+    ordering = ['user__last_name']
 
     
     def get_queryset(self):

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from services.core_service.student_module.parent_app.serializers import ParentSerializer
 from services.foundational_service.auth_module.authentication_app.serializers import (
     UserSerializer,
 )
@@ -23,6 +24,8 @@ class StudentSerializer(serializers.ModelSerializer):
     )
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     user_obj = UserSerializer(source="user", read_only=True)
+    colline_name = serializers.CharField(source="colline.colline_name", read_only=True)
+    parent_obj = ParentSerializer(source="parent", many=True, read_only=True)
 
     class Meta:
         model = Student
@@ -31,10 +34,12 @@ class StudentSerializer(serializers.ModelSerializer):
             "user",
             "matricule",
             "colline",
+            "colline_name",
             "cam",
             "parent",
             "parent_ids",
             "user_obj",
+            "parent_obj",
         ]
         read_only_fields = ["parent"]
 

@@ -1,17 +1,32 @@
+from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
+
 from core.views import BaseViewSet
 
 from .models import Faculty, TypeFormation
 from .serializers import FacultySerializer, TypeFormationSerializer
+from .filters import FacultyFilter, TypeFormationFilter
 
 
 class TypeFormationViewSet(BaseViewSet):
     queryset = TypeFormation.objects.all()
     serializer_class = TypeFormationSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = TypeFormationFilter
+    search_fields = ['type_name']
+    ordering_fields = ['type_name']
+    ordering = ['type_name']
 
 
 class FacultyViewSet(BaseViewSet):
     queryset = Faculty.objects.all()
     serializer_class = FacultySerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = FacultyFilter
+    search_fields = ['faculty_name', 'abreviation', 'faculty_abreviation']
+    ordering_fields = ['faculty_name']
+    ordering = ['faculty_name']
 
     def get_queryset(self):
         qs = Faculty.objects.all()

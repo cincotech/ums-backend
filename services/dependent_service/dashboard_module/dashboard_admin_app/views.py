@@ -1,9 +1,12 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.token_blacklist.models import (
@@ -45,6 +48,8 @@ from .services import (
     UniversityAdminService,
     UniversityUserManagementService,
 )
+from .filters import ConfigurationFilter, StatisticsFilter, NotificationFilter, AuditLogFilter, BackupFilter, UserFilter, StudentUserFilter, RoleFilter, RoleProfileFilter
+ 
 
 User = get_user_model()
 
@@ -125,14 +130,15 @@ class ConfigurationViewSet(
     queryset = UniversityConfiguration.objects.all()
     serializer_class = UniversityConfigurationSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = ConfigurationFilter
+    filterset_fields = ["category"]
+    search_fields = ["key", "value", "category"]
+    ordering_fields = ["category", "key", "created_at"]
+    ordering = ["category", "key"]
 
     def get_queryset(self):
-        """Override to handle category filtering"""
-        queryset = super().get_queryset()
-        category = self.request.query_params.get("category")
-        if category:
-            queryset = queryset.filter(category=category)
-        return queryset.order_by("category", "key")
+        return super().get_queryset()
 
 
 # ============== Statistics ==============
@@ -186,11 +192,16 @@ class NotificationViewSet(BaseViewSet):
     queryset = UniversityNotification.objects.all()
     serializer_class = UniversityNotificationSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = NotificationFilter
+    filterset_class = StatisticsFilter
+    filterset_fields = ["notification_type", "is_read"]
+    search_fields = ["title", "message", "notification_type"]
+    ordering_fields = ["created_at", "is_read"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
-        return UniversityNotification.objects.filter(
-            recipient=self.request.user
-        ).order_by("-created_at")
+        return UniversityNotification.objects.filter(recipient=self.request.user)
 
     @action(detail=True, methods=["post"])
     def mark_read(self, request, pk=None):
@@ -220,12 +231,18 @@ class AuditLogViewSet(BaseViewSet):
     queryset = AuditLog.objects.all()
     serializer_class = AuditLogSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = AuditLogFilter
+    filterset_fields = ["action", "user"]
+    search_fields = ["action", "description", "user__email", "user__first_name", "user__last_name", "ip_address"]
+    ordering_fields = ["timestamp", "action"]
+    ordering = ["-timestamp"]
 
     def get_queryset(self):
         days = int(self.request.query_params.get("days", 7))
         return AuditLog.objects.filter(
             timestamp__gte=timezone.now() - timedelta(days=days)
-        ).order_by("-timestamp")
+        )
 
 
 # ============== Backup & Restore ==============
@@ -389,6 +406,13 @@ class UserViewSet(BaseViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = UserFilter
+    filterset_class = BackupFilter
+    filterset_fields = ["role", "is_active", "university"]
+    search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
+    ordering_fields = ["email", "first_name", "last_name", "created_at"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
         return UniversityUserManagementService.get_all_users()
@@ -632,6 +656,12 @@ class StudentUserViewSet(BaseViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentUserFilter
+    filterset_fields = ["is_active", "student__inscriptions__academic_year"]
+    search_fields = ["email", "first_name", "last_name", "phone_number", "student__matricule"]
+    ordering_fields = ["email", "first_name", "last_name", "student__matricule"]
+    ordering = ["student__matricule"]
 
     def get_queryset(self):
         academic_year_id = self.request.query_params.get('academic_year')
