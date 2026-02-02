@@ -1,6 +1,4 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
-from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework import status
 
 from core.permissions import IsAcademicAffairs

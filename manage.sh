@@ -201,12 +201,12 @@ backup() {
     BACKUP_DIR="backups"
     mkdir -p "$BACKUP_DIR"
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    
+
     if [ -f "db.sqlite3" ]; then
         cp db.sqlite3 "$BACKUP_DIR/db_$TIMESTAMP.sqlite3"
         print_success "Database backed up to $BACKUP_DIR/db_$TIMESTAMP.sqlite3"
     fi
-    
+
     $MANAGE dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.Permission > "$BACKUP_DIR/data_$TIMESTAMP.json"
     print_success "Data backed up to $BACKUP_DIR/data_$TIMESTAMP.json"
 }
@@ -350,80 +350,80 @@ Usage: ./manage.sh [command] [args]
 ${BLUE}Setup Commands:${NC}
   setup                      - Initial project setup
   init_all                   - Full initialization (migrate + seed all data)
-  
+
 ${BLUE}Database Commands:${NC}
   makemigrations             - Create new migrations
   migrate                    - Apply migrations
   showmigrations             - Show migration status
   reset_db                   - Reset database (WARNING: deletes all data)
   reset_db_ext               - Reset database (django-extensions)
-  
+
 ${BLUE}Server Commands:${NC}
   runserver                  - Start development server
-  
+
 ${BLUE}User Management:${NC}
   createsuperuser            - Create superuser account
   changepassword <username>  - Change user password
-  
+
 ${BLUE}Testing:${NC}
   test                       - Run tests
   test_coverage              - Run tests with coverage report
-  
+
 ${BLUE}Static Files:${NC}
   collectstatic              - Collect static files
-  
+
 ${BLUE}Shell:${NC}
   shell                      - Open Django shell
   shell_plus                 - Open Django shell_plus (enhanced)
   dbshell                    - Open database shell
-  
+
 ${BLUE}Checks:${NC}
   check                      - Run system checks
   check_deploy               - Run deployment checks
-  
+
 ${BLUE}Data Seeding:${NC}
   seed_roles                 - Seed user roles
   seed_professions           - Seed parent professions
   seed_document_requirements - Seed document requirements for roles
   refresh_geo                - Refresh geographical data
-  
+
 ${BLUE}University Setup:${NC}
   setup_university           - Setup university structure
   create_upg_data            - Create UPG specific data
   backup_universities        - Backup all universities
-  
+
 ${BLUE}Infrastructure:${NC}
   create_rooms               - Create room data
   create_schedule_slots      - Create schedule time slots
-  
+
 ${BLUE}Test Data:${NC}
   create_fake_students [n]   - Create n fake students
-  
+
 ${BLUE}Django Extensions:${NC}
   show_urls                  - Show all URL patterns
   show_models                - Show all models info
   graph_models               - Generate model relationship diagram
   clean_pyc                  - Clean .pyc files
-  
+
 ${BLUE}Maintenance:${NC}
   flush_tokens               - Flush expired JWT tokens
   clear_sessions             - Clear expired sessions
   clean_history              - Clean old history records
   clean                      - Clean __pycache__ and .pyc files
-  
+
 ${BLUE}Code Quality:${NC}
   lint                       - Run linters
   format                     - Format code with black
-  
+
 ${BLUE}Utilities:${NC}
   logs                       - Show logs
   backup                     - Create backup
   restore <file>             - Restore from backup
   generate_schema            - Generate API schema (OpenAPI)
-  
+
 ${BLUE}Deployment:${NC}
   deploy                     - Full deployment process
-  
+
 ${BLUE}Help:${NC}
   help                       - Show this help message
 
@@ -435,83 +435,83 @@ case "$1" in
     # Setup
     setup) setup ;;
     init_all) init_all ;;
-    
+
     # Database
     makemigrations) activate_venv && makemigrations ;;
     migrate) activate_venv && migrate ;;
     showmigrations) activate_venv && showmigrations ;;
     reset_db) activate_venv && reset_db ;;
     reset_db_ext) activate_venv && reset_db_ext ;;
-    
+
     # Server
     runserver) activate_venv && runserver ;;
-    
+
     # User management
     createsuperuser) activate_venv && createsuperuser ;;
     changepassword) activate_venv && changepassword "$2" ;;
-    
+
     # Testing
     test) activate_venv && test ;;
     test_coverage) activate_venv && test_coverage ;;
-    
+
     # Static files
     collectstatic) activate_venv && collectstatic ;;
-    
+
     # Shell
     shell) activate_venv && shell ;;
     shell_plus) activate_venv && shell_plus ;;
     dbshell) activate_venv && dbshell ;;
-    
+
     # Checks
     check) activate_venv && check ;;
     check_deploy) activate_venv && check_deploy ;;
-    
+
     # Seeding
     seed_roles) activate_venv && seed_roles ;;
     seed_professions) activate_venv && seed_professions ;;
     seed_document_requirements) activate_venv && seed_document_requirements ;;
     refresh_geo) activate_venv && refresh_geo ;;
-    
+
     # University
     setup_university) activate_venv && setup_university ;;
     create_upg_data) activate_venv && create_upg_data ;;
     backup_universities) activate_venv && backup_universities ;;
-    
+
     # Infrastructure
     create_rooms) activate_venv && create_rooms ;;
     create_schedule_slots) activate_venv && create_schedule_slots ;;
-    
+
     # Test data
     create_fake_students) activate_venv && create_fake_students "$2" ;;
-    
+
     # Django extensions
     show_urls) activate_venv && show_urls ;;
     show_models) activate_venv && show_models ;;
     graph_models) activate_venv && graph_models ;;
     clean_pyc) activate_venv && clean_pyc ;;
-    
+
     # Maintenance
     flush_tokens) activate_venv && flush_tokens ;;
     clear_sessions) activate_venv && clear_sessions ;;
     clean_history) activate_venv && clean_history ;;
     clean) clean ;;
-    
+
     # Code quality
     lint) activate_venv && lint ;;
     format) activate_venv && format ;;
-    
+
     # Utilities
     logs) logs ;;
     backup) activate_venv && backup ;;
     restore) activate_venv && restore "$2" ;;
     generate_schema) activate_venv && generate_schema ;;
-    
+
     # Deployment
     deploy) deploy ;;
-    
+
     # Help
     help|--help|-h) show_help ;;
-    
+
     *)
         print_error "Unknown command: $1"
         echo ""

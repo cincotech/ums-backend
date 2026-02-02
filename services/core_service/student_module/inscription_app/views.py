@@ -1,17 +1,15 @@
 from django.utils import timezone
-from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.decorators import action
-from rest_framework import status
+from rest_framework.filters import OrderingFilter, SearchFilter
 
-from core.response_handler import error_response, success_response, validate_serializer
+from core.response_handler import error_response, success_response
 from core.views import BaseViewSet
 from services.core_service.academic_module.university_app.models import AcademicYear
 
+from .filters import InscriptionFilter
 from .models import Class, Inscription
 from .serializers import InscriptionSerializer
-from .filters import InscriptionFilter
 
 
 class InscriptionViewSet(BaseViewSet):
@@ -19,9 +17,14 @@ class InscriptionViewSet(BaseViewSet):
     serializer_class = InscriptionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = InscriptionFilter
-    search_fields = ['student__user__first_name', 'student__user__last_name', 'student__matricule', 'class_fk__class_name']
-    ordering_fields = ['date_inscription', 'regist_status', 'student__matricule']
-    ordering = ['-date_inscription']
+    search_fields = [
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__matricule",
+        "class_fk__class_name",
+    ]
+    ordering_fields = ["date_inscription", "regist_status", "student__matricule"]
+    ordering = ["-date_inscription"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -29,7 +32,7 @@ class InscriptionViewSet(BaseViewSet):
 
         if academic_year_id:
             return queryset.filter(academic_year_id=academic_year_id)
-        
+
         try:
             current_year = AcademicYear.objects.get(
                 start_date__lte=timezone.now(),

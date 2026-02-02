@@ -9,20 +9,31 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('class_app', '0002_initial'),
-        ('scheduling_app', '0002_initial'),
-        ('teacher_app', '0001_initial'),
+        ("class_app", "0002_initial"),
+        ("scheduling_app", "0002_initial"),
+        ("teacher_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='timetable',
-            name='attribution',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to='teacher_app.attribution'),
+            model_name="timetable",
+            name="attribution",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="teacher_app.attribution",
+            ),
         ),
         migrations.AddField(
-            model_name='timetable',
-            name='class_group',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='timetables', to='class_app.classgroup'),
+            model_name="timetable",
+            name="class_group",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="timetables",
+                to="class_app.classgroup",
+            ),
         ),
     ]

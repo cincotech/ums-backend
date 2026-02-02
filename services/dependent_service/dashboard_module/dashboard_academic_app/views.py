@@ -1,23 +1,19 @@
+from django.db import models
+from django.db.models import Count
 from django.utils import timezone
-from django.db.models import Q
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Count, Q
+
+from core.permissions import IsDean, IsDirectorAcademic
 from services.core_service.academic_module.quality_app.models import QualityReport
 from services.core_service.academic_module.quality_app.serializers import (
     QualityReportSerializer,
 )
-
 from services.core_service.academic_module.teacher_app.models import Attribution
-from core.permissions import IsDean, IsDirectorAcademic
-from .serializers import (
-    AttributionValidationSerializer,
-    TeacherValidationSerializer,
-)
+
+from .serializers import AttributionValidationSerializer, TeacherValidationSerializer
 
 
 class QualityReportViewSet(viewsets.ModelViewSet):
@@ -27,6 +23,7 @@ class QualityReportViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(generated_by=self.request.user)
+
 
 class AttributionValidationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Attribution.objects.select_related(
@@ -122,9 +119,8 @@ def dashboard_overview(request):
             "accepted_teachers": accepted_teachers,
             "refused_teachers": refused_teachers,
         },
-        status=status.HTTP_200_OK
+        status=status.HTTP_200_OK,
     )
-
 
 
 @api_view(["GET"])
@@ -136,89 +132,73 @@ def visiting_professors_attributions(request):
 
     data = []
     for attr in attributions:
-        data.append({
-            "attribution_id": str(attr.id),
-            "course": attr.course.name if hasattr(attr.course, "name") else str(attr.course),
-            "principal_teacher": str(attr.principal_teacher),
-            "academic_year": str(attr.academic_year),
-            "status": attr.status_principal_teacher,
-        })
+        data.append(
+            {
+                "attribution_id": str(attr.id),
+                "course": (
+                    attr.course.name
+                    if hasattr(attr.course, "name")
+                    else str(attr.course)
+                ),
+                "principal_teacher": str(attr.principal_teacher),
+                "academic_year": str(attr.academic_year),
+                "status": attr.status_principal_teacher,
+            }
+        )
 
-    return Response(
-        {
-            "count": len(data),
-            "results": data
-        },
-        status=status.HTTP_200_OK
-    )
+    return Response({"count": len(data), "results": data}, status=status.HTTP_200_OK)
 
 
+# @api_view(["POST"])
+# @permission_classes([IsAuthenticated,IsDirectorAcademic])
+# def validate_attribution(request, attribution_id):
+# try:
+#    attribution = Attribution.objects.get(id=attribution_id)
+# except Attribution.DoesNotExist:
+#   return Response(
+#   {"detail": "Attribution introuvable"},
+#   status=status.HTTP_404_NOT_FOUND
+# )
 
-#@api_view(["POST"])
-#@permission_classes([IsAuthenticated,IsDirectorAcademic])
-#def validate_attribution(request, attribution_id):
-   # try:
-    #    attribution = Attribution.objects.get(id=attribution_id)
-   # except Attribution.DoesNotExist:
-     #   return Response(
-         #   {"detail": "Attribution introuvable"},
-         #   status=status.HTTP_404_NOT_FOUND
-       # )
+# if attribution.validation_date:
+# return Response(
+#  {"detail": "Cette attribution est déjà validée"},
+#  status=status.HTTP_400_BAD_REQUEST
+#   )
 
-   # if attribution.validation_date:
-       # return Response(
-          #  {"detail": "Cette attribution est déjà validée"},
-          #  status=status.HTTP_400_BAD_REQUEST
-     #   )
+# Accepter automatiquement le teacher principal si pas encore accepté
+# if attribution.status_principal_teacher == "Pending":
+#  attribution.status_principal_teacher = "Accepted"
+#  attribution.status_substitute_teacher = "Refused"
 
-    # Accepter automatiquement le teacher principal si pas encore accepté
-   # if attribution.status_principal_teacher == "Pending":
-      #  attribution.status_principal_teacher = "Accepted"
-      #  attribution.status_substitute_teacher = "Refused"
+# attribution.validated_by = request.user
+# attribution.validation_date = timezone.now()
+# attribution.validation_comments = request.data.get("comments", "")
+#  attribution.save()
 
-   # attribution.validated_by = request.user
-   # attribution.validation_date = timezone.now()
-   # attribution.validation_comments = request.data.get("comments", "")
-  #  attribution.save()
-
-   # return Response(
-      #  {
-        #    "message": "Attribution validée avec succès",
-       #     "attribution_id": str(attribution.id),
-       #     "validated_by": request.user.email,
-      #      "validation_date": attribution.validation_date,
-       # },
-       # status=status.HTTP_200_OK
-  #  )
-
+# return Response(
+#  {
+#    "message": "Attribution validée avec succès",
+#     "attribution_id": str(attribution.id),
+#     "validated_by": request.user.email,
+#      "validation_date": attribution.validation_date,
+# },
+# status=status.HTTP_200_OK
+#  )
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsDean])
 def academic_performance_report(request):
-    by_year = (
-        Attribution.objects
-        .values("academic_year")
-        .annotate(
-            total=Count("id"),
-            accepted=Count(
-                "id",
-                filter=models.Q(status_principal_teacher="Accepted")
-            ),
-            refused=Count(
-                "id",
-                filter=models.Q(status_principal_teacher="Refused")
-            ),
-        )
+    by_year = Attribution.objects.values("academic_year").annotate(
+        total=Count("id"),
+        accepted=Count("id", filter=models.Q(status_principal_teacher="Accepted")),
+        refused=Count("id", filter=models.Q(status_principal_teacher="Refused")),
     )
 
     return Response(
-        {
-            "performance_by_academic_year": list(by_year)
-        },
-        status=status.HTTP_200_OK
+        {"performance_by_academic_year": list(by_year)}, status=status.HTTP_200_OK
     )
-
 
 
 @api_view(["POST"])
@@ -228,22 +208,16 @@ def generate_quality_report(request):
 
     if not academic_year:
         return Response(
-            {"detail": "academic_year est requis"},
-            status=status.HTTP_400_BAD_REQUEST
+            {"detail": "academic_year est requis"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     attributions = Attribution.objects.filter(
-        academic_year=academic_year,
-        validation_date__isnull=False
+        academic_year=academic_year, validation_date__isnull=False
     )
 
     total = attributions.count()
-    accepted = attributions.filter(
-        status_principal_teacher="Accepted"
-    ).count()
-    refused = attributions.filter(
-        status_principal_teacher="Refused"
-    ).count()
+    accepted = attributions.filter(status_principal_teacher="Accepted").count()
+    refused = attributions.filter(status_principal_teacher="Refused").count()
 
     report = QualityReport.objects.create(
         academic_year=academic_year,
@@ -257,17 +231,13 @@ def generate_quality_report(request):
             f"{total} attributions, "
             f"{accepted} acceptées, "
             f"{refused} refusées."
-        )
+        ),
     )
 
     return Response(
-        {
-            "message": "Rapport qualité généré avec succès",
-            "report_id": report.id
-        },
-        status=status.HTTP_201_CREATED
+        {"message": "Rapport qualité généré avec succès", "report_id": report.id},
+        status=status.HTTP_201_CREATED,
     )
-
 
 
 @api_view(["GET"])
@@ -277,10 +247,6 @@ def quality_reports_list(request):
     serializer = QualityReportSerializer(reports, many=True)
 
     return Response(
-        {
-            "count": reports.count(),
-            "results": serializer.data
-        },
-        status=status.HTTP_200_OK
+        {"count": reports.count(), "results": serializer.data},
+        status=status.HTTP_200_OK,
     )
-

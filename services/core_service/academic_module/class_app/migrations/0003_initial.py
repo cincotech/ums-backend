@@ -9,35 +9,50 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('class_app', '0002_initial'),
-        ('university_app', '0001_initial'),
+        ("class_app", "0002_initial"),
+        ("university_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='classgroup',
-            name='academic_year',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='university_app.academicyear'),
+            model_name="classgroup",
+            name="academic_year",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="university_app.academicyear",
+            ),
         ),
         migrations.AddField(
-            model_name='classgroup',
-            name='class_fk',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='groups', to='class_app.class'),
+            model_name="classgroup",
+            name="class_fk",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="groups",
+                to="class_app.class",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='class',
-            constraint=models.UniqueConstraint(condition=models.Q(('is_default', True)), fields=('department',), name='one_default_class_per_department'),
+            model_name="class",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("is_default", True)),
+                fields=("department",),
+                name="one_default_class_per_department",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='class',
-            unique_together={('class_name', 'department')},
+            name="class",
+            unique_together={("class_name", "department")},
         ),
         migrations.AddConstraint(
-            model_name='classgroup',
-            constraint=models.UniqueConstraint(condition=models.Q(('is_default', True)), fields=('class_fk', 'academic_year'), name='one_default_group_per_class_year'),
+            model_name="classgroup",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("is_default", True)),
+                fields=("class_fk", "academic_year"),
+                name="one_default_group_per_class_year",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='classgroup',
-            unique_together={('class_fk', 'academic_year', 'group_name')},
+            name="classgroup",
+            unique_together={("class_fk", "academic_year", "group_name")},
         ),
     ]

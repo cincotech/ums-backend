@@ -7,7 +7,6 @@ from services.core_service.academic_module.faculty_app.models import Faculty
 from .models import Inscription
 
 
-
 class InscriptionSerializer(serializers.ModelSerializer):
     # ---------------------------
     # Read-only student fields
@@ -82,7 +81,9 @@ class InscriptionSerializer(serializers.ModelSerializer):
 
             default_department = faculty.departments.filter(is_default=True).first()
             if default_department:
-                default_class = default_department.classes.filter(is_default=True).first()
+                default_class = default_department.classes.filter(
+                    is_default=True
+                ).first()
                 if default_class:
                     class_fk = default_class
 

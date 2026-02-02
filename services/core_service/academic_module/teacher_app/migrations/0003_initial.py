@@ -10,71 +10,117 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('course_app', '0001_initial'),
-        ('teacher_app', '0002_initial'),
-        ('university_app', '0001_initial'),
+        ("course_app", "0001_initial"),
+        ("teacher_app", "0002_initial"),
+        ("university_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='attribution',
-            name='authorized_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, related_name='authorized_attributions', to=settings.AUTH_USER_MODEL),
+            model_name="attribution",
+            name="authorized_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="authorized_attributions",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='attribution',
-            name='course',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='course_app.course'),
+            model_name="attribution",
+            name="course",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT, to="course_app.course"
+            ),
         ),
         migrations.AddField(
-            model_name='attribution',
-            name='submitted_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='submitted_attributions', to=settings.AUTH_USER_MODEL),
+            model_name="attribution",
+            name="submitted_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="submitted_attributions",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='attribution',
-            name='validated_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, related_name='validated_attributions', to=settings.AUTH_USER_MODEL),
+            model_name="attribution",
+            name="validated_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="validated_attributions",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='suggestion',
-            name='attribution',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='teacher_app.attribution'),
+            model_name="suggestion",
+            name="attribution",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="teacher_app.attribution",
+            ),
         ),
         migrations.AddField(
-            model_name='suggestion',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to=settings.AUTH_USER_MODEL),
+            model_name="suggestion",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='teacher',
-            name='degree',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='university_app.universitydegree'),
+            model_name="teacher",
+            name="degree",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="university_app.universitydegree",
+            ),
         ),
         migrations.AddField(
-            model_name='teacher',
-            name='university',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='university_app.university'),
+            model_name="teacher",
+            name="university",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="university_app.university",
+            ),
         ),
         migrations.AddField(
-            model_name='teacher',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.RESTRICT, related_name='teacher', to=settings.AUTH_USER_MODEL),
+            model_name="teacher",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="teacher",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='suggestion',
-            name='teacher',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='teacher_app.teacher'),
+            model_name="suggestion",
+            name="teacher",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT, to="teacher_app.teacher"
+            ),
         ),
         migrations.AddField(
-            model_name='attribution',
-            name='principal_teacher',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='principal_attributions', to='teacher_app.teacher'),
+            model_name="attribution",
+            name="principal_teacher",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="principal_attributions",
+                to="teacher_app.teacher",
+            ),
         ),
         migrations.AddField(
-            model_name='attribution',
-            name='substitute_teacher',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='substitute_attributions', to='teacher_app.teacher'),
+            model_name="attribution",
+            name="substitute_teacher",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="substitute_attributions",
+                to="teacher_app.teacher",
+            ),
         ),
     ]

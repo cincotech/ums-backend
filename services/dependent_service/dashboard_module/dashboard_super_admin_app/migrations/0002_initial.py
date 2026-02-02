@@ -9,14 +9,20 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('dashboard_super_admin_app', '0001_initial'),
-        ('university_app', '0001_initial'),
+        ("dashboard_super_admin_app", "0001_initial"),
+        ("university_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='auditlog',
-            name='university',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='audit_logs', to='university_app.university'),
+            model_name="auditlog",
+            name="university",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="audit_logs",
+                to="university_app.university",
+            ),
         ),
     ]

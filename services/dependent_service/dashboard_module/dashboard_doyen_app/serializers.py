@@ -381,7 +381,9 @@ class ClassGroupSerializer(serializers.ModelSerializer):
     class_name = serializers.CharField(source="class_fk.class_name", read_only=True)
     student_count = serializers.SerializerMethodField()
     timetable_count = serializers.SerializerMethodField()
-    department_name = serializers.CharField(source="class_fk.department.department_name", read_only=True)
+    department_name = serializers.CharField(
+        source="class_fk.department.department_name", read_only=True
+    )
 
     class Meta:
         model = ClassGroup
@@ -432,7 +434,9 @@ class StudentSerializer(serializers.ModelSerializer):
 
     def get_user_obj(self, obj):
         user = obj.user
-        request = self.context.get("request")  # Make sure 'request' is passed in context
+        request = self.context.get(
+            "request"
+        )  # Make sure 'request' is passed in context
         profile_picture_url = (
             request.build_absolute_uri(user.profile_picture.url)
             if user.profile_picture
@@ -456,9 +460,7 @@ class StudentSerializer(serializers.ModelSerializer):
         """
         current_inscription = (
             Inscription.objects.filter(
-                student=obj,
-                regist_status="Active",
-                is_year_close=False
+                student=obj, regist_status="Active", is_year_close=False
             )
             .select_related("class_group")  # follow relation to the assigned group
             .first()
@@ -466,10 +468,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
         if current_inscription and current_inscription.class_group:
             group = current_inscription.class_group
-            return {
-                "id": str(group.id),
-                "name": getattr(group, "group_name", "N/A")
-            }
+            return {"id": str(group.id), "name": getattr(group, "group_name", "N/A")}
 
         return None
 
@@ -495,7 +494,8 @@ class StudentSerializer(serializers.ModelSerializer):
                 "date_inscription": current_inscription.date_inscription,
                 "department_abreviation": (
                     current_inscription.class_fk.department.abreviation
-                    if current_inscription.class_fk and current_inscription.class_fk.department
+                    if current_inscription.class_fk
+                    and current_inscription.class_fk.department
                     else "N/A"
                 ),
             }
@@ -639,8 +639,8 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
     def get_validated_by_info(self, obj):
         return {
             "first_name": obj.validated_by.first_name,
-            "last_name": obj.validated_by.last_name,
-            "email": obj.validated_by.email,
+            "validated_last_name": obj.validated_by.last_name,
+            "validated_email": obj.validated_by.email,
             "last_name": obj.student.user.last_name,
             "email": obj.student.user.email,
         }
@@ -722,9 +722,7 @@ class TimetableSerializer(serializers.ModelSerializer):
     class_name = serializers.CharField(
         source="class_group.class_fk.class_name", read_only=True
     )
-    class_id = serializers.CharField(
-        source="class_group.class_fk.id", read_only=True
-    )
+    class_id = serializers.CharField(source="class_group.class_fk.id", read_only=True)
     course_name = serializers.CharField(
         source="attribution.course.course_name", read_only=True
     )
@@ -734,9 +732,9 @@ class TimetableSerializer(serializers.ModelSerializer):
     created_by_name = serializers.SerializerMethodField()
     shared_groups = serializers.SerializerMethodField()
     faculty_abreviation = serializers.CharField(
-        source="class_group.class_fk.department.faculty.faculty_abreviation", read_only=True
+        source="class_group.class_fk.department.faculty.faculty_abreviation",
+        read_only=True,
     )
-  
 
     class Meta:
         model = Timetable
@@ -1199,76 +1197,6 @@ class SupplementSerializer(serializers.ModelSerializer):
         return f"{student.user.first_name} {student.user.last_name}"
 
 
-# Jury Management Serializers
-class JurySessionSerializer(serializers.ModelSerializer):
-    jury_member_names = serializers.SerializerMethodField()
-    created_by_name = serializers.SerializerMethodField()
-    decision_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = JurySession
-        fields = [
-            "id",
-            "session_name",
-            "session_date",
-            "jury_members",
-            "jury_member_names",
-            "status",
-            "minutes_document",
-            "created_by",
-            "created_by_name",
-            "created_at",
-            "decision_count",
-        ]
-        read_only_fields = ["id", "created_at", "created_by"]
-
-    def get_jury_member_names(self, obj):
-        return [
-            f"{member.first_name} {member.last_name}"
-            for member in obj.jury_members.all()
-        ]
-
-    def get_created_by_name(self, obj):
-        return f"{obj.created_by.first_name} {obj.created_by.last_name}"
-
-    def get_decision_count(self, obj):
-        return obj.jurydecision_set.count()
-
-
-class JuryDecisionSerializer(serializers.ModelSerializer):
-    student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="student.matricule", read_only=True
-    )
-    jury_session_name = serializers.CharField(
-        source="jury_session.session_name", read_only=True
-    )
-    validated_by_name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = JuryDecision
-        fields = [
-            "id",
-            "jury_session",
-            "jury_session_name",
-            "student",
-            "student_name",
-            "student_matricule",
-            "decision",
-            "notes",
-            "validated_by",
-            "validated_by_name",
-            "validated_at",
-        ]
-        read_only_fields = ["id", "validated_at"]
-
-    def get_student_name(self, obj):
-        return f"{obj.student.user.first_name} {obj.student.user.last_name}"
-
-    def get_validated_by_name(self, obj):
-        return f"{obj.validated_by.first_name} {obj.validated_by.last_name}"
-
-
 class GradeComplaintSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
     student_matricule = serializers.CharField(
@@ -1358,7 +1286,10 @@ class TeacherPaymentClaimSerializer(serializers.ModelSerializer):
 
 class TimetableMergeSerializer(serializers.ModelSerializer):
     timetable_ids = serializers.PrimaryKeyRelatedField(
-        source="timetables", many=True, queryset=Timetable.objects.all(), write_only=True
+        source="timetables",
+        many=True,
+        queryset=Timetable.objects.all(),
+        write_only=True,
     )
     timetables = TimetableSerializer(many=True, read_only=True)
     created_by = UserSerializer(read_only=True)

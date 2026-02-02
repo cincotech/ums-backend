@@ -10,14 +10,18 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('quality_app', '0001_initial'),
+        ("quality_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='qualityreport',
-            name='generated_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='generated_reports', to=settings.AUTH_USER_MODEL),
+            model_name="qualityreport",
+            name="generated_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="generated_reports",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

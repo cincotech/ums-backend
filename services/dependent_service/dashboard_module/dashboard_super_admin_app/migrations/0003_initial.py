@@ -10,100 +10,161 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('dashboard_super_admin_app', '0002_initial'),
-        ('university_app', '0001_initial'),
+        ("dashboard_super_admin_app", "0002_initial"),
+        ("university_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='auditlog',
-            name='user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='audit_logs', to=settings.AUTH_USER_MODEL),
+            model_name="auditlog",
+            name="user",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="audit_logs",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='backuprecord',
-            name='initiated_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='initiated_backups', to=settings.AUTH_USER_MODEL),
+            model_name="backuprecord",
+            name="initiated_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="initiated_backups",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='emergencyrecovery',
-            name='performed_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='performed_recoveries', to=settings.AUTH_USER_MODEL),
+            model_name="emergencyrecovery",
+            name="performed_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="performed_recoveries",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='emergencyrecovery',
-            name='target_user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='emergency_recoveries', to=settings.AUTH_USER_MODEL),
+            model_name="emergencyrecovery",
+            name="target_user",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="emergency_recoveries",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='systemconfiguration',
-            name='created_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='created_system_configs', to=settings.AUTH_USER_MODEL),
+            model_name="systemconfiguration",
+            name="created_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="created_system_configs",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='systemconfiguration',
-            name='modified_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, related_name='modified_system_configs', to=settings.AUTH_USER_MODEL),
+            model_name="systemconfiguration",
+            name="modified_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="modified_system_configs",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='universityprofile',
-            name='university',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to='university_app.university'),
+            model_name="universityprofile",
+            name="university",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="profile",
+                to="university_app.university",
+            ),
         ),
         migrations.AddField(
-            model_name='universitysubscription',
-            name='created_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='created_subscriptions', to=settings.AUTH_USER_MODEL),
+            model_name="universitysubscription",
+            name="created_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="created_subscriptions",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='universitysubscription',
-            name='module',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='subscriptions', to='dashboard_super_admin_app.module'),
+            model_name="universitysubscription",
+            name="module",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="subscriptions",
+                to="dashboard_super_admin_app.module",
+            ),
         ),
         migrations.AddField(
-            model_name='universitysubscription',
-            name='university',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subscriptions', to='university_app.university'),
+            model_name="universitysubscription",
+            name="university",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="subscriptions",
+                to="university_app.university",
+            ),
         ),
         migrations.AddIndex(
-            model_name='auditlog',
-            index=models.Index(fields=['user', 'timestamp'], name='audit_logs_user_id_88267f_idx'),
+            model_name="auditlog",
+            index=models.Index(
+                fields=["user", "timestamp"], name="audit_logs_user_id_88267f_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='auditlog',
-            index=models.Index(fields=['university', 'timestamp'], name='audit_logs_univers_5f69fc_idx'),
+            model_name="auditlog",
+            index=models.Index(
+                fields=["university", "timestamp"], name="audit_logs_univers_5f69fc_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='auditlog',
-            index=models.Index(fields=['action', 'timestamp'], name='audit_logs_action_474804_idx'),
+            model_name="auditlog",
+            index=models.Index(
+                fields=["action", "timestamp"], name="audit_logs_action_474804_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='auditlog',
-            index=models.Index(fields=['severity'], name='audit_logs_severit_fc52cc_idx'),
+            model_name="auditlog",
+            index=models.Index(
+                fields=["severity"], name="audit_logs_severit_fc52cc_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='systemconfiguration',
-            index=models.Index(fields=['category', 'is_active'], name='system_conf_categor_eb7070_idx'),
+            model_name="systemconfiguration",
+            index=models.Index(
+                fields=["category", "is_active"], name="system_conf_categor_eb7070_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='systemconfiguration',
-            unique_together={('category', 'key')},
+            name="systemconfiguration",
+            unique_together={("category", "key")},
         ),
         migrations.AddIndex(
-            model_name='universitysubscription',
-            index=models.Index(fields=['university', 'status'], name='university__univers_db8ed1_idx'),
+            model_name="universitysubscription",
+            index=models.Index(
+                fields=["university", "status"], name="university__univers_db8ed1_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='universitysubscription',
-            index=models.Index(fields=['module', 'status'], name='university__module__c6a148_idx'),
+            model_name="universitysubscription",
+            index=models.Index(
+                fields=["module", "status"], name="university__module__c6a148_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='universitysubscription',
-            index=models.Index(fields=['end_date'], name='university__end_dat_298b9a_idx'),
+            model_name="universitysubscription",
+            index=models.Index(
+                fields=["end_date"], name="university__end_dat_298b9a_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='universitysubscription',
-            unique_together={('university', 'module')},
+            name="universitysubscription",
+            unique_together={("university", "module")},
         ),
     ]

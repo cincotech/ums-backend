@@ -1,37 +1,38 @@
-from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.core.paginator import Paginator
-from core.response_handler import success_response, error_response
+
+from core.pagination import StandardResultsSetPagination
 from core.permissions import IsStaff, IsStudentService
+from core.response_handler import error_response, success_response
 from core.views import BaseViewSet
 
-from .serializers import (
-    AbsenceJustificationSerializer,
-    CounselingSessionSerializer,
-    DocumentRequestSerializer,
-    ScholarshipSerializer,
-    StudentActivitySerializer,
-    StudentStatusChangeSerializer,
-    PopulationDataSerializer,
+from .filters import (
+    AbsenceJustificationFilter,
+    CounselingSessionFilter,
+    DocumentRequestFilter,
+    ScholarshipFilter,
+    StudentActivityFilter,
+    StudentStatusChangeFilter,
 )
-from .services import PopulationDataService, StudentServicesService
 from .models import (
-   AbsenceJustification,
+    AbsenceJustification,
     CounselingSession,
     DocumentRequest,
     Scholarship,
     StudentActivity,
     StudentStatusChange,
 )
-from core.pagination import StandardResultsSetPagination
-from .filters import PopulationDataFilter, DocumentRequestFilter, AbsenceJustificationFilter, StudentActivityFilter, ScholarshipFilter, CounselingSessionFilter, StudentStatusChangeFilter
-    
-
+from .serializers import (
+    AbsenceJustificationSerializer,
+    CounselingSessionSerializer,
+    DocumentRequestSerializer,
+    PopulationDataSerializer,
+    ScholarshipSerializer,
+    StudentActivitySerializer,
+    StudentStatusChangeSerializer,
+)
+from .services import PopulationDataService
 
 
 class PopulationDataViewSet(viewsets.GenericViewSet):
@@ -57,10 +58,8 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
 
             filters = {k: v for k, v in filters.items() if v}
 
-         
             queryset = PopulationDataService.get_population_data(filters)
 
-           
             if (
                 not self.pagination_enabled
                 or request.query_params.get("pagination") == "false"
@@ -71,7 +70,6 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
                     message="Population data retrieved successfully",
                 )
 
-         
             page = self.paginate_queryset(queryset)
             serializer = self.get_serializer(page, many=True)
 

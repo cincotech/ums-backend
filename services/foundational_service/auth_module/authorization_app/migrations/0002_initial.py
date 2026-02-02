@@ -9,20 +9,31 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('authorization_app', '0001_initial'),
-        ('faculty_app', '0001_initial'),
-        ('room_app', '0001_initial'),
+        ("authorization_app", "0001_initial"),
+        ("faculty_app", "0001_initial"),
+        ("room_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='profile',
-            name='faculty',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, related_name='dean_profile', to='faculty_app.faculty'),
+            model_name="profile",
+            name="faculty",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="dean_profile",
+                to="faculty_app.faculty",
+            ),
         ),
         migrations.AddField(
-            model_name='profile',
-            name='room',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.RESTRICT, related_name='room_profiles', to='room_app.room'),
+            model_name="profile",
+            name="room",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="room_profiles",
+                to="room_app.room",
+            ),
         ),
     ]

@@ -8,29 +8,55 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='PaymentDerogation',
+            name="PaymentDerogation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reason', models.TextField()),
-                ('status', models.CharField(choices=[('pending', 'En attente'), ('approved', 'Approuvée'), ('rejected', 'Rejetée')], default='pending', max_length=20)),
-                ('decision_comment', models.TextField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('decision_date', models.DateTimeField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("reason", models.TextField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "En attente"),
+                            ("approved", "Approuvée"),
+                            ("rejected", "Rejetée"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("decision_comment", models.TextField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(default=django.utils.timezone.now)),
+                ("decision_date", models.DateTimeField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='VisitorCourseAttribution',
+            name="VisitorCourseAttribution",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('course_name', models.CharField(max_length=255)),
-                ('recommended_by', models.CharField(max_length=255)),
-                ('rector_validation', models.BooleanField(default=False)),
-                ('validation_date', models.DateTimeField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("course_name", models.CharField(max_length=255)),
+                ("recommended_by", models.CharField(max_length=255)),
+                ("rector_validation", models.BooleanField(default=False)),
+                ("validation_date", models.DateTimeField(blank=True, null=True)),
             ],
         ),
     ]

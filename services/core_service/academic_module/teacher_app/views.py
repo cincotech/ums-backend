@@ -4,33 +4,37 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 
 from core.views import BaseViewSet
 
+from .filters import TeacherFilter
 from .models import Attribution, Suggestion, Teacher
 from .serializers import AttributionSerializer, SuggestionSerializer, TeacherSerializer
-from .filters import TeacherFilter
 
 
 class TeacherViewSet(BaseViewSet):
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ['user__first_name', 'user__last_name', 'user__email', 'teacher_grade', 'speciality']
+    search_fields = [
+        "user__first_name",
+        "user__last_name",
+        "user__email",
+        "teacher_grade",
+        "speciality",
+    ]
     filterset_class = TeacherFilter
-    ordering_fields = ['user__first_name', 'user__last_name', 'teacher_grade']
-    ordering = ['user__last_name']
+    ordering_fields = ["user__first_name", "user__last_name", "teacher_grade"]
+    ordering = ["user__last_name"]
 
-    
     def get_queryset(self):
         queryset = super().get_queryset()
-        search = self.request.query_params.get('search')
-        
+        search = self.request.query_params.get("search")
+
         if search:
             queryset = queryset.filter(
-                Q(user__first_name__icontains=search) |
-                Q(user__last_name__icontains=search) |
-                Q(user__email__icontains=search)
-             
+                Q(user__first_name__icontains=search)
+                | Q(user__last_name__icontains=search)
+                | Q(user__email__icontains=search)
             )
-        
+
         return queryset
 
 

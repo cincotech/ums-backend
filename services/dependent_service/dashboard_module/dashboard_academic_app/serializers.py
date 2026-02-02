@@ -1,16 +1,23 @@
 from rest_framework import serializers
+
 from services.core_service.academic_module.teacher_app.models import Attribution
-from services.core_service.academic_module.teacher_app.serializers import TeacherSerializer
+from services.core_service.academic_module.teacher_app.serializers import (
+    TeacherSerializer,
+)
 
 
 class AttributionValidationSerializer(serializers.ModelSerializer):
-    principal_teacher_details = TeacherSerializer(source='principal_teacher', read_only=True)
-    substitute_teacher_details = TeacherSerializer(source='substitute_teacher', read_only=True)
-    
+    principal_teacher_details = TeacherSerializer(
+        source="principal_teacher", read_only=True
+    )
+    substitute_teacher_details = TeacherSerializer(
+        source="substitute_teacher", read_only=True
+    )
+
     # Display fields for course and teachers
-    course_name = serializers.CharField(source='course.course_name', read_only=True)
-    course_code = serializers.CharField(source='course.course_code', read_only=True)
-    course_credits = serializers.IntegerField(source='course.credits', read_only=True)
+    course_name = serializers.CharField(source="course.course_name", read_only=True)
+    course_code = serializers.CharField(source="course.course_code", read_only=True)
+    course_credits = serializers.IntegerField(source="course.credits", read_only=True)
     principal_teacher_name = serializers.SerializerMethodField(read_only=True)
     substitute_teacher_name = serializers.SerializerMethodField(read_only=True)
 
@@ -46,17 +53,14 @@ class AttributionValidationSerializer(serializers.ModelSerializer):
             "validated_by",
             "validation_date",
         ]
-    
-
 
     def get_course(self, obj):
         course = obj.course
 
         if course.course_code:
-           return f"{course.course_code} - {course.course_name}"
+            return f"{course.course_code} - {course.course_name}"
 
         return course.course_name
-
 
     def get_principal_teacher_name(self, obj):
         """Get the principal teacher's display name."""
@@ -78,8 +82,8 @@ class AttributionValidationSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Validate that substitute_teacher is different from principal_teacher."""
-        principal = data.get('principal_teacher')
-        substitute = data.get('substitute_teacher')
+        principal = data.get("principal_teacher")
+        substitute = data.get("substitute_teacher")
 
         # For updates, we need to check the instance as well
         if self.instance:
@@ -89,9 +93,11 @@ class AttributionValidationSerializer(serializers.ModelSerializer):
                 principal = self.instance.principal_teacher
 
         if substitute and principal and substitute.id == principal.id:
-            raise serializers.ValidationError({
-                "substitute_teacher": "Le professeur remplaçant doit être différent du professeur principal."
-            })
+            raise serializers.ValidationError(
+                {
+                    "substitute_teacher": "Le professeur remplaçant doit être différent du professeur principal."
+                }
+            )
 
         return data
 
@@ -104,4 +110,3 @@ class TeacherValidationSerializer(serializers.Serializer):
 
     teacher_type = serializers.ChoiceField(choices=TEACHER_TYPE_CHOICES)
     comments = serializers.CharField(required=False, allow_blank=True)
-

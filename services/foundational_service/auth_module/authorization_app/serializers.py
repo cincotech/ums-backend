@@ -31,7 +31,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "faculty_abreviation",
         ]
         read_only_fields = ["id"]
-      
 
 
 class SupervisorSerializer(serializers.ModelSerializer):

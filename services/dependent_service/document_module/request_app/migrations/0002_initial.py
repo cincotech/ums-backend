@@ -9,14 +9,17 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('request_app', '0001_initial'),
-        ('student_profile_app', '0001_initial'),
+        ("request_app", "0001_initial"),
+        ("student_profile_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='request',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='student_profile_app.student'),
+            model_name="request",
+            name="student",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="student_profile_app.student",
+            ),
         ),
     ]

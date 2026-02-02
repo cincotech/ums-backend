@@ -153,8 +153,8 @@ GET /api/users/?search=john&page=1&page_size=20
 search_fields = ['email', 'first_name', 'last_name']
 
 # Behind the scenes creates:
-Q(email__icontains=search) | 
-Q(first_name__icontains=search) | 
+Q(email__icontains=search) |
+Q(first_name__icontains=search) |
 Q(last_name__icontains=search)
 ```
 
@@ -187,19 +187,19 @@ class MyViewSet(BaseViewSet):
     queryset = MyModel.objects.all()
     serializer_class = MySerializer
     permission_classes = [IsAuthenticated]
-    
+
     # Filter configuration
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    
+
     # Search across these fields (OR logic)
     search_fields = ['name', 'description', 'related__field']
-    
+
     # Exact match filtering
     filterset_fields = ['status', 'category', 'is_active']
-    
+
     # Orderable fields
     ordering_fields = ['created_at', 'name', 'updated_at']
-    
+
     # Default ordering
     ordering = ['-created_at']
 ```
@@ -209,7 +209,7 @@ class MyViewSet(BaseViewSet):
 1. **Custom FilterSets** for complex filtering
    ```python
    from django_filters import rest_framework as filters
-   
+
    class MyFilterSet(filters.FilterSet):
        min_price = filters.NumberFilter(field_name="price", lookup_expr='gte')
        max_price = filters.NumberFilter(field_name="price", lookup_expr='lte')

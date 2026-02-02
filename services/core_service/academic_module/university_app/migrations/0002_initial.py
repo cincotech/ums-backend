@@ -10,35 +10,61 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('country_app', '0001_initial'),
-        ('university_app', '0001_initial'),
+        ("country_app", "0001_initial"),
+        ("university_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='academicyear',
-            name='closed_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='closed_academic_years', to=settings.AUTH_USER_MODEL),
+            model_name="academicyear",
+            name="closed_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="closed_academic_years",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='university',
-            name='country',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, related_name='universities', to='country_app.country'),
+            model_name="university",
+            name="country",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="universities",
+                to="country_app.country",
+            ),
         ),
         migrations.AddField(
-            model_name='academicyear',
-            name='university',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='academic_years', to='university_app.university'),
+            model_name="academicyear",
+            name="university",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="academic_years",
+                to="university_app.university",
+            ),
         ),
         migrations.AddField(
-            model_name='universityadmin',
-            name='university',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='admins', to='university_app.university'),
+            model_name="universityadmin",
+            name="university",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="admins",
+                to="university_app.university",
+            ),
         ),
         migrations.AddField(
-            model_name='universityadmin',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='university_admin', to=settings.AUTH_USER_MODEL),
+            model_name="universityadmin",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="university_admin",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

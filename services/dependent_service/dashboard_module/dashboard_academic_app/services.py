@@ -11,12 +11,17 @@ class AcademicDashboardService:
         total = Attribution.objects.count()
         # Count attributions with pending status for either teacher
         pending = Attribution.objects.filter(
-            Q(status_principal_teacher="Pending") | Q(status_substitute_teacher="Pending")
+            Q(status_principal_teacher="Pending")
+            | Q(status_substitute_teacher="Pending")
         ).count()
         # Count attributions with accepted principal teacher
-        approved = Attribution.objects.filter(status_principal_teacher="Accepted").count()
+        approved = Attribution.objects.filter(
+            status_principal_teacher="Accepted"
+        ).count()
         # Count attributions with refused principal teacher
-        rejected = Attribution.objects.filter(status_principal_teacher="Refused").count()
+        rejected = Attribution.objects.filter(
+            status_principal_teacher="Refused"
+        ).count()
 
         return {
             "total": total,

@@ -10,41 +10,53 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('dashboard_quality_director_app', '0001_initial'),
+        ("dashboard_quality_director_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='academicperformancereport',
-            name='generated_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to=settings.AUTH_USER_MODEL),
+            model_name="academicperformancereport",
+            name="generated_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='complianceaudit',
-            name='audited_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to=settings.AUTH_USER_MODEL),
+            model_name="complianceaudit",
+            name="audited_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='programexecutiontracking',
-            unique_together={('program_name', 'academic_year')},
+            name="programexecutiontracking",
+            unique_together={("program_name", "academic_year")},
         ),
         migrations.AddField(
-            model_name='qualitystandard',
-            name='created_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to=settings.AUTH_USER_MODEL),
+            model_name="qualitystandard",
+            name="created_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='complianceaudit',
-            name='standard',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='dashboard_quality_director_app.qualitystandard'),
+            model_name="complianceaudit",
+            name="standard",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="dashboard_quality_director_app.qualitystandard",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='studentretentionaudit',
-            unique_together={('academic_year',)},
+            name="studentretentionaudit",
+            unique_together={("academic_year",)},
         ),
         migrations.AlterUniqueTogether(
-            name='academicperformancereport',
-            unique_together={('academic_year', 'semester')},
+            name="academicperformancereport",
+            unique_together={("academic_year", "semester")},
         ),
     ]

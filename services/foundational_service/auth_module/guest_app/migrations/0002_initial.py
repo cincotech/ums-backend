@@ -10,54 +10,92 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('guest_app', '0001_initial'),
-        ('user_app', '0001_initial'),
+        ("guest_app", "0001_initial"),
+        ("user_app", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='guestdocument',
-            name='verified_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='verified_guest_docs', to=settings.AUTH_USER_MODEL),
+            model_name="guestdocument",
+            name="verified_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="verified_guest_docs",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='guestnotification',
-            name='document',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='guest_app.guestdocument'),
+            model_name="guestnotification",
+            name="document",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="guest_app.guestdocument",
+            ),
         ),
         migrations.AddField(
-            model_name='guestrequest',
-            name='requested_role',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to='user_app.role'),
+            model_name="guestrequest",
+            name="requested_role",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                to="user_app.role",
+            ),
         ),
         migrations.AddField(
-            model_name='guestrequest',
-            name='reviewed_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviewed_guests', to=settings.AUTH_USER_MODEL),
+            model_name="guestrequest",
+            name="reviewed_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="reviewed_guests",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='guestrequest',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='guest_request', to=settings.AUTH_USER_MODEL),
+            model_name="guestrequest",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="guest_request",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='guestnotification',
-            name='guest_request',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to='guest_app.guestrequest'),
+            model_name="guestnotification",
+            name="guest_request",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="notifications",
+                to="guest_app.guestrequest",
+            ),
         ),
         migrations.AddField(
-            model_name='guestdocument',
-            name='guest_request',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='guest_app.guestrequest'),
+            model_name="guestdocument",
+            name="guest_request",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="documents",
+                to="guest_app.guestrequest",
+            ),
         ),
         migrations.AddField(
-            model_name='roledocumentrequirement',
-            name='role',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='document_requirements', to='user_app.role'),
+            model_name="roledocumentrequirement",
+            name="role",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="document_requirements",
+                to="user_app.role",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='roledocumentrequirement',
-            unique_together={('role', 'document_type')},
+            name="roledocumentrequirement",
+            unique_together={("role", "document_type")},
         ),
     ]

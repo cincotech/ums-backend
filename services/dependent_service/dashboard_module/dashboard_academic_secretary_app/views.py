@@ -9,6 +9,13 @@ from rest_framework.response import Response
 from core.permissions import IsAcademicSecretary
 from core.response_handler import error_response, success_response
 
+from .filters import (
+    ExamFilter,
+    GradeComplaintFilter,
+    JurySessionFilter,
+    OfficialDocumentFilter,
+    PaymentClaimFilter,
+)
 from .serializers import (
     AcademicSecretaryStatsSerializer,
     CompilationStatusSerializer,
@@ -26,7 +33,6 @@ from .serializers import (
     TeacherPaymentClaimSerializer,
 )
 from .services import AcademicSecretaryService
-from .filters import ExamFilter, JurySessionFilter, GradeComplaintFilter, OfficialDocumentFilter, PaymentClaimFilter, InscriptionFilter
 
 # ==================== DASHBOARD ====================
 
@@ -59,14 +65,21 @@ class ExamViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ExamFilter
     filterset_fields = ["status", "course", "exam_type"]
-    search_fields = ["course__course_name", "course__course_code", "exam_type__exam_type_name", "status"]
+    search_fields = [
+        "course__course_name",
+        "course__course_code",
+        "exam_type__exam_type_name",
+        "status",
+    ]
     ordering_fields = ["start_date", "end_date", "created_at"]
     ordering = ["-start_date"]
 
     def get_queryset(self):
         filters = {}
         if self.request.query_params.get("start_date_from"):
-            filters["start_date_from"] = self.request.query_params.get("start_date_from")
+            filters["start_date_from"] = self.request.query_params.get(
+                "start_date_from"
+            )
         if self.request.query_params.get("start_date_to"):
             filters["start_date_to"] = self.request.query_params.get("start_date_to")
         return AcademicSecretaryService.get_exam_list(filters if filters else None)
@@ -283,7 +296,14 @@ class GradeComplaintViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = GradeComplaintFilter
     filterset_fields = ["status", "course", "student"]
-    search_fields = ["student__user__first_name", "student__user__last_name", "student__matricule", "course__course_name", "course__course_code", "status"]
+    search_fields = [
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__matricule",
+        "course__course_name",
+        "course__course_code",
+        "status",
+    ]
     ordering_fields = ["submitted_at", "resolved_at"]
     ordering = ["-submitted_at"]
 
@@ -419,7 +439,13 @@ class PaymentClaimViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = PaymentClaimFilter
     filterset_fields = ["status", "teacher", "course"]
-    search_fields = ["teacher__user__first_name", "teacher__user__last_name", "course__course_name", "course__course_code", "status"]
+    search_fields = [
+        "teacher__user__first_name",
+        "teacher__user__last_name",
+        "course__course_name",
+        "course__course_code",
+        "status",
+    ]
     ordering_fields = ["submitted_at", "processed_at", "total_amount"]
     ordering = ["-submitted_at"]
 
@@ -525,16 +551,18 @@ class InscriptionViewSet(viewsets.ModelViewSet):
         if self.request.query_params.get("class_id"):
             filters["class_id"] = self.request.query_params.get("class_id")
 
-        queryset = AcademicSecretaryService.get_inscriptions(filters if filters else None)
+        queryset = AcademicSecretaryService.get_inscriptions(
+            filters if filters else None
+        )
         search = self.request.query_params.get("search")
-        
+
         if search:
             queryset = queryset.filter(
-                Q(student__user__first_name__icontains=search) |
-                Q(student__user__last_name__icontains=search) |
-                Q(student__matricule__icontains=search) |
-                Q(class_fk__class_name__icontains=search) |
-                Q(regist_status__icontains=search)
+                Q(student__user__first_name__icontains=search)
+                | Q(student__user__last_name__icontains=search)
+                | Q(student__matricule__icontains=search)
+                | Q(class_fk__class_name__icontains=search)
+                | Q(regist_status__icontains=search)
             )
         return queryset
 

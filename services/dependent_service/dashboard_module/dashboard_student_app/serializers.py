@@ -1,8 +1,5 @@
 from rest_framework import serializers
 
-from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
-    Payment,
-)
 from services.dependent_service.dashboard_module.dashboard_shared_app.models import (
     Message,
     Notification,
@@ -14,11 +11,8 @@ from services.dependent_service.exam_module.result_app.models import (
 )
 from services.dependent_service.scheduling_module.scheduling_app.models import (
     Attendance,
-)
-from services.dependent_service.scheduling_module.scheduling_app.models import (
-    Timetable,
     ScheduleSlot,
-   
+    Timetable,
 )
 
 
@@ -118,24 +112,25 @@ class StudentMessageSerializer(serializers.ModelSerializer):
 
 class StudentPaymentInfoSerializer(serializers.Serializer):
     """Serializer for payment information with installments"""
+
     payments = serializers.ListField(child=serializers.DictField())
     installments = serializers.ListField(child=serializers.DictField())
     payment_summary = serializers.SerializerMethodField()
-    
+
     def get_payment_summary(self, obj):
         """Get payment summary information"""
-        payments = obj.get('payments', [])
-        installments = obj.get('installments', [])
-        
-        total_paid = sum(float(p.get('amount_paid', 0)) for p in payments)
-        total_due = sum(float(i.get('amount', 0)) for i in installments)
-        
+        payments = obj.get("payments", [])
+        installments = obj.get("installments", [])
+
+        total_paid = sum(float(p.get("amount_paid", 0)) for p in payments)
+        total_due = sum(float(i.get("amount", 0)) for i in installments)
+
         return {
-            'total_paid': total_paid,
-            'total_due': total_due,
-            'balance': total_due - total_paid,
-            'payment_count': len(payments),
-            'installment_count': len(installments)
+            "total_paid": total_paid,
+            "total_due": total_due,
+            "balance": total_due - total_paid,
+            "payment_count": len(payments),
+            "installment_count": len(installments),
         }
 
 
@@ -213,52 +208,63 @@ class StudentOfficialDocumentSerializer(serializers.Serializer):
 class StudentTimetableSlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleSlot
-        fields = ['id', 'day_of_week', 'start_time', 'end_time']
-        read_only_fields = ['id']
+        fields = ["id", "day_of_week", "start_time", "end_time"]
+        read_only_fields = ["id"]
 
 
 class StudentTimetableSerializer(serializers.ModelSerializer):
-    course_name = serializers.CharField(source='attribution.course.course_name', read_only=True)
-    course_code = serializers.CharField(source='attribution.course.course_code', read_only=True)
+    course_name = serializers.CharField(
+        source="attribution.course.course_name", read_only=True
+    )
+    course_code = serializers.CharField(
+        source="attribution.course.course_code", read_only=True
+    )
     teacher_name = serializers.SerializerMethodField()
-    room_name = serializers.CharField(source='room.room_name', read_only=True)
-    room_capacity = serializers.IntegerField(source='room.capacity', read_only=True)
-    class_group_name = serializers.CharField(source='class_group.group_name', read_only=True)
+    room_name = serializers.CharField(source="room.room_name", read_only=True)
+    room_capacity = serializers.IntegerField(source="room.capacity", read_only=True)
+    class_group_name = serializers.CharField(
+        source="class_group.group_name", read_only=True
+    )
     faculty_abreviation = serializers.SerializerMethodField()
     shared_with_groups = serializers.SerializerMethodField()
     is_shared = serializers.SerializerMethodField()
     slots = StudentTimetableSlotSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = Timetable
         fields = [
-            'id',
-            'course_name',
-            'course_code',
-            'teacher_name',
-            'room_name',
-            'room_capacity',
-            'class_group_name',
-            'faculty_abreviation',
-            'shared_with_groups',
-            'is_shared',
-            'slots',
+            "id",
+            "course_name",
+            "course_code",
+            "teacher_name",
+            "room_name",
+            "room_capacity",
+            "class_group_name",
+            "faculty_abreviation",
+            "shared_with_groups",
+            "is_shared",
+            "slots",
         ]
-        read_only_fields = ['id']
-    
+        read_only_fields = ["id"]
+
     def get_teacher_name(self, obj):
         if obj.attribution and obj.attribution.principal_teacher:
             return f"{obj.attribution.principal_teacher.user.first_name} {obj.attribution.principal_teacher.user.last_name}"
         return None
-    
+
     def get_faculty_abreviation(self, obj):
-        if obj.class_group and obj.class_group.class_fk and obj.class_group.class_fk.department and obj.class_group.class_fk.department.faculty:
+        if (
+            obj.class_group
+            and obj.class_group.class_fk
+            and obj.class_group.class_fk.department
+            and obj.class_group.class_fk.department.faculty
+        ):
             return obj.class_group.class_fk.department.faculty.faculty_abreviation
         return None
-    
+
     def get_shared_with_groups(self, obj):
         return [group.group_name for group in obj.shared_with.all()]
-    
+
     def get_is_shared(self, obj):
         return obj.shared_with.exists()
 

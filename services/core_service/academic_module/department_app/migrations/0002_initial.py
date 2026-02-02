@@ -9,18 +9,26 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('department_app', '0001_initial'),
-        ('faculty_app', '0001_initial'),
+        ("department_app", "0001_initial"),
+        ("faculty_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='department',
-            name='faculty',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, related_name='departments', to='faculty_app.faculty'),
+            model_name="department",
+            name="faculty",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.RESTRICT,
+                related_name="departments",
+                to="faculty_app.faculty",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='department',
-            constraint=models.UniqueConstraint(condition=models.Q(('is_default', True)), fields=('faculty',), name='one_default_department_per_faculty'),
+            model_name="department",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("is_default", True)),
+                fields=("faculty",),
+                name="one_default_department_per_faculty",
+            ),
         ),
     ]

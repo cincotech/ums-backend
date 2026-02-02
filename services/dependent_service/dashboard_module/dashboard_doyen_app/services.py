@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Avg, Count, Q, Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -36,7 +37,6 @@ from services.dependent_service.scheduling_module.scheduling_app.models import (
 )
 
 from .models import SecretaryNote, TeacherWorkload, TeachingProgress
-from django.db import transaction
 
 
 class DeanDashboardService:
@@ -690,7 +690,7 @@ class TimetableManagementService:
         class_group_id, start_date, end_date, slot_ids, exclude_timetable_id=None
     ):
         from django.db.models import Q
-        
+
         conflicts = Timetable.objects.filter(
             Q(class_group_id=class_group_id) | Q(shared_with=class_group_id),
             start_date__lte=end_date,
@@ -748,17 +748,17 @@ class TimetableManagementService:
     def share_timetable_with_groups(timetable_id, class_group_ids):
         """Share timetable with additional class groups"""
         timetable = Timetable.objects.get(id=timetable_id)
-        
+
         for group_id in class_group_ids:
             if TimetableManagementService.check_class_group_conflict(
                 group_id,
                 timetable.start_date,
                 timetable.end_date,
-                list(timetable.slots.values_list('id', flat=True)),
-                exclude_timetable_id=timetable_id
+                list(timetable.slots.values_list("id", flat=True)),
+                exclude_timetable_id=timetable_id,
             ):
                 raise ValueError(f"Class group {group_id} has a conflict")
-        
+
         timetable.shared_with.add(*class_group_ids)
         return timetable
 
@@ -767,13 +767,12 @@ class TimetableManagementService:
         """Remove a class group from shared timetable"""
         timetable = Timetable.objects.get(id=timetable_id)
         timetable.shared_with.remove(class_group_id)
-        
+
         # Update attendance for removed group
         Attendance.objects.filter(
-            timetable=timetable,
-            student__inscriptions__class_group_id=class_group_id
+            timetable=timetable, student__inscriptions__class_group_id=class_group_id
         ).delete()
-        
+
         return timetable
 
     @staticmethod
@@ -940,16 +939,18 @@ class AttendanceManagementService:
 
     @staticmethod
     def bulk_create_attendance(timetable_id, attendance_data):
-        timetable = Timetable.objects.get(id=timetable_id)
-        
+        Timetable.objects.get(id=timetable_id)
+
         # Get all groups (primary + shared)
-        all_groups = TimetableManagementService.get_all_groups_in_timetable(timetable_id)
-        
+        all_groups = TimetableManagementService.get_all_groups_in_timetable(
+            timetable_id
+        )
+
         if not all_groups:
             raise ValueError("Timetable must have at least one class group")
 
         # Get students from all groups
-        inscriptions = Inscription.objects.filter(
+        Inscription.objects.filter(
             class_group__in=all_groups,
             regist_status="Active",
         ).select_related("student")
@@ -1125,7 +1126,9 @@ class ClassGroupManagementService:
 
     # ---------------- ASSIGN SINGLE STUDENT ----------------
     @staticmethod
-    def assign_student_to_group(student_id, class_group_id=None, class_fk=None, academic_year=None):
+    def assign_student_to_group(
+        student_id, class_group_id=None, class_fk=None, academic_year=None
+    ):
         """
         Assign a student to a class group.
         If no class_group_id is provided, assigns to default G1.
@@ -1137,8 +1140,12 @@ class ClassGroupManagementService:
             class_group = ClassGroup.objects.get(id=class_group_id)
         else:
             if not class_fk or not academic_year:
-                raise ValueError("Must provide class_fk and academic_year if no group ID is given")
-            class_group = ClassGroupManagementService.get_or_create_default_group(class_fk, academic_year)
+                raise ValueError(
+                    "Must provide class_fk and academic_year if no group ID is given"
+                )
+            class_group = ClassGroupManagementService.get_or_create_default_group(
+                class_fk, academic_year
+            )
 
         # Get or validate student's inscription
         inscription = Inscription.objects.filter(
@@ -1147,7 +1154,9 @@ class ClassGroupManagementService:
             academic_year=class_group.academic_year,
         ).first()
         if not inscription:
-            raise ValueError("Student does not have an inscription for this class and academic year")
+            raise ValueError(
+                "Student does not have an inscription for this class and academic year"
+            )
 
         # Assign group in the inscription
         if inscription.class_group != class_group:
@@ -1202,7 +1211,9 @@ class ClassGroupManagementService:
 
     # ---------------- BULK ASSIGN STUDENTS ----------------
     @staticmethod
-    def bulk_assign_students(student_ids, class_group_id=None, class_fk=None, academic_year=None):
+    def bulk_assign_students(
+        student_ids, class_group_id=None, class_fk=None, academic_year=None
+    ):
         """
         Assign multiple students to a class group.
         If no class_group_id is provided, uses default G1.
@@ -1212,8 +1223,12 @@ class ClassGroupManagementService:
             class_group = ClassGroup.objects.get(id=class_group_id)
         else:
             if not class_fk or not academic_year:
-                raise ValueError("Must provide class_fk and academic_year if no group ID is given")
-            class_group = ClassGroupManagementService.get_or_create_default_group(class_fk, academic_year)
+                raise ValueError(
+                    "Must provide class_fk and academic_year if no group ID is given"
+                )
+            class_group = ClassGroupManagementService.get_or_create_default_group(
+                class_fk, academic_year
+            )
 
         # Get inscriptions for students
         inscriptions = Inscription.objects.filter(
@@ -1223,7 +1238,9 @@ class ClassGroupManagementService:
             regist_status="Active",
         )
         if inscriptions.count() != len(student_ids):
-            raise ValueError("Some students do not have valid inscriptions for this class group")
+            raise ValueError(
+                "Some students do not have valid inscriptions for this class group"
+            )
 
         # Assign each student to the group
         for inscription in inscriptions:
@@ -1231,7 +1248,10 @@ class ClassGroupManagementService:
                 inscription.class_group = class_group
                 inscription.save()
 
-        return {"class_group_id": str(class_group.id), "assigned_count": len(student_ids)}
+        return {
+            "class_group_id": str(class_group.id),
+            "assigned_count": len(student_ids),
+        }
 
 
 class ExamService:
@@ -1461,6 +1481,7 @@ class ResultCompilationService:
     @staticmethod
     def compile_results(inscription_id):
         from decimal import Decimal
+
         from django.db import transaction
 
         with transaction.atomic():
@@ -1516,7 +1537,7 @@ class ResultCompilationService:
     def get_compiled_results_by_university(university_id, academic_year_id):
         inscriptions = Inscription.objects.filter(
             class_fk__department__faculty__university_id=university_id,
-            academic_year_id=academic_year_id
+            academic_year_id=academic_year_id,
         )
         return CompiledResult.objects.filter(
             inscription__in=inscriptions
@@ -1526,7 +1547,7 @@ class ResultCompilationService:
     def get_compiled_results_by_faculty(faculty_id, academic_year_id):
         inscriptions = Inscription.objects.filter(
             class_fk__department__faculty_id=faculty_id,
-            academic_year_id=academic_year_id
+            academic_year_id=academic_year_id,
         )
         return CompiledResult.objects.filter(
             inscription__in=inscriptions
@@ -1535,8 +1556,7 @@ class ResultCompilationService:
     @staticmethod
     def get_compiled_results_by_department(department_id, academic_year_id):
         inscriptions = Inscription.objects.filter(
-            class_fk__department_id=department_id,
-            academic_year_id=academic_year_id
+            class_fk__department_id=department_id, academic_year_id=academic_year_id
         )
         return CompiledResult.objects.filter(
             inscription__in=inscriptions
@@ -1555,8 +1575,7 @@ class ResultCompilationService:
     def get_compiled_results_by_class_group(class_group_id, academic_year_id):
         class_group = ClassGroup.objects.get(id=class_group_id)
         inscriptions = Inscription.objects.filter(
-            class_fk=class_group.class_fk,
-            academic_year_id=academic_year_id
+            class_fk=class_group.class_fk, academic_year_id=academic_year_id
         )
         return CompiledResult.objects.filter(
             inscription__in=inscriptions
@@ -1617,33 +1636,35 @@ class ResultCompilationService:
     @staticmethod
     def bulk_compile_results_by_class_group(class_group_id, academic_year_id):
         from django.db import transaction
-        
+
         class_group = ClassGroup.objects.get(id=class_group_id)
         inscriptions = Inscription.objects.filter(
             class_fk=class_group.class_fk,
             academic_year_id=academic_year_id,
-            regist_status="Active"
+            regist_status="Active",
         )
-        
+
         compiled_count = 0
         errors = []
-        
+
         with transaction.atomic():
             for inscription in inscriptions:
                 try:
                     ResultCompilationService.compile_results(inscription.id)
                     compiled_count += 1
                 except Exception as e:
-                    errors.append({
-                        "inscription_id": str(inscription.id),
-                        "student_matricule": inscription.student.matricule,
-                        "error": str(e)
-                    })
-        
+                    errors.append(
+                        {
+                            "inscription_id": str(inscription.id),
+                            "student_matricule": inscription.student.matricule,
+                            "error": str(e),
+                        }
+                    )
+
         return {
             "compiled_count": compiled_count,
             "total_inscriptions": inscriptions.count(),
-            "errors": errors
+            "errors": errors,
         }
 
 
@@ -1707,7 +1728,9 @@ class SupplementService:
 
 class JurySessionService:
     @staticmethod
-    def create_jury_session(session_name, session_date, class_group_id, jury_member_ids, created_by):
+    def create_jury_session(
+        session_name, session_date, class_group_id, jury_member_ids, created_by
+    ):
         from django.db import transaction
 
         with transaction.atomic():
@@ -1760,30 +1783,38 @@ class JurySessionService:
 
     @staticmethod
     def get_jury_sessions_by_faculty(faculty_id):
-        return JurySession.objects.filter(
-            class_group__class_fk__department__faculty_id=faculty_id
-        ).select_related("class_group", "class_group__class_fk", "class_group__academic_year").prefetch_related("jury_members")
+        return (
+            JurySession.objects.filter(
+                class_group__class_fk__department__faculty_id=faculty_id
+            )
+            .select_related(
+                "class_group", "class_group__class_fk", "class_group__academic_year"
+            )
+            .prefetch_related("jury_members")
+        )
 
     @staticmethod
     def get_jury_sessions_by_class_group(class_group_id):
-        return JurySession.objects.filter(
-            class_group_id=class_group_id
-        ).select_related("class_group", "created_by").prefetch_related("jury_members")
+        return (
+            JurySession.objects.filter(class_group_id=class_group_id)
+            .select_related("class_group", "created_by")
+            .prefetch_related("jury_members")
+        )
 
     @staticmethod
     def get_jury_session_statistics(faculty_id, academic_year_id=None):
         sessions = JurySession.objects.filter(
             class_group__class_fk__department__faculty_id=faculty_id
         )
-        
+
         if academic_year_id:
             sessions = sessions.filter(class_group__academic_year_id=academic_year_id)
-        
+
         total_sessions = sessions.count()
         scheduled_sessions = sessions.filter(status="scheduled").count()
         in_progress_sessions = sessions.filter(status="in_progress").count()
         completed_sessions = sessions.filter(status="completed").count()
-        
+
         return {
             "total_sessions": total_sessions,
             "scheduled_sessions": scheduled_sessions,

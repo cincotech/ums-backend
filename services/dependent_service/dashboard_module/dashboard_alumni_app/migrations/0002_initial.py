@@ -9,48 +9,69 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('dashboard_alumni_app', '0001_initial'),
-        ('student_profile_app', '0001_initial'),
+        ("dashboard_alumni_app", "0001_initial"),
+        ("student_profile_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='alumniprofile',
-            name='student',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='student_profile_app.student'),
+            model_name="alumniprofile",
+            name="student",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="student_profile_app.student",
+            ),
         ),
         migrations.AddField(
-            model_name='alumnieventregistration',
-            name='alumni',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='dashboard_alumni_app.alumniprofile'),
+            model_name="alumnieventregistration",
+            name="alumni",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="dashboard_alumni_app.alumniprofile",
+            ),
         ),
         migrations.AddField(
-            model_name='alumidonation',
-            name='alumni',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='dashboard_alumni_app.alumniprofile'),
+            model_name="alumidonation",
+            name="alumni",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="dashboard_alumni_app.alumniprofile",
+            ),
         ),
         migrations.AddField(
-            model_name='alumnitestimonial',
-            name='alumni',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='dashboard_alumni_app.alumniprofile'),
+            model_name="alumnitestimonial",
+            name="alumni",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="dashboard_alumni_app.alumniprofile",
+            ),
         ),
         migrations.AddField(
-            model_name='joboffer',
-            name='alumni',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='dashboard_alumni_app.alumniprofile'),
+            model_name="joboffer",
+            name="alumni",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="dashboard_alumni_app.alumniprofile",
+            ),
         ),
         migrations.AddField(
-            model_name='mentorshipprogram',
-            name='mentee',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='student_profile_app.student'),
+            model_name="mentorshipprogram",
+            name="mentee",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="student_profile_app.student",
+            ),
         ),
         migrations.AddField(
-            model_name='mentorshipprogram',
-            name='mentor',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='dashboard_alumni_app.alumniprofile'),
+            model_name="mentorshipprogram",
+            name="mentor",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="dashboard_alumni_app.alumniprofile",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='alumnieventregistration',
-            unique_together={('event', 'alumni')},
+            name="alumnieventregistration",
+            unique_together={("event", "alumni")},
         ),
     ]

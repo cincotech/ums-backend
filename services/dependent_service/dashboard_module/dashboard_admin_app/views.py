@@ -1,14 +1,12 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework_simplejwt.token_blacklist.models import (
     BlacklistedToken,
     OutstandingToken,
@@ -21,6 +19,15 @@ from services.dependent_service.dashboard_module.dashboard_super_admin_app.model
     AuditLog,
 )
 
+from .filters import (
+    AuditLogFilter,
+    BackupFilter,
+    ConfigurationFilter,
+    NotificationFilter,
+    StatisticsFilter,
+    StudentUserFilter,
+    UserFilter,
+)
 from .mixins import UniversityFilterMixin, UniversityRetrieveUpdateDestroyModelMixin
 from .models import UniversityConfiguration, UniversityNotification
 from .serializers import (
@@ -40,7 +47,6 @@ from .serializers import (
     UserDetailSerializer,
     UserListSerializer,
     UserProfileSerializer,
-    UserUpdateSerializer,
 )
 from .services import (
     RoleProfileService,
@@ -48,8 +54,6 @@ from .services import (
     UniversityAdminService,
     UniversityUserManagementService,
 )
-from .filters import ConfigurationFilter, StatisticsFilter, NotificationFilter, AuditLogFilter, BackupFilter, UserFilter, StudentUserFilter, RoleFilter, RoleProfileFilter
- 
 
 User = get_user_model()
 
@@ -234,7 +238,14 @@ class AuditLogViewSet(BaseViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = AuditLogFilter
     filterset_fields = ["action", "user"]
-    search_fields = ["action", "description", "user__email", "user__first_name", "user__last_name", "ip_address"]
+    search_fields = [
+        "action",
+        "description",
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+        "ip_address",
+    ]
     ordering_fields = ["timestamp", "action"]
     ordering = ["-timestamp"]
 
@@ -659,13 +670,21 @@ class StudentUserViewSet(BaseViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = StudentUserFilter
     filterset_fields = ["is_active", "student__inscriptions__academic_year"]
-    search_fields = ["email", "first_name", "last_name", "phone_number", "student__matricule"]
+    search_fields = [
+        "email",
+        "first_name",
+        "last_name",
+        "phone_number",
+        "student__matricule",
+    ]
     ordering_fields = ["email", "first_name", "last_name", "student__matricule"]
     ordering = ["student__matricule"]
 
     def get_queryset(self):
-        academic_year_id = self.request.query_params.get('academic_year')
-        return UniversityUserManagementService.get_students(academic_year_id=academic_year_id)
+        academic_year_id = self.request.query_params.get("academic_year")
+        return UniversityUserManagementService.get_students(
+            academic_year_id=academic_year_id
+        )
 
 
 # ============== Roles Management ==============
@@ -860,7 +879,7 @@ class RoleProfileViewSet(viewsets.ViewSet):
 
                 role_id = user.role.name if user.role else "General"
                 profile = RoleProfileService.update_user_profile(
-                    user,role_id, profile_data
+                    user, role_id, profile_data
                 )
 
                 log_user_action(

@@ -19,7 +19,7 @@ All ViewSets now support three types of filtering:
 - Example: `?status=active&role=student`
 - Uses `filterset_fields` attribute
 
-#### SearchFilter  
+#### SearchFilter
 - Enables text search across multiple fields
 - Example: `?search=john`
 - Uses `search_fields` attribute
