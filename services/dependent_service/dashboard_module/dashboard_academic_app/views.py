@@ -92,7 +92,7 @@ class AttributionValidationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsDean])
+@permission_classes([IsDirectorAcademic])
 def dashboard_overview(request):
     total_attributions = Attribution.objects.count()
     validated_attributions = Attribution.objects.filter(
@@ -135,7 +135,11 @@ def visiting_professors_attributions(request):
     for attr in attributions:
         data.append({
             "attribution_id": str(attr.id),
-            "course": attr.course.name if hasattr(attr.course, "name") else str(attr.course),
+            "course": (
+            f"{attr.course.course_code} - {attr.course.course_name}"
+           if attr.course and attr.course.course_code
+          else attr.course.course_name if attr.course else None
+            ),
             "principal_teacher": str(attr.principal_teacher),
             "academic_year": str(attr.academic_year),
             "status": attr.status_principal_teacher,
@@ -149,47 +153,6 @@ def visiting_professors_attributions(request):
         status=status.HTTP_200_OK
     )
 
-
-
-#@api_view(["POST"])
-#@permission_classes([IsAuthenticated,IsDirectorAcademic])
-#def validate_attribution(request, attribution_id):
-   # try:
-    #    attribution = Attribution.objects.get(id=attribution_id)
-   # except Attribution.DoesNotExist:
-     #   return Response(
-         #   {"detail": "Attribution introuvable"},
-         #   status=status.HTTP_404_NOT_FOUND
-       # )
-
-   # if attribution.validation_date:
-       # return Response(
-          #  {"detail": "Cette attribution est déjà validée"},
-          #  status=status.HTTP_400_BAD_REQUEST
-     #   )
-
-    # Accepter automatiquement le teacher principal si pas encore accepté
-   # if attribution.status_principal_teacher == "Pending":
-      #  attribution.status_principal_teacher = "Accepted"
-      #  attribution.status_substitute_teacher = "Refused"
-
-   # attribution.validated_by = request.user
-   # attribution.validation_date = timezone.now()
-   # attribution.validation_comments = request.data.get("comments", "")
-  #  attribution.save()
-
-   # return Response(
-      #  {
-        #    "message": "Attribution validée avec succès",
-       #     "attribution_id": str(attribution.id),
-       #     "validated_by": request.user.email,
-      #      "validation_date": attribution.validation_date,
-       # },
-       # status=status.HTTP_200_OK
-  #  )
-
-
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsDean])
 def academic_performance_report(request):
@@ -200,11 +163,11 @@ def academic_performance_report(request):
             total=Count("id"),
             accepted=Count(
                 "id",
-                filter=models.Q(status_principal_teacher="Accepted")
+                filter=Q(status_principal_teacher="Accepted")
             ),
             refused=Count(
                 "id",
-                filter=models.Q(status_principal_teacher="Refused")
+                filter=Q(status_principal_teacher="Refused")
             ),
         )
     )
@@ -242,25 +205,32 @@ def generate_quality_report(request):
         status_principal_teacher="Refused"
     ).count()
 
+    report_data = {
+        "academic_year": academic_year,
+        "total_attributions": total,
+        "accepted_teachers": accepted,
+        "refused_teachers": refused,
+        "generated_at": timezone.now().isoformat(),
+    }
+
     report = QualityReport.objects.create(
-        academic_year=academic_year,
-        total_attributions=total,
-        accepted_teachers=accepted,
-        refused_teachers=refused,
-        generated_by=request.user,
-        generated_at=timezone.now(),
+        report_type="academic_performance",
+        title=f"Rapport de performance académique {academic_year}",
+        data=report_data,
         summary=(
             f"Année {academic_year} : "
             f"{total} attributions, "
             f"{accepted} acceptées, "
             f"{refused} refusées."
-        )
+        ),
+        generated_by=request.user,
     )
 
     return Response(
         {
             "message": "Rapport qualité généré avec succès",
-            "report_id": report.id
+            "report_id": str(report.id),
+            "title": report.title,
         },
         status=status.HTTP_201_CREATED
     )
@@ -270,7 +240,9 @@ def generate_quality_report(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsDean])
 def quality_reports_list(request):
-    reports = QualityReport.objects.all().order_by("-generated_at")
+   
+    reports = QualityReport.objects.all().order_by("-generated_date")
+
     serializer = QualityReportSerializer(reports, many=True)
 
     return Response(
