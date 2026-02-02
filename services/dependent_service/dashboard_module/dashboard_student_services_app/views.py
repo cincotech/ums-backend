@@ -1,3 +1,6 @@
+from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -18,7 +21,7 @@ from .serializers import (
 )
 from .services import PopulationDataService, StudentServicesService
 from .models import (
-    AbsenceJustification,
+   AbsenceJustification,
     CounselingSession,
     DocumentRequest,
     Scholarship,
@@ -26,6 +29,8 @@ from .models import (
     StudentStatusChange,
 )
 from core.pagination import StandardResultsSetPagination
+from .filters import PopulationDataFilter, DocumentRequestFilter, AbsenceJustificationFilter, StudentActivityFilter, ScholarshipFilter, CounselingSessionFilter, StudentStatusChangeFilter
+    
 
 
 
@@ -95,34 +100,46 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
 class DocumentRequestViewSet(BaseViewSet):
     queryset = DocumentRequest.objects.all()
     serializer_class = DocumentRequestSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = DocumentRequestFilter
     permission_classes = [IsStudentService]
 
 
 class AbsenceJustificationViewSet(BaseViewSet):
     queryset = AbsenceJustification.objects.all()
     serializer_class = AbsenceJustificationSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = AbsenceJustificationFilter
     permission_classes = [IsStudentService]
 
 
 class StudentActivityViewSet(BaseViewSet):
     queryset = StudentActivity.objects.all()
     serializer_class = StudentActivitySerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentActivityFilter
     permission_classes = [IsStudentService]
 
 
 class ScholarshipViewSet(BaseViewSet):
     queryset = Scholarship.objects.all()
     serializer_class = ScholarshipSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = ScholarshipFilter
     permission_classes = [IsStudentService]
 
 
 class CounselingSessionViewSet(BaseViewSet):
     queryset = CounselingSession.objects.all()
     serializer_class = CounselingSessionSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = CounselingSessionFilter
     permission_classes = [IsStudentService]
 
 
 class StudentStatusChangeViewSet(BaseViewSet):
     queryset = StudentStatusChange.objects.all()
     serializer_class = StudentStatusChangeSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentStatusChangeFilter
     permission_classes = [IsStaff]

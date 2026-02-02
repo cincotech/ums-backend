@@ -3,6 +3,9 @@ import logging
 
 from django.contrib.auth import authenticate
 from django_otp.plugins.otp_email.models import EmailDevice
+from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -33,6 +36,7 @@ from .serializers import (
 )
 from .services import UserService
 from .utils import send_otp_email, send_register_otp
+from .filters import UserFilter
 
 logger = logging.getLogger(__name__)
 
@@ -767,8 +771,13 @@ class TokenRefreshView(APIView):
 class UserViewSet(BaseViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]  # Only authenticated users can access
+    permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser, JSONParser)
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = UserFilter
+    search_fields = ['email', 'first_name', 'last_name', 'phone_number', 'role__name']
+    ordering_fields = ['email', 'first_name', 'last_name', 'created_at']
+    ordering = ['-created_at']
 
     def get_queryset(self):
         user = self.request.user

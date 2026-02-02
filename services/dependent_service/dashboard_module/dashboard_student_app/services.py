@@ -198,19 +198,17 @@ class StudentDashboardService:
 
     @staticmethod
     def get_student_schedule(student):
-        """Get student class schedule including merged timetables"""
+        """Get student class schedule: current day and full week"""
         from services.dependent_service.scheduling_module.scheduling_app.models import Timetable, TimetableMerge
         from django.db.models import Q
+        from django.utils import timezone
 
         inscription = Inscription.objects.filter(
             student=student, regist_status="Active"
         ).select_related('class_fk', 'academic_year').first()
 
         if not inscription:
-            return {
-                'timetables': Timetable.objects.none(),
-                'merged_timetables': TimetableMerge.objects.none()
-            }
+            return {'day_of_week': None, 'merge': []}
 
         if not inscription.class_group:
             default_group = ClassGroupManagementService.get_or_create_default_group(
@@ -220,26 +218,51 @@ class StudentDashboardService:
             inscription.class_group = default_group
             inscription.save(update_fields=['class_group'])
 
-        # Get regular timetables (primary + shared)
-        timetables = Timetable.objects.filter(
-            Q(class_group=inscription.class_group) | Q(shared_with=inscription.class_group)
+        today = timezone.now().date()
+        current_day = today.strftime('%A')
+        days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        # Get current day timetable
+        current_timetable = Timetable.objects.filter(
+            Q(class_group=inscription.class_group) | Q(shared_with=inscription.class_group),
+            start_date__lte=today,
+            end_date__gte=today,
+            slots__day_of_week=current_day
         ).select_related(
             'class_group',
             'attribution',
             'attribution__course',
             'attribution__principal_teacher',
+            'attribution__principal_teacher__user',
             'room'
-        ).prefetch_related('slots', 'shared_with').distinct()
+        ).prefetch_related('slots', 'shared_with').first()
         
-        # Get merged timetables (check both primary and shared)
-        merged_timetables = TimetableMerge.objects.filter(
-            Q(timetables__class_group=inscription.class_group) | 
-            Q(timetables__shared_with=inscription.class_group)
-        ).prefetch_related('timetables', 'timetables__slots').distinct()
+        # Get full week schedule
+        week_schedule = []
+        for day in days_order:
+            timetables = Timetable.objects.filter(
+                Q(class_group=inscription.class_group) | Q(shared_with=inscription.class_group),
+                start_date__lte=today,
+                end_date__gte=today,
+                slots__day_of_week=day
+            ).select_related(
+                'class_group',
+                'attribution',
+                'attribution__course',
+                'attribution__principal_teacher',
+                'attribution__principal_teacher__user',
+                'room'
+            ).prefetch_related('slots', 'shared_with')
+            
+            if timetables.exists():
+                week_schedule.append({
+                    'day_of_week': day,
+                    'timetables': list(timetables)
+                })
         
         return {
-            'timetables': timetables.order_by('start_date'),
-            'merged_timetables': merged_timetables
+            'day_of_week': current_timetable,
+            'merge': week_schedule
         }
 
 

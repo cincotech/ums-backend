@@ -1,3 +1,6 @@
+from django.db.models import Q
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -27,6 +30,9 @@ from .serializers import (
     StudentProfileSerializer,
     StudentScheduleSerializer,
     StudentTranscriptSerializer,
+    StudentTimetableMergeSerializer,
+    StudentTimetableSerializer,
+    
 )
 from .services import StudentDashboardService
 
@@ -153,24 +159,25 @@ def academic_progress(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsStudent])
 def student_schedule(request):
-    """Get student schedule including merged timetables"""
+    """Get student schedule: current day and full week"""
     try:
         student = request.user.students_users
         schedule_data = StudentDashboardService.get_student_schedule(student)
         
-        from services.dependent_service.dashboard_module.dashboard_doyen_app.serializers import (
-            TimetableSerializer,
-            TimetableMergeSerializer
-        )
+        response_data = {}
         
-        timetables_serializer = TimetableSerializer(schedule_data['timetables'], many=True)
-        merged_serializer = TimetableMergeSerializer(schedule_data['merged_timetables'], many=True)
+        if schedule_data['day_of_week']:
+            response_data['day_of_week'] = StudentTimetableSerializer(schedule_data['day_of_week']).data
+        else:
+            response_data['day_of_week'] = None
+            
+        if schedule_data['merge']:
+            response_data['merge'] = StudentTimetableMergeSerializer(schedule_data['merge'], many=True).data
+        else:
+            response_data['merge'] = []
         
         return success_response(
-            data={
-                'timetables': timetables_serializer.data,
-                'merged_timetables': merged_serializer.data
-            },
+            data=response_data,
             message="Student schedule retrieved"
         )
     except Exception as e:
