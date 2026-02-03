@@ -84,7 +84,9 @@ class TimetableAdmin(ImportExportModelAdmin, ModelAdmin):
     ordering = ("-start_date",)
 
 
-admin.site.register(TimetableMerge)
+@admin.register(TimetableMerge)
+class TimetableMergeAdmin(ModelAdmin):
+    pass
 
 
 @admin.register(Attendance)
