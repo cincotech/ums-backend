@@ -34,7 +34,7 @@ class Command(BaseCommand):
 
         for start, end in ranges:
             for num in range(start, end + 1):
-                room_name = f"Room {num}"
+                room_name = f"Salle A{num}"
                 room_code = str(num)
 
                 if not Room.objects.filter(

@@ -39,17 +39,15 @@ class TrainingViewSet(BaseViewSet):
     queryset = Training.objects.all()
     serializer_class = TrainingSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = StudentFilter
-    search_fields = ["training_name", "institution"]
-    ordering_fields = ["start_date", "end_date"]
-    ordering = ["-start_date"]
+    search_fields = ["domaine", "training_center__name"]
+    ordering_fields = ["id", "domaine"]
+    ordering = ["id"]
 
 
 class StudentHsInfoViewSet(BaseViewSet):
     queryset = StudentHsInfo.objects.all()
     serializer_class = StudentHsInfoSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = StudentFilter
     search_fields = ["highschool_name", "highschool_location"]
     ordering_fields = ["graduation_year"]
     ordering = ["-graduation_year"]
@@ -59,7 +57,6 @@ class StudentGraduateInfoViewSet(BaseViewSet):
     queryset = StudentGraduateInfo.objects.all()
     serializer_class = StudentGraduateInfoSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = StudentFilter
     search_fields = ["university_name", "degree_obtained"]
     ordering_fields = ["graduation_year"]
     ordering = ["-graduation_year"]
@@ -119,7 +116,6 @@ class StudentFileViewSet(viewsets.ModelViewSet):
     serializer_class = StudentFileSerializer
     parser_classes = [MultiPartParser, FormParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = StudentFilter
     search_fields = ["file_name", "file_type"]
     ordering_fields = ["uploaded_at"]
     ordering = ["-uploaded_at"]
