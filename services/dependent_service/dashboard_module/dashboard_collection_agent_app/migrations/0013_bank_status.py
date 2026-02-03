@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             "dashboard_collection_agent_app",
-            "0012_rename_bank_account_bank_account_number",
+            "0009_remove_payment_bank_slip_ref_bank_account_number_and_more",
         ),
     ]
 
