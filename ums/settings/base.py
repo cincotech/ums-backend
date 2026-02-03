@@ -204,6 +204,7 @@ EMAIL_HOST_PASSWORD = get_env_variable("EMAIL_HOST_PASSWORD", "nyhbfgzcvhsadrpp"
 DEFAULT_FROM_EMAIL = get_env_variable(
     "DEFAULT_FROM_EMAIL", "UMS Finance <testcomlab24@gmail.com>"
 )
+ADMIN_EMAIL = get_env_variable("ADMIN_EMAIL", "ndiku6241@gmail.com")
 COMPANY_NAME = get_env_variable("COMPANY_NAME", "Upg")
 
 STORAGES = {

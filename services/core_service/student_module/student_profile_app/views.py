@@ -1,13 +1,16 @@
 # Create your views here.
 
 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.views import APIView
 
 from core.response_handler import error_response, success_response, validate_serializer
 from core.views import BaseViewSet
 
+from .filters import StudentFilter
 from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, Training
 from .serializers import (
     StudentFileSerializer,
@@ -21,6 +24,11 @@ from .serializers import (
 class StudentViewSet(BaseViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentFilter
+    search_fields = ["user__first_name", "user__last_name", "user__email", "matricule"]
+    ordering_fields = ["matricule", "user__first_name", "user__last_name"]
+    ordering = ["matricule"]
 
     def perform_create(self, serializer):
 
@@ -30,16 +38,31 @@ class StudentViewSet(BaseViewSet):
 class TrainingViewSet(BaseViewSet):
     queryset = Training.objects.all()
     serializer_class = TrainingSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentFilter
+    search_fields = ["training_name", "institution"]
+    ordering_fields = ["start_date", "end_date"]
+    ordering = ["-start_date"]
 
 
 class StudentHsInfoViewSet(BaseViewSet):
     queryset = StudentHsInfo.objects.all()
     serializer_class = StudentHsInfoSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentFilter
+    search_fields = ["highschool_name", "highschool_location"]
+    ordering_fields = ["graduation_year"]
+    ordering = ["-graduation_year"]
 
 
 class StudentGraduateInfoViewSet(BaseViewSet):
     queryset = StudentGraduateInfo.objects.all()
     serializer_class = StudentGraduateInfoSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentFilter
+    search_fields = ["university_name", "degree_obtained"]
+    ordering_fields = ["graduation_year"]
+    ordering = ["-graduation_year"]
 
 
 class StudentSiblingsAPIView(APIView):
@@ -94,7 +117,12 @@ class StudentSiblingsAPIView(APIView):
 class StudentFileViewSet(viewsets.ModelViewSet):
     queryset = StudentFile.objects.all()
     serializer_class = StudentFileSerializer
-    parser_classes = [MultiPartParser, FormParser]  # JSONParser not needed
+    parser_classes = [MultiPartParser, FormParser]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = StudentFilter
+    search_fields = ["file_name", "file_type"]
+    ordering_fields = ["uploaded_at"]
+    ordering = ["-uploaded_at"]
 
     def perform_create(self, serializer):
         serializer.save()

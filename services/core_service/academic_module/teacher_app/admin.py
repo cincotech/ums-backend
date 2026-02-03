@@ -1,13 +1,10 @@
 # Register your models here.
 
-from django.contrib import admin
-from django.contrib.admin.actions import delete_selected
-from django.contrib import messages
-from django.utils.translation import ngettext
+from django.contrib import admin, messages
+from django.contrib.admin import helpers
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.contrib.admin import helpers
-from import_export.admin import ImportExportModelAdmin
+from django.utils.translation import ngettext
 from unfold.admin import ModelAdmin
 
 from .models import Attribution, Suggestion, Teacher
@@ -66,13 +63,13 @@ class AttributionAdmin(ModelAdmin):
 
     date_hierarchy = "date_attribution"
 
-    actions = ['delete_selected_attributions']
+    actions = ["delete_selected_attributions"]
 
     def delete_selected_attributions(self, request, queryset):
         """
         Custom delete action with confirmation page
         """
-        if request.POST.get('post'):
+        if request.POST.get("post"):
             # Delete the selected objects
             deleted_count = 0
             for obj in queryset:
@@ -82,47 +79,52 @@ class AttributionAdmin(ModelAdmin):
             self.message_user(
                 request,
                 ngettext(
-                    '%d attribution was successfully deleted.',
-                    '%d attributions were successfully deleted.',
+                    "%d attribution was successfully deleted.",
+                    "%d attributions were successfully deleted.",
                     deleted_count,
-                ) % deleted_count,
+                )
+                % deleted_count,
                 messages.SUCCESS,
             )
             return HttpResponseRedirect(request.get_full_path())
 
         # Show confirmation page
         context = {
-            'title': 'Are you sure?',
-            'queryset': queryset,
-            'action_checkbox_name': helpers.ACTION_CHECKBOX_NAME,
-            'opts': self.model._meta,
-            'action_name': 'delete_selected_attributions',
-            'app_label': self.model._meta.app_label,
-            'model_name': self.model._meta.model_name,
+            "title": "Are you sure?",
+            "queryset": queryset,
+            "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
+            "opts": self.model._meta,
+            "action_name": "delete_selected_attributions",
+            "app_label": self.model._meta.app_label,
+            "model_name": self.model._meta.model_name,
         }
-        return render(request, 'admin/delete_selected_confirmation.html', context)
+        return render(request, "admin/delete_selected_confirmation.html", context)
 
     delete_selected_attributions.short_description = "Delete selected attributions"
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related(
-            'principal_teacher__user',
-            'substitute_teacher__user',
-            'course',
-            'academic_year'
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "principal_teacher__user",
+                "substitute_teacher__user",
+                "course",
+                "academic_year",
+            )
         )
 
     @admin.display(description="Teacher Principal")
     def principal_teacher_name(self, obj):
         if not obj.principal_teacher:
-          return "—"
+            return "—"
         user = obj.principal_teacher.user
         return f"{user.first_name} {user.last_name}".strip() or user.email
- 
+
     @admin.display(description="Teacher Remplaçant")
     def substitute_teacher_name(self, obj):
         if not obj.substitute_teacher:
-         return "—"
+            return "—"
         user = obj.substitute_teacher.user
         return f"{user.first_name} {user.last_name}".strip() or user.email
 

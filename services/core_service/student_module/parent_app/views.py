@@ -1,10 +1,9 @@
-# Create your views here.
-
-from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from core.views import BaseViewSet
 
+from .filters import ParentFilter, ProfessionFilter
 from .models import Parent, Profession
 from .serializers import ParentSerializer, ProfessionSerializer
 
@@ -12,12 +11,18 @@ from .serializers import ParentSerializer, ProfessionSerializer
 class ProfessionViewSet(BaseViewSet):
     queryset = Profession.objects.all()
     serializer_class = ProfessionSerializer
-    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = ProfessionFilter
+    search_fields = ["profession_name"]
+    ordering_fields = ["profession_name"]
+    ordering = ["profession_name"]
 
 
 class ParentViewSet(BaseViewSet):
     queryset = Parent.objects.all()
     serializer_class = ParentSerializer
-    permission_classes = [IsAuthenticated]
-    filter_backends = [SearchFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = ParentFilter
     search_fields = ["parent_name", "parent_phone", "parent_email"]
+    ordering_fields = ["parent_name"]
+    ordering = ["parent_name"]

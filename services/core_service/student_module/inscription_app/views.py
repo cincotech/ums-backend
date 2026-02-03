@@ -1,11 +1,13 @@
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from rest_framework import status
+from rest_framework.filters import OrderingFilter, SearchFilter
 
-from core.response_handler import error_response, success_response, validate_serializer
+from core.response_handler import error_response, success_response
 from core.views import BaseViewSet
 from services.core_service.academic_module.university_app.models import AcademicYear
 
+from .filters import InscriptionFilter
 from .models import Class, Inscription
 from .serializers import InscriptionSerializer
 
@@ -13,33 +15,33 @@ from .serializers import InscriptionSerializer
 class InscriptionViewSet(BaseViewSet):
     queryset = Inscription.objects.all()
     serializer_class = InscriptionSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = InscriptionFilter
+    search_fields = [
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__matricule",
+        "class_fk__class_name",
+    ]
+    ordering_fields = ["date_inscription", "regist_status", "student__matricule"]
+    ordering = ["-date_inscription"]
 
-    def list(self, request, *args, **kwargs):
-        academic_year_id = request.query_params.get("academic_year_id")
-
-        queryset = self.queryset
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        academic_year_id = self.request.query_params.get("academic_year_id")
 
         if academic_year_id:
-            queryset = queryset.filter(academic_year_id=academic_year_id)
-        else:
-            try:
-                current_year = AcademicYear.objects.get(
-                    start_date__lte=timezone.now(),
-                    end_date__gte=timezone.now(),
-                )
-                queryset = queryset.filter(academic_year=current_year)
-            except AcademicYear.DoesNotExist:
-                queryset = queryset.none()
+            return queryset.filter(academic_year_id=academic_year_id)
 
-        serializer = self.get_serializer(queryset.distinct(), many=True)
-        return success_response(
-            data=serializer.data,
-            message="Inscription list retrieved successfully",
-        )
+        try:
+            current_year = AcademicYear.objects.get(
+                start_date__lte=timezone.now(),
+                end_date__gte=timezone.now(),
+            )
+            return queryset.filter(academic_year=current_year)
+        except AcademicYear.DoesNotExist:
+            return queryset.none()
 
-    # ---------------------------
-    # Custom actions using model methods
-    # ---------------------------
     @action(detail=True, methods=["post"])
     def activate(self, request, pk=None):
         inscription = self.get_object()

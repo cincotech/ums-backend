@@ -2,9 +2,11 @@
 import logging
 
 from django.contrib.auth import authenticate
+from django_filters.rest_framework import DjangoFilterBackend
 from django_otp.plugins.otp_email.models import EmailDevice
 from rest_framework import permissions, status
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -22,6 +24,7 @@ from services.core_service.academic_module.university_app.models import Universi
 from services.foundational_service.auth_module.user_app.models import Role, User
 
 from .email_service import TwoFactorEmailService
+from .filters import UserFilter
 from .serializers import (
     RegisterSerializer,
     RoleSerializer,
@@ -767,8 +770,13 @@ class TokenRefreshView(APIView):
 class UserViewSet(BaseViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]  # Only authenticated users can access
+    permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser, JSONParser)
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = UserFilter
+    search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
+    ordering_fields = ["email", "first_name", "last_name", "created_at"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
         user = self.request.user

@@ -15,11 +15,13 @@ class JurySession(models.Model):
         ("in_progress", "En Cours"),
         ("completed", "Terminé"),
     )
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     session_name = models.CharField(max_length=255)
     session_date = models.DateTimeField()
-    class_group = models.ForeignKey(ClassGroup, on_delete=models.CASCADE, related_name="jury_sessions")
+    class_group = models.ForeignKey(
+        ClassGroup, on_delete=models.CASCADE, related_name="jury_sessions"
+    )
     jury_members = models.ManyToManyField(User, related_name="jury_sessions")
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="scheduled"

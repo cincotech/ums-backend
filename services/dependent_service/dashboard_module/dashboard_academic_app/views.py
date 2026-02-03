@@ -1,20 +1,19 @@
+from django.db import models
+from django.db.models import Count
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Count, Q
+
+from core.permissions import IsDean, IsDirectorAcademic
 from services.core_service.academic_module.quality_app.models import QualityReport
 from services.core_service.academic_module.quality_app.serializers import (
     QualityReportSerializer,
 )
-
 from services.core_service.academic_module.teacher_app.models import Attribution
-from core.permissions import IsDean, IsDirectorAcademic
-from .serializers import (
-    AttributionValidationSerializer,
-    TeacherValidationSerializer,
-)
+
+from .serializers import AttributionValidationSerializer, TeacherValidationSerializer
 
 
 class QualityReportViewSet(viewsets.ModelViewSet):
@@ -24,6 +23,7 @@ class QualityReportViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(generated_by=self.request.user)
+
 
 class AttributionValidationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Attribution.objects.select_related(
@@ -119,9 +119,8 @@ def dashboard_overview(request):
             "accepted_teachers": accepted_teachers,
             "refused_teachers": refused_teachers,
         },
-        status=status.HTTP_200_OK
+        status=status.HTTP_200_OK,
     )
-
 
 
 @api_view(["GET"])
@@ -173,12 +172,8 @@ def academic_performance_report(request):
     )
 
     return Response(
-        {
-            "performance_by_academic_year": list(by_year)
-        },
-        status=status.HTTP_200_OK
+        {"performance_by_academic_year": list(by_year)}, status=status.HTTP_200_OK
     )
-
 
 
 @api_view(["POST"])
@@ -188,13 +183,11 @@ def generate_quality_report(request):
 
     if not academic_year:
         return Response(
-            {"detail": "academic_year est requis"},
-            status=status.HTTP_400_BAD_REQUEST
+            {"detail": "academic_year est requis"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     attributions = Attribution.objects.filter(
-        academic_year=academic_year,
-        validation_date__isnull=False
+        academic_year=academic_year, validation_date__isnull=False
     )
 
     total = attributions.count()
@@ -246,10 +239,6 @@ def quality_reports_list(request):
     serializer = QualityReportSerializer(reports, many=True)
 
     return Response(
-        {
-            "count": reports.count(),
-            "results": serializer.data
-        },
-        status=status.HTTP_200_OK
+        {"count": reports.count(), "results": serializer.data},
+        status=status.HTTP_200_OK,
     )
-

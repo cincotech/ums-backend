@@ -25,7 +25,8 @@ from .serializers import (
     StudentOfficialDocumentSerializer,
     StudentPaymentInfoSerializer,
     StudentProfileSerializer,
-    StudentScheduleSerializer,
+    StudentTimetableMergeSerializer,
+    StudentTimetableSerializer,
     StudentTranscriptSerializer,
 )
 from .services import StudentDashboardService
@@ -153,25 +154,29 @@ def academic_progress(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsStudent])
 def student_schedule(request):
-    """Get student schedule including merged timetables"""
+    """Get student schedule: current day and full week"""
     try:
         student = request.user.students_users
         schedule_data = StudentDashboardService.get_student_schedule(student)
-        
-        from services.dependent_service.dashboard_module.dashboard_doyen_app.serializers import (
-            TimetableSerializer,
-            TimetableMergeSerializer
-        )
-        
-        timetables_serializer = TimetableSerializer(schedule_data['timetables'], many=True)
-        merged_serializer = TimetableMergeSerializer(schedule_data['merged_timetables'], many=True)
-        
+
+        response_data = {}
+
+        if schedule_data["day_of_week"]:
+            response_data["day_of_week"] = StudentTimetableSerializer(
+                schedule_data["day_of_week"]
+            ).data
+        else:
+            response_data["day_of_week"] = None
+
+        if schedule_data["merge"]:
+            response_data["merge"] = StudentTimetableMergeSerializer(
+                schedule_data["merge"], many=True
+            ).data
+        else:
+            response_data["merge"] = []
+
         return success_response(
-            data={
-                'timetables': timetables_serializer.data,
-                'merged_timetables': merged_serializer.data
-            },
-            message="Student schedule retrieved"
+            data=response_data, message="Student schedule retrieved"
         )
     except Exception as e:
         return error_response(
@@ -417,9 +422,11 @@ def student_payments(request):
     try:
         student = request.user.students_users
         payment_data = StudentDashboardService.get_student_payments(student)
-        
+
         serializer = StudentPaymentInfoSerializer(payment_data)
-        return success_response(data=serializer.data, message="Payment information retrieved")
+        return success_response(
+            data=serializer.data, message="Payment information retrieved"
+        )
     except Exception as e:
         return error_response(
             message=f"Error: {str(e)}",

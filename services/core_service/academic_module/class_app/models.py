@@ -6,6 +6,7 @@ from services.core_service.academic_module.department_app.models import Departme
 from services.core_service.academic_module.university_app.models import AcademicYear
 from services.core_service.student_module.student_profile_app.models import Student
 
+
 class Class(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     class_name = models.CharField(max_length=50)  # ex: "L1 Informatique"
@@ -37,8 +38,6 @@ class ClassGroup(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     is_default = models.BooleanField(default=False)
 
-   
-
     class Meta:
         db_table = "class_groups"
         unique_together = ("class_fk", "academic_year", "group_name")
@@ -54,8 +53,7 @@ class ClassGroup(models.Model):
     def students(self):
         """Return all students in this group with active inscriptions"""
         return Student.objects.filter(
-            inscriptions__class_group=self,
-            inscriptions__regist_status="Active"
+            inscriptions__class_group=self, inscriptions__regist_status="Active"
         )
 
     def __str__(self):

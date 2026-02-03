@@ -13,6 +13,17 @@ from core.permissions import (
 )
 from core.views import BaseViewSet
 
+from .filters import (
+    BankFilter,
+    CollectionCorrespondenceFilter,
+    FeesSheetFilter,
+    PaymentFilter,
+    PaymentInstallementFilter,
+    PaymentPlanFilter,
+    PaymentPromiseFilter,
+    PaymentReminderFilter,
+    WordingFilter,
+)
 from .models import (
     Bank,
     CollectionCorrespondence,
@@ -44,6 +55,7 @@ class BankViewSet(BaseViewSet):
     serializer_class = BankSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [SearchFilter, DjangoFilterBackend]
+    filterset_class = BankFilter
     search_fields = ["bank_name", "bank_abreviation", "account_number"]
     filterset_fields = ["status"]
 
@@ -53,6 +65,7 @@ class WordingViewSet(BaseViewSet):
     serializer_class = WordingSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [SearchFilter]
+    filterset_class = WordingFilter
     search_fields = ["wording_name"]
 
 
@@ -70,6 +83,7 @@ class FeesSheetViewSet(BaseViewSet):
     serializer_class = FeesSheetSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = FeesSheetFilter
     filterset_fields = [
         "class_fk",
         "department",
@@ -223,6 +237,7 @@ class PaymentInstallementViewSet(BaseViewSet):
     serializer_class = PaymentInstallementSerializer
     permission_classes = [IsStudentOrFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = PaymentInstallementFilter
     filterset_fields = [
         "payment_plan",
         "student",
@@ -506,6 +521,7 @@ class PaymentReminderViewSet(BaseViewSet):
     serializer_class = PaymentReminderSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = PaymentReminderFilter
     filterset_fields = ["student", "reminder_type", "status"]
     search_fields = [
         "student__matricule",
@@ -532,6 +548,7 @@ class PaymentPlanViewSet(BaseViewSet):
     serializer_class = PaymentPlanSerializer
     permission_classes = [IsStudentOrFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = PaymentPlanFilter
     filterset_fields = ["feessheet", "status", "created_by"]
     search_fields = [
         "feessheet__wording__wording_name",
@@ -593,6 +610,7 @@ class PaymentPromiseViewSet(BaseViewSet):
     serializer_class = PaymentPromiseSerializer
     permission_classes = [IsStudent]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = PaymentPromiseFilter
     filterset_fields = ["student", "status", "promised_date"]
     ordering_fields = ["promised_date", "promised_amount"]
 
@@ -610,6 +628,7 @@ class PaymentViewSet(BaseViewSet):
     ).all()
     serializer_class = PaymentSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = PaymentFilter
     filterset_fields = [
         "paymentplan",
         "payment_method",
@@ -722,6 +741,7 @@ class CollectionCorrespondenceViewSet(BaseViewSet):
     serializer_class = CollectionCorrespondenceSerializer
     permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = CollectionCorrespondenceFilter
     filterset_fields = ["student", "correspondence_type"]
     search_fields = ["subject", "content"]
     ordering_fields = ["sent_at"]
