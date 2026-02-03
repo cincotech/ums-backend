@@ -1891,10 +1891,90 @@ class TimetableMergeViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_context(self):
-        """
-        Injecte request dans le serializer
-        (obligatoire pour created_by)
-        """
         context = super().get_serializer_context()
         context["request"] = self.request
         return context
+
+    @action(detail=False, methods=["post"])
+    def validate(self, request):
+        timetable_ids = request.data.get("timetable_ids", [])
+
+        if len(timetable_ids) < 2:
+            return success_response(
+                data={
+                    "valid": False,
+                    "errors": [
+                        {
+                            "type": "INSUFFICIENT_TIMETABLES",
+                            "message": "At least 2 timetables required",
+                            "details": [],
+                        }
+                    ],
+                }
+            )
+
+        try:
+            from .services import TimetableMergeService
+
+            validation = TimetableMergeService.validate_merge(timetable_ids)
+            return success_response(data=validation)
+        except Exception as e:
+            return error_response(message="Validation error", errors=str(e))
+
+    @action(detail=True, methods=["get"])
+    def preview(self, request, pk=None):
+        try:
+            merge = self.get_object()
+            serializer = self.get_serializer(merge)
+            return success_response(data={"merged_data": serializer.data})
+        except Exception as e:
+            return error_response(message="Preview error", errors=str(e))
+
+    @action(detail=True, methods=["patch"])
+    def add(self, request, pk=None):
+        timetable_id = request.data.get("timetable_id")
+
+        if not timetable_id:
+            return error_response(message="timetable_id is required")
+
+        try:
+            from .services import TimetableMergeService
+
+            merge = TimetableMergeService.add_to_merge(pk, timetable_id)
+            serializer = self.get_serializer(merge)
+            return success_response(
+                data={"success": True, "merged_data": serializer.data}
+            )
+        except ValueError as e:
+            return success_response(
+                data={
+                    "success": False,
+                    "error": {
+                        "type": "VALIDATION_ERROR",
+                        "message": str(e),
+                        "details": [],
+                    },
+                }
+            )
+        except Exception as e:
+            return error_response(message="Error adding timetable", errors=str(e))
+
+    @action(detail=True, methods=["patch"])
+    def remove(self, request, pk=None):
+        timetable_id = request.data.get("timetable_id")
+
+        if not timetable_id:
+            return error_response(message="timetable_id is required")
+
+        try:
+            from .services import TimetableMergeService
+
+            merge = TimetableMergeService.remove_from_merge(pk, timetable_id)
+            serializer = self.get_serializer(merge)
+            return success_response(
+                data={"success": True, "merged_data": serializer.data}
+            )
+        except ValueError as e:
+            return error_response(message=str(e))
+        except Exception as e:
+            return error_response(message="Error removing timetable", errors=str(e))

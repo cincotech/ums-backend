@@ -1313,8 +1313,26 @@ class TimetableMergeSerializer(serializers.ModelSerializer):
         queryset=Timetable.objects.all(),
         write_only=True,
     )
-    timetables = TimetableSerializer(many=True, read_only=True)
     created_by = UserSerializer(read_only=True)
+
+    # Merged data fields
+    course_name = serializers.SerializerMethodField()
+    teacher_name = serializers.SerializerMethodField()
+    room_name = serializers.SerializerMethodField()
+    room = serializers.SerializerMethodField()
+    attribution = serializers.SerializerMethodField()
+    class_name = serializers.SerializerMethodField()
+    class_group_name = serializers.SerializerMethodField()
+    class_group = serializers.SerializerMethodField()
+    start_date = serializers.SerializerMethodField()
+    end_date = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    published_date = serializers.SerializerMethodField()
+    created_by_name = serializers.SerializerMethodField()
+    created_date = serializers.DateTimeField(source="created_at", read_only=True)
+    slots = serializers.SerializerMethodField()
+    slot_details = serializers.SerializerMethodField()
+    conflicts = serializers.SerializerMethodField()
 
     class Meta:
         model = TimetableMerge
@@ -1322,21 +1340,165 @@ class TimetableMergeSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "timetable_ids",
-            "timetables",
-            "created_at",
+            "course_name",
+            "teacher_name",
+            "room_name",
+            "room",
+            "attribution",
+            "class_name",
+            "class_group_name",
+            "class_group",
+            "start_date",
+            "end_date",
+            "status",
+            "published_date",
+            "created_by_name",
             "created_by",
+            "created_date",
+            "slots",
+            "slot_details",
+            "conflicts",
         ]
 
+    def _get_field_value(self, obj, field_name):
+        timetables = list(obj.timetables.all())
+        values = {}
+
+        for tt in timetables:
+            tt_id = str(tt.id)
+            if field_name == "course_name":
+                values[tt_id] = (
+                    tt.attribution.course.course_name if tt.attribution else None
+                )
+            elif field_name == "teacher_name":
+                values[tt_id] = (
+                    f"{tt.attribution.principal_teacher.user.first_name} {tt.attribution.principal_teacher.user.last_name}"
+                    if tt.attribution and tt.attribution.principal_teacher
+                    else None
+                )
+            elif field_name == "room_name":
+                values[tt_id] = tt.room.room_name if tt.room else None
+            elif field_name == "room":
+                values[tt_id] = str(tt.room_id) if tt.room_id else None
+            elif field_name == "attribution":
+                values[tt_id] = str(tt.attribution_id) if tt.attribution_id else None
+            elif field_name == "class_name":
+                values[tt_id] = (
+                    tt.class_group.class_fk.class_name if tt.class_group else None
+                )
+            elif field_name == "class_group_name":
+                values[tt_id] = tt.class_group.group_name if tt.class_group else None
+            elif field_name == "class_group":
+                values[tt_id] = str(tt.class_group_id) if tt.class_group_id else None
+            elif field_name == "status":
+                values[tt_id] = tt.status
+            elif field_name == "created_by_name":
+                values[tt_id] = (
+                    f"{tt.created_by.first_name} {tt.created_by.last_name}"
+                    if tt.created_by
+                    else None
+                )
+
+        unique_values = set(v for v in values.values() if v is not None)
+        if len(unique_values) > 1:
+            return values
+        return list(unique_values)[0] if unique_values else None
+
+    def get_course_name(self, obj):
+        return self._get_field_value(obj, "course_name")
+
+    def get_teacher_name(self, obj):
+        return self._get_field_value(obj, "teacher_name")
+
+    def get_room_name(self, obj):
+        return self._get_field_value(obj, "room_name")
+
+    def get_room(self, obj):
+        return self._get_field_value(obj, "room")
+
+    def get_attribution(self, obj):
+        return self._get_field_value(obj, "attribution")
+
+    def get_class_name(self, obj):
+        return self._get_field_value(obj, "class_name")
+
+    def get_class_group_name(self, obj):
+        return self._get_field_value(obj, "class_group_name")
+
+    def get_class_group(self, obj):
+        return self._get_field_value(obj, "class_group")
+
+    def get_status(self, obj):
+        return self._get_field_value(obj, "status")
+
+    def get_created_by_name(self, obj):
+        return self._get_field_value(obj, "created_by_name")
+
+    def get_start_date(self, obj):
+        dates = [tt.start_date for tt in obj.timetables.all()]
+        return str(min(dates)) if dates else None
+
+    def get_end_date(self, obj):
+        dates = [tt.end_date for tt in obj.timetables.all()]
+        return str(max(dates)) if dates else None
+
+    def get_published_date(self, obj):
+        return None
+
+    def get_slots(self, obj):
+        slot_ids = set()
+        for tt in obj.timetables.all():
+            slot_ids.update(tt.slots.values_list("id", flat=True))
+        return [str(sid) for sid in slot_ids]
+
+    def get_slot_details(self, obj):
+        all_slots = []
+        slot_ids = set()
+        for tt in obj.timetables.all():
+            for slot in tt.slots.all():
+                if slot.id not in slot_ids:
+                    all_slots.append(
+                        {
+                            "origin": str(tt.id),
+                            "detail": {
+                                "id": str(slot.id),
+                                "day_of_week": slot.day_of_week,
+                                "start_time": str(slot.start_time),
+                                "end_time": str(slot.end_time),
+                                "schedule_name": slot.schedule_name,
+                            },
+                        }
+                    )
+                    slot_ids.add(slot.id)
+        return all_slots
+
+    def get_conflicts(self, obj):
+        conflicts = []
+        fields = [
+            "course_name",
+            "teacher_name",
+            "room_name",
+            "room",
+            "attribution",
+            "class_name",
+            "class_group_name",
+            "class_group",
+            "status",
+            "created_by_name",
+        ]
+
+        for field in fields:
+            value = self._get_field_value(obj, field)
+            if isinstance(value, dict):
+                conflicts.append({"field": field, "valuesBySource": value})
+
+        return conflicts
+
     def create(self, validated_data):
-        """
-        created_by vient automatiquement du request.user
-        """
         request = self.context["request"]
         timetables = validated_data.pop("timetables")
-
         instance = TimetableMerge.objects.create(
             created_by=request.user, **validated_data
         )
         instance.timetables.set(timetables)
-
         return instance

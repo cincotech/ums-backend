@@ -4,7 +4,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
 
 from core.response_handler import error_response, success_response, validate_serializer
@@ -114,7 +114,7 @@ class StudentSiblingsAPIView(APIView):
 class StudentFileViewSet(viewsets.ModelViewSet):
     queryset = StudentFile.objects.all()
     serializer_class = StudentFileSerializer
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["file_name", "file_type"]
     ordering_fields = ["uploaded_at"]
