@@ -874,6 +874,46 @@ class TimetableViewSet(BaseViewSet):
             return TimetableDetailSerializer
         return TimetableSerializer
 
+    @action(detail=False, methods=["get"])
+    def stats(self, request):
+        faculty = get_faculty_for_request(request)
+        academic_year_id = request.query_params.get("academic_year_id")
+
+        if not faculty:
+            return error_response(message="Faculty is required")
+
+        try:
+            # Get timetables for faculty
+            timetables = Timetable.objects.filter(
+                class_group__class_fk__department__faculty=faculty
+            )
+
+            if academic_year_id:
+                timetables = timetables.filter(
+                    class_group__academic_year_id=academic_year_id
+                )
+
+            # Calculate stats
+            total = timetables.count()
+            drafts = timetables.filter(status="Planned").count()
+            published = timetables.filter(published_date__isnull=False).count()
+            slots = ScheduleSlot.objects.all().count()
+
+            stats = {
+                "total": total,
+                "drafts": drafts,
+                "published": published,
+                "slots": slots,
+            }
+
+            return success_response(
+                data=stats, message="Timetable statistics retrieved successfully"
+            )
+        except Exception as e:
+            return error_response(
+                message="Error retrieving timetable statistics", errors=str(e)
+            )
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         validation_error = validate_serializer(serializer)
@@ -1003,6 +1043,66 @@ class TimetableViewSet(BaseViewSet):
             )
         except Exception as e:
             return error_response(message="Error retrieving timetables", errors=str(e))
+
+    @action(detail=True, methods=["post"])
+    def add_shared_groups(self, request, pk=None):
+        group_ids = request.data.get("group_ids", [])
+
+        if not group_ids:
+            return error_response(message="group_ids are required")
+
+        try:
+            timetable = TimetableManagementService.share_timetable_with_groups(
+                pk, group_ids
+            )
+            return success_response(
+                data=TimetableSerializer(timetable).data,
+                message="Groups added successfully",
+            )
+        except ValueError as e:
+            return error_response(message=str(e))
+        except Exception as e:
+            return error_response(message="Error adding shared groups", errors=str(e))
+
+    @action(detail=True, methods=["post"])
+    def remove_shared_group(self, request, pk=None):
+        group_id = request.data.get("group_id")
+
+        if not group_id:
+            return error_response(message="group_id is required")
+
+        try:
+            timetable = TimetableManagementService.remove_shared_group(pk, group_id)
+            return success_response(
+                data=TimetableSerializer(timetable).data,
+                message="Group removed successfully",
+            )
+        except Exception as e:
+            return error_response(message="Error removing shared group", errors=str(e))
+
+    @action(detail=True, methods=["get"])
+    def shared_groups(self, request, pk=None):
+        try:
+            groups = TimetableManagementService.get_shared_groups(pk)
+            serializer = ClassGroupSerializer(groups, many=True)
+            return success_response(
+                data=serializer.data, message="Shared groups retrieved successfully"
+            )
+        except Exception as e:
+            return error_response(
+                message="Error retrieving shared groups", errors=str(e)
+            )
+
+    @action(detail=True, methods=["get"])
+    def all_groups(self, request, pk=None):
+        try:
+            groups = TimetableManagementService.get_all_groups_in_timetable(pk)
+            serializer = ClassGroupSerializer(groups, many=True)
+            return success_response(
+                data=serializer.data, message="All groups retrieved successfully"
+            )
+        except Exception as e:
+            return error_response(message="Error retrieving all groups", errors=str(e))
 
 
 class AttendanceViewSet(BaseViewSet):

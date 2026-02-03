@@ -33,7 +33,7 @@ class DepartmentResource(resources.ModelResource):
 @admin.register(Department)
 class DepartmentAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = DepartmentResource
-    list_display = ("department_name", "abreviation", "faculty")
+    list_display = ("department_name", "abreviation", "faculty", "is_default")
     list_filter = ("faculty",)
     search_fields = ("department_name", "abreviation", "faculty__faculty_name")
     ordering = ("department_name",)
@@ -41,7 +41,7 @@ class DepartmentAdmin(ImportExportModelAdmin, ModelAdmin):
     fieldsets = (
         (
             "Department Information",
-            {"fields": ("department_name", "abreviation", "faculty")},
+            {"fields": ("department_name", "abreviation", "faculty", "is_default")},
         ),
     )
 

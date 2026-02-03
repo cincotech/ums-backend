@@ -90,7 +90,7 @@ urlpatterns = [
         name="faculty-overview",
     ),
     path(
-        "timetable/overview/",
+        "timetables/stats/",
         TimetableOverviewView.as_view(),
         name="timetable-overview",
     ),

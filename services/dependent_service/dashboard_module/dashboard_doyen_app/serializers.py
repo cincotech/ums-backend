@@ -731,6 +731,9 @@ class TimetableSerializer(serializers.ModelSerializer):
     slot_details = ScheduleSlotSerializer(source="slots", many=True, read_only=True)
     created_by_name = serializers.SerializerMethodField()
     shared_groups = serializers.SerializerMethodField()
+    is_shared = serializers.SerializerMethodField()
+    is_merged = serializers.SerializerMethodField()
+    merges = serializers.SerializerMethodField()
     faculty_abreviation = serializers.CharField(
         source="class_group.class_fk.department.faculty.faculty_abreviation",
         read_only=True,
@@ -760,8 +763,23 @@ class TimetableSerializer(serializers.ModelSerializer):
             "created_by_name",
             "created_date",
             "published_date",
+            "is_shared",
+            "is_merged",
+            "merges",
         ]
         read_only_fields = ["id", "created_date", "created_by"]
+
+    def get_is_shared(self, obj):
+        return obj.shared_with.exists()
+
+    def get_is_merged(self, obj):
+        return obj.timetable_merges.exists()
+
+    def get_merges(self, obj):
+        return [
+            {"id": str(merge.id), "name": merge.name}
+            for merge in obj.timetable_merges.all()
+        ]
 
     def get_teacher_name(self, obj):
         if obj.attribution and obj.attribution.principal_teacher:
@@ -773,7 +791,6 @@ class TimetableSerializer(serializers.ModelSerializer):
         return f"{obj.created_by.first_name} {obj.created_by.last_name}"
 
     def get_shared_groups(self, obj):
-        """Get all groups sharing this timetable"""
         return [
             {
                 "id": str(group.id),
@@ -792,6 +809,7 @@ class TimetableDetailSerializer(serializers.ModelSerializer):
     slot_details = ScheduleSlotSerializer(source="slots", many=True, read_only=True)
     attendance_summary = serializers.SerializerMethodField()
     activity_reports = serializers.SerializerMethodField()
+    is_shared = serializers.SerializerMethodField()
 
     class Meta:
         model = Timetable
@@ -813,8 +831,12 @@ class TimetableDetailSerializer(serializers.ModelSerializer):
             "published_date",
             "attendance_summary",
             "activity_reports",
+            "is_shared",
         ]
         read_only_fields = ["id", "created_date"]
+
+    def get_is_shared(self, obj):
+        return obj.shared_with.exists()
 
     def get_class_group_details(self, obj):
         if obj.class_group:
