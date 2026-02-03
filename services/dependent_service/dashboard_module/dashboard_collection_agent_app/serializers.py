@@ -255,10 +255,40 @@ class PaymentSerializer(serializers.ModelSerializer):
     inscription = serializers.UUIDField(required=False, allow_null=True)
     remittance_slip_uri = serializers.ImageField(required=False, allow_null=True)
 
+    class Meta:
+        model = Payment
+        fields = [
+            "id",
+            "paymentplan",
+            "amount_paid",
+            "payment_date",
+            "reception_date",
+            "payment_method",
+            "bank",
+            "transaction_code",
+            "inscription",
+            "user",
+            "description",
+            "remittance_slip_uri",
+            "payment_status",
+            "verified_by",
+            "verified_at",
+        ]
+        read_only_fields = ["user", "verified_by", "verified_at"]
+
     def validate_inscription(self, value):
         if value == "" or value == "<uuid-inscription>" or value is None:
             return None
-        return value
+
+        # Convertir l'UUID en instance d'Inscription
+        from services.core_service.student_module.inscription_app.models import (
+            Inscription,
+        )
+
+        try:
+            return Inscription.objects.get(id=value)
+        except Inscription.DoesNotExist:
+            raise serializers.ValidationError("Inscription non trouvée.")
 
     def to_internal_value(self, data):
         if "inscription" in data and (
@@ -376,27 +406,6 @@ class PaymentSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Profil étudiant non trouvé.")
 
         return super().create(validated_data)
-
-    class Meta:
-        model = Payment
-        fields = [
-            "id",
-            "paymentplan",
-            "amount_paid",
-            "payment_date",
-            "reception_date",
-            "payment_method",
-            "bank",
-            "transaction_code",
-            "inscription",
-            "user",
-            "description",
-            "remittance_slip_uri",
-            "payment_status",
-            "verified_by",
-            "verified_at",
-        ]
-        read_only_fields = ["user", "verified_by", "verified_at"]
 
 
 class PaymentReminderSerializer(serializers.ModelSerializer):
