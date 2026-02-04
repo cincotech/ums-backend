@@ -1,0 +1,16 @@
+@startuml
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+autonumber
+actor Teacher
+participant "Grade API" as API
+participant "Result Service" as Service
+database "Database" as DB
+
+Teacher -> API: POST /api/grades
+API -> Service: submit_grade(data)
+Service -> DB: save(grade)
+DB --> Service: grade_id
+Service --> API: success
+API --> Teacher: 200 OK
+@enduml

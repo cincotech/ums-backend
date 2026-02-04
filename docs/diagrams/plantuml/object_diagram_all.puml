@@ -1,0 +1,1550 @@
+@startuml
+
+object "LogEntry" as LogEntry {
+  id
+  action_time
+  user
+  content_type
+  object_id
+  object_repr
+  action_flag
+  change_message
+}
+
+object "Permission" as Permission {
+  group
+  user
+  id
+  name
+  content_type
+  codename
+}
+
+object "Group" as Group {
+  user
+  id
+  name
+  permissions
+}
+
+object "ContentType" as ContentType {
+  logentry
+  permission
+  id
+  app_label
+  model
+}
+
+object "Session" as Session {
+  session_key
+  session_data
+  expire_date
+}
+
+object "Country" as Country {
+  provinces
+  nationals
+  universities
+  id
+  code
+  country_name
+}
+
+object "Province" as Province {
+  communes
+  id
+  province_name
+  country
+}
+
+object "Commune" as Commune {
+  zones
+  training_centers
+  id
+  commune_name
+  province
+}
+
+object "Zone" as Zone {
+  collines
+  highschools
+  id
+  zone_name
+  commune
+}
+
+object "Colline" as Colline {
+  residences
+  birthplaces
+  id
+  colline_name
+  zone
+}
+
+object "Profile" as Profile {
+  position
+  room
+  start_date
+  end_date
+  faculty
+  university
+  id
+  user
+}
+
+object "Supervisor" as Supervisor {
+  examsupervisor
+  id
+  user
+  is_supervisor_active
+}
+
+object "Role" as Role {
+  users
+  guestrequest
+  document_requirements
+  id
+  name
+  description
+}
+
+object "User" as User {
+  logentry
+  profiles
+  supervisor
+  teacher
+  submitted_attributions
+  authorized_attributions
+  validated_attributions
+  suggestion
+  closed_academic_years
+  university_admin
+  generated_reports
+  printed_cards
+  students_users
+  verified_student_files
+  examattendance
+  exam
+  equipmentallocation
+  created_timetables
+  created_timetable_merges
+  created_system_configs
+  modified_system_configs
+  audit_logs
+  initiated_backups
+  emergency_recoveries
+  performed_recoveries
+  created_subscriptions
+  derogations
+  derogation_requests
+  rector_derogations
+  visitorcourseattribution
+  qualitystandard
+  complianceaudit
+  academicperformancereport
+  documentrequest
+  absencejustification
+  studentactivity
+  scholarship
+  counselingsession
+  requested_status_changes
+  approved_status_changes
+  paymentplan
+  paymentinstallement
+  payments_user
+  verified_payments
+  paymentreminder
+  paymentpromise
+  collectioncorrespondence
+  jurysession
+  jury_sessions
+  jurydecision
+  gradecomplaint
+  created_documents
+  signed_documents
+  verified_claims
+  approved_claims
+  created_configurations
+  modified_configurations
+  admin_notifications
+  submitted_progress
+  workloads
+  secretarynote
+  notifications
+  sent_messages_unified
+  received_messages_unified
+  guest_request
+  reviewed_guests
+  verified_guest_docs
+  staticdevice
+  totpdevice
+  emaildevice
+  outstandingtoken
+  password
+  last_login
+  is_superuser
+  first_name
+  last_name
+  is_staff
+  is_active
+  date_joined
+  id
+  gender
+  email
+  phone_number
+  birth_date
+  nationality
+  university
+  marital_status
+  role
+  email_verified
+  requires_2fa
+  requires_2fa_qr
+  requires_2fa_email
+  requires_2fa_static
+  totp_secret_key
+  profile_picture
+  spoken_languages
+  created_at
+  updated_at
+  groups
+  user_permissions
+  residence
+}
+
+object "Class" as Class {
+  groups
+  modules
+  inscriptions
+  fees_sheets_class
+  id
+  class_name
+  department
+  is_default
+}
+
+object "ClassGroup" as ClassGroup {
+  inscription
+  timetables
+  shared_timetables
+  jury_sessions
+  id
+  class_fk
+  academic_year
+  group_name
+  created_date
+  is_default
+}
+
+object "Course" as Course {
+  attribution
+  exam
+  results
+  supplements
+  gradecomplaint
+  teacherpaymentclaim
+  id
+  module
+  course_code
+  course_name
+  cm
+  td
+  tp
+  credits
+}
+
+object "Department" as Department {
+  classes
+  studentgraduateinfo
+  fees_sheets_department
+  id
+  department_name
+  abreviation
+  faculty
+  is_default
+}
+
+object "TypeFormation" as TypeFormation {
+  typeformation
+  id
+  name
+  code
+  description
+}
+
+object "Faculty" as Faculty {
+  dean_profile
+  departments
+  fees_sheets_faculty
+  teaching_progresses
+  workloads
+  secretarynote
+  programs
+  id
+  faculty_name
+  faculty_abreviation
+  types
+  university
+}
+
+object "Semester" as Semester {
+  modules
+  id
+  number
+  name
+}
+
+object "Module" as Module {
+  courses
+  id
+  class_fk
+  module_name
+  code
+  semester
+}
+
+object "Teacher" as Teacher {
+  principal_attributions
+  substitute_attributions
+  suggestion
+  teacherpaymentclaim
+  id
+  user
+  teacher_grade
+  degree
+  university
+  speciality
+  url_cv
+  url_other
+  url_diploma
+}
+
+object "Attribution" as Attribution {
+  suggestion
+  timetable
+  teaching_progress
+  id
+  course
+  principal_teacher
+  substitute_teacher
+  academic_year
+  date_attribution
+  status_principal_teacher
+  status_substitute_teacher
+  commentaire
+  submitted_by
+  authorized_by
+  validated_by
+  validation_date
+  validation_comments
+}
+
+object "Suggestion" as Suggestion {
+  id
+  suggestion_date
+  suggestion
+  attribution
+  teacher
+  user
+}
+
+object "University" as University {
+  rector_profile
+  users
+  faculties
+  teacher
+  academic_years
+  admins
+  buildings
+  audit_logs
+  profile
+  subscriptions
+  configurations
+  statistics
+  admin_notifications
+  id
+  university_name
+  university_abrev
+  country
+}
+
+object "AcademicYear" as AcademicYear {
+  classgroup
+  attribution
+  inscriptions
+  exam
+  fees_sheets_academicyear
+  teaching_academic_year
+  id
+  academic_year
+  description
+  university
+  civil_year
+  start_date
+  end_date
+  is_closed
+  closed_date
+  closed_by
+}
+
+object "UniversityAdmin" as UniversityAdmin {
+  id
+  user
+  university
+  is_super_admin
+}
+
+object "UniversityDegree" as UniversityDegree {
+  teacher
+  studentgraduateinfo
+  id
+  degree_name
+  description
+}
+
+object "QualityReport" as QualityReport {
+  id
+  report_type
+  title
+  data
+  summary
+  generated_date
+  generated_by
+}
+
+object "StudentCard" as StudentCard {
+  logs
+  examattendance
+  id
+  student
+  card_number
+  issue_date
+  expiry_date
+  status
+  printed_by
+  photo
+  qrcode_data
+}
+
+object "StudentCardLog" as StudentCardLog {
+  id
+  card
+  action
+  action_date
+  performed_by
+  remarks
+}
+
+object "Highschool" as Highschool {
+  studenthsinfo
+  id
+  hs_name
+  zone
+  code
+}
+
+object "Section" as Section {
+  certificates
+  options
+  id
+  section_name
+}
+
+object "Certificate" as Certificate {
+  studenthsinfo
+  id
+  certificate_name
+  section
+}
+
+object "Option" as Option {
+  id
+  option_name
+  section
+}
+
+object "TrainingCenter" as TrainingCenter {
+  training
+  id
+  name
+  commune
+}
+
+object "Inscription" as Inscription {
+  examattendance
+  results_inscription
+  compiled_results
+  supplements_inscription
+  status_changes
+  payments_inscription
+  id
+  student
+  academic_year
+  class_fk
+  class_group
+  date_inscription
+  regist_status
+  withdrawal_date
+  is_year_close
+}
+
+object "Profession" as Profession {
+  parent
+  id
+  profession_name
+}
+
+object "Parent" as Parent {
+  students_parents
+  id
+  parent_name
+  parent_phone
+  parent_email
+  profession
+  parent_type
+  is_alive
+  is_contact_person
+}
+
+object "Student" as Student {
+  cards
+  inscriptions
+  files
+  hs_infos
+  graduate_infos
+  request
+  attendance
+  documentrequest
+  absencejustification
+  organized_activities
+  participated_activities
+  scholarship
+  counselingsession
+  studentstatuschange
+  paymentinstallement
+  paymentreminder
+  paymentpromise
+  collectioncorrespondence
+  jurydecision
+  gradecomplaint
+  alumniprofile
+  mentorshipprogram
+  id
+  user
+  matricule
+  colline
+  cam
+  parent
+}
+
+object "StudentFile" as StudentFile {
+  id
+  student
+  file_type
+  file_name
+  file
+  uploaded_at
+  is_verified
+  verified_at
+  verified_by
+  notes
+}
+
+object "Training" as Training {
+  formations
+  id
+  domaine
+  certificate
+  training_center
+}
+
+object "StudentHsInfo" as StudentHsInfo {
+  id
+  student
+  highschool
+  certificate
+  se_mark
+  date_of_obtention
+  formation
+}
+
+object "StudentGraduateInfo" as StudentGraduateInfo {
+  id
+  student
+  department
+  option
+  mention
+  degree
+}
+
+object "Document" as Document {
+  request
+  id
+  document_name
+  document_description
+  document_price
+  processing_time
+}
+
+object "Request" as Request {
+  id
+  student
+  document
+  request_date
+  request_status
+  payment_verified
+  admin_comment
+  updated_at
+  payment
+}
+
+object "ExamAttendance" as ExamAttendance {
+  id
+  examroom
+  card
+  inscription
+  attendance_time
+  status
+  incident_notes
+  recorded_by
+  recorded_at
+}
+
+object "ExamType" as ExamType {
+  exam
+  id
+  exam_type_name
+  description
+}
+
+object "Exam" as Exam {
+  rooms
+  id
+  course
+  exam_type
+  academic_year
+  exam_date
+  start_time
+  end_time
+  status
+  created_by
+  created_at
+}
+
+object "ExamRoom" as ExamRoom {
+  examattendance
+  supervisors
+  id
+  exam
+  room
+  range_student
+}
+
+object "ExamSupervisor" as ExamSupervisor {
+  id
+  exam_room
+  supervisor
+}
+
+object "Session" as Session {
+  results_session
+  id
+  session_name
+}
+
+object "Result" as Result {
+  id
+  course
+  inscription
+  session
+  mark
+}
+
+object "CompiledResult" as CompiledResult {
+  id
+  results
+  inscription
+  average_mark
+  status
+  is_promoted
+}
+
+object "Supplement" as Supplement {
+  id
+  inscription
+  course
+  validation
+  validation_date
+  mark
+}
+
+object "Building" as Building {
+  rooms
+  id
+  university
+  building_name
+  building_code
+  location
+}
+
+object "EquipmentType" as EquipmentType {
+  equipment
+  id
+  name
+}
+
+object "Equipment" as Equipment {
+  equipmentallocation
+  maintenances
+  id
+  equipment_name
+  equipment_type
+  serial_number
+  equipment_number
+  purchase_date
+  status
+}
+
+object "EquipmentAllocation" as EquipmentAllocation {
+  id
+  equipment
+  room
+  allocated_to
+  allocation_date
+  return_date
+  status
+}
+
+object "EquipmentMaintenance" as EquipmentMaintenance {
+  id
+  equipment
+  maintenance_date
+  return_date
+  description
+  performed_by
+  cost
+}
+
+object "Room" as Room {
+  room_profiles
+  examroom
+  equipmentallocation
+  timetable
+  building
+  id
+  room_name
+  capacity
+  room_code
+  room_type
+  is_available
+}
+
+object "Notification" as Notification {
+  id
+  email
+  telephone
+  message
+  sent_at
+  delivery_status
+}
+
+object "ScheduleSlot" as ScheduleSlot {
+  timetable
+  id
+  day_of_week
+  start_time
+  end_time
+  schedule_name
+}
+
+object "Timetable" as Timetable {
+  timetable_merges
+  attendances
+  activity_reports
+  id
+  class_group
+  attribution
+  room
+  start_date
+  end_date
+  status
+  created_by
+  created_date
+  published_date
+  shared_with
+  slots
+}
+
+object "TimetableMerge" as TimetableMerge {
+  id
+  name
+  created_at
+  created_by
+  timetables
+}
+
+object "Attendance" as Attendance {
+  id
+  timetable
+  student
+  status
+  remarks
+}
+
+object "ActivityReport" as ActivityReport {
+  id
+  timetable
+  planned_hours
+  delivered_hours
+  completion_rate
+  observations
+}
+
+object "SystemConfiguration" as SystemConfiguration {
+  id
+  category
+  key
+  value
+  description
+  is_active
+  created_by
+  modified_by
+  created_at
+  updated_at
+}
+
+object "AuditLog" as AuditLog {
+  id
+  user
+  university
+  action
+  severity
+  entity_type
+  entity_id
+  description
+  changes
+  ip_address
+  user_agent
+  location
+  success
+  error_message
+  timestamp
+}
+
+object "BackupRecord" as BackupRecord {
+  id
+  backup_type
+  status
+  file_path
+  file_size
+  backup_location
+  initiated_by
+  started_at
+  completed_at
+  error_message
+  metadata
+}
+
+object "EmergencyRecovery" as EmergencyRecovery {
+  id
+  recovery_type
+  target_user
+  performed_by
+  status
+  reason
+  details
+  result
+  initiated_at
+  completed_at
+}
+
+object "UniversityProfile" as UniversityProfile {
+  id
+  university
+  status
+  contact_email
+  contact_phone
+  website
+  logo
+  description
+  max_users
+  max_storage_gb
+  created_at
+  updated_at
+}
+
+object "Module" as Module {
+  subscriptions
+  id
+  name
+  description
+  code
+  is_active
+  created_at
+}
+
+object "UniversitySubscription" as UniversitySubscription {
+  id
+  university
+  module
+  status
+  start_date
+  end_date
+  is_trial
+  created_by
+  created_at
+  updated_at
+}
+
+object "PaymentDerogation" as PaymentDerogation {
+  id
+  student
+  reason
+  requested_by
+  status
+  rector_decision_by
+  decision_comment
+  created_at
+  decision_date
+}
+
+object "VisitorCourseAttribution" as VisitorCourseAttribution {
+  id
+  professor
+  course_name
+  recommended_by
+  rector_validation
+  validation_date
+}
+
+object "QualityStandard" as QualityStandard {
+  complianceaudit
+  id
+  title
+  description
+  compliance_criteria
+  is_active
+  created_by
+  created_at
+}
+
+object "ComplianceAudit" as ComplianceAudit {
+  id
+  standard
+  audit_period
+  compliance_status
+  findings
+  recommendations
+  audited_by
+  audit_date
+}
+
+object "AcademicPerformanceReport" as AcademicPerformanceReport {
+  id
+  academic_year
+  semester
+  success_rate
+  failure_rate
+  average_grade
+  underperforming_courses
+  generated_by
+  generated_at
+}
+
+object "ProgramExecutionTracking" as ProgramExecutionTracking {
+  id
+  program_name
+  academic_year
+  planned_coverage
+  actual_coverage
+  progress_percentage
+  objectives_met
+  last_updated
+}
+
+object "StudentRetentionAudit" as StudentRetentionAudit {
+  id
+  academic_year
+  total_enrolled
+  retained_students
+  retention_rate
+  dropout_rate
+  dropout_reasons
+  audited_at
+}
+
+object "CourseSatisfactionSurvey" as CourseSatisfactionSurvey {
+  id
+  course_name
+  teacher_name
+  academic_year
+  course_quality_rating
+  teacher_rating
+  environment_rating
+  comments
+  survey_date
+}
+
+object "DocumentRequest" as DocumentRequest {
+  id
+  student
+  document_type
+  purpose
+  status
+  processed_by
+  requested_at
+  processed_at
+  notes
+}
+
+object "AbsenceJustification" as AbsenceJustification {
+  id
+  student
+  absence_type
+  start_date
+  end_date
+  reason
+  supporting_documents
+  status
+  reviewed_by
+  submitted_at
+  reviewed_at
+}
+
+object "StudentActivity" as StudentActivity {
+  id
+  activity_type
+  name
+  description
+  organizer
+  start_date
+  end_date
+  location
+  is_approved
+  approved_by
+  created_at
+  participants
+}
+
+object "Scholarship" as Scholarship {
+  id
+  student
+  scholarship_type
+  provider
+  amount
+  academic_year
+  is_active
+  managed_by
+  created_at
+}
+
+object "CounselingSession" as CounselingSession {
+  id
+  session_type
+  title
+  description
+  counselor
+  scheduled_date
+  duration_minutes
+  location
+  is_group_session
+  created_at
+  participants
+}
+
+object "StudentStatusChange" as StudentStatusChange {
+  id
+  student
+  inscription
+  status_type
+  reason
+  supporting_documents
+  requested_by
+  approved_by
+  approval_status
+  effective_date
+  requested_at
+  processed_at
+  notes
+}
+
+object "Bank" as Bank {
+  bank
+  id
+  bank_name
+  bank_abreviation
+  account_number
+  status
+}
+
+object "Wording" as Wording {
+  fees_sheets_wording
+  id
+  wording_name
+}
+
+object "FeesSheet" as FeesSheet {
+  paymentplan_feessheet
+  id
+  class_fk
+  department
+  faculty
+  academic_year
+  wording
+  base_amount
+}
+
+object "PaymentPlan" as PaymentPlan {
+  installments
+  payments_paymentplan
+  id
+  feessheet
+  description
+  total_amount
+  monthly_amount
+  start_date
+  end_date
+  status
+  created_by
+  created_at
+}
+
+object "PaymentInstallement" as PaymentInstallement {
+  id
+  payment_plan
+  student
+  amount
+  due_date
+  status
+  paid_amount
+  paid_date
+  created_by
+  created_at
+}
+
+object "Payment" as Payment {
+  document_payment
+  id
+  paymentplan
+  amount_paid
+  payment_date
+  reception_date
+  payment_method
+  bank
+  transaction_code
+  inscription
+  user
+  description
+  remittance_slip_uri
+  payment_status
+  verified_by
+  verified_at
+}
+
+object "PaymentReminder" as PaymentReminder {
+  id
+  student
+  reminder_type
+  amount_due
+  message
+  status
+  sent_by
+  sent_at
+}
+
+object "PaymentPromise" as PaymentPromise {
+  id
+  student
+  promised_amount
+  promised_date
+  status
+  notes
+  recorded_by
+  recorded_at
+}
+
+object "CollectionCorrespondence" as CollectionCorrespondence {
+  id
+  student
+  correspondence_type
+  subject
+  content
+  response
+  sent_by
+  sent_at
+}
+
+object "JurySession" as JurySession {
+  jurydecision
+  id
+  session_name
+  session_date
+  class_group
+  status
+  minutes_document
+  created_by
+  created_at
+  jury_members
+}
+
+object "JuryDecision" as JuryDecision {
+  id
+  jury_session
+  student
+  decision
+  notes
+  validated_by
+  validated_at
+}
+
+object "GradeComplaint" as GradeComplaint {
+  id
+  student
+  course
+  original_grade
+  complaint_reason
+  status
+  assigned_to
+  new_grade
+  resolution_notes
+  submitted_at
+  resolved_at
+}
+
+object "OfficialDocument" as OfficialDocument {
+  id
+  document_type
+  title
+  content
+  status
+  created_by
+  signed_by
+  created_at
+  signed_at
+}
+
+object "TeacherPaymentClaim" as TeacherPaymentClaim {
+  id
+  teacher
+  course
+  hours_taught
+  hourly_rate
+  total_amount
+  status
+  verified_by
+  approved_by
+  submitted_at
+  processed_at
+}
+
+object "AlumniProfile" as AlumniProfile {
+  joboffer
+  mentorshipprogram
+  alumnitestimonial
+  alumnieventregistration
+  alumidonation
+  id
+  student
+  current_position
+  company
+  sector
+  city
+  linkedin_profile
+  is_mentor
+  updated_at
+}
+
+object "JobOffer" as JobOffer {
+  id
+  alumni
+  title
+  company
+  job_type
+  description
+  requirements
+  location
+  is_active
+  created_at
+}
+
+object "MentorshipProgram" as MentorshipProgram {
+  id
+  mentor
+  mentee
+  expertise_area
+  status
+  started_at
+}
+
+object "AlumniTestimonial" as AlumniTestimonial {
+  id
+  alumni
+  title
+  content
+  is_published
+  created_at
+}
+
+object "AlumniEvent" as AlumniEvent {
+  alumnieventregistration
+  id
+  title
+  event_type
+  description
+  date
+  location
+  max_attendees
+  created_at
+}
+
+object "AlumniEventRegistration" as AlumniEventRegistration {
+  id
+  event
+  alumni
+  registered_at
+}
+
+object "AlumiDonation" as AlumiDonation {
+  id
+  alumni
+  amount
+  donation_type
+  purpose
+  transaction_id
+  donated_at
+}
+
+object "UniversityConfiguration" as UniversityConfiguration {
+  id
+  university
+  category
+  key
+  value
+  description
+  is_active
+  created_by
+  modified_by
+  created_at
+  updated_at
+}
+
+object "UniversityStatistics" as UniversityStatistics {
+  id
+  university
+  total_students
+  total_teachers
+  total_faculties
+  total_departments
+  total_courses
+  active_enrollments
+  pending_payments
+  completed_exams
+  pending_document_requests
+  statistics_data
+  calculated_at
+}
+
+object "UniversityNotification" as UniversityNotification {
+  id
+  university
+  recipient
+  notification_type
+  priority
+  title
+  message
+  action_url
+  is_read
+  read_at
+  created_at
+}
+
+object "TeachingProgress" as TeachingProgress {
+  id
+  attribution
+  faculty
+  progress_percentage
+  last_updated
+  submitted_by
+}
+
+object "TeacherWorkload" as TeacherWorkload {
+  id
+  faculty
+  teacher
+  academic_year
+  total_hours
+  assigned_hours
+  is_permanent
+}
+
+object "SecretaryNote" as SecretaryNote {
+  id
+  faculty
+  subject
+  message
+  created_by
+  created_date
+  is_resolved
+}
+
+object "Notification" as Notification {
+  id
+  recipient
+  recipient_type
+  notification_type
+  title
+  message
+  is_read
+  created_at
+}
+
+object "Message" as Message {
+  id
+  sender
+  recipient
+  message_type
+  subject
+  content
+  is_read
+  sent_at
+}
+
+object "GuestRequest" as GuestRequest {
+  documents
+  notifications
+  id
+  user
+  requested_role
+  status
+  phone
+  birth_date
+  address
+  profile_submitted
+  profile_submitted_at
+  reviewed_at
+  reviewed_by
+  rejection_reason
+  created_at
+  updated_at
+}
+
+object "GuestDocument" as GuestDocument {
+  guestnotification
+  id
+  guest_request
+  name
+  type
+  status
+  file
+  file_size
+  mime_type
+  uploaded_at
+  verified_at
+  verified_by
+  rejection_reason
+}
+
+object "GuestNotification" as GuestNotification {
+  id
+  guest_request
+  type
+  title
+  message
+  action_url
+  is_read
+  document
+  created_at
+}
+
+object "RoleDocumentRequirement" as RoleDocumentRequirement {
+  id
+  role
+  document_type
+  label
+  description
+  required
+  max_size_mb
+  accepted_formats
+}
+
+object "Program" as Program {
+  id
+  faculty
+  presentation
+  content
+  admission_conditions
+  prerequisites
+  internship
+  duration
+  career_opportunities
+  is_active
+}
+
+object "StaticDevice" as StaticDevice {
+  token_set
+  id
+  user
+  name
+  confirmed
+  throttling_failure_timestamp
+  throttling_failure_count
+  created_at
+  last_used_at
+}
+
+object "StaticToken" as StaticToken {
+  id
+  device
+  token
+}
+
+object "TOTPDevice" as TOTPDevice {
+  id
+  user
+  name
+  confirmed
+  throttling_failure_timestamp
+  throttling_failure_count
+  created_at
+  last_used_at
+  key
+  step
+  t0
+  digits
+  tolerance
+  drift
+  last_t
+}
+
+object "EmailDevice" as EmailDevice {
+  id
+  user
+  name
+  confirmed
+  token
+  valid_until
+  last_generated_timestamp
+  throttling_failure_timestamp
+  throttling_failure_count
+  created_at
+  last_used_at
+  email
+}
+
+object "OutstandingToken" as OutstandingToken {
+  blacklistedtoken
+  id
+  user
+  jti
+  token
+  created_at
+  expires_at
+}
+
+object "BlacklistedToken" as BlacklistedToken {
+  id
+  token
+  blacklisted_at
+}
+
+@enduml

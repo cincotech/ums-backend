@@ -1,0 +1,9 @@
+@startuml
+start
+:Student requests counseling;
+:Schedule session;
+:Conduct session;
+:Record notes;
+:Follow-up if needed;
+stop
+@enduml

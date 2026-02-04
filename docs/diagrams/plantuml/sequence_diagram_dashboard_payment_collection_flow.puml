@@ -1,0 +1,25 @@
+@startuml
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+autonumber
+actor "Collection Agent" as Agent
+participant "Dashboard Collection API" as API
+participant "Payment Service" as Service
+database "PaymentPlan" as PlanDB
+database "PaymentInstallement" as InstallmentDB
+database "Student" as StudentDB
+participant "Notification Service" as Notify
+
+Agent -> API: POST /dashboard/collection/payments
+API -> Service: record_payment(student_id, amount)
+Service -> StudentDB: get_student(student_id)
+StudentDB --> Service: student
+Service -> PlanDB: get_active_plan(student)
+PlanDB --> Service: plan
+Service -> InstallmentDB: apply_payment(plan, amount)
+InstallmentDB --> Service: installment_updated
+Service -> Notify: send_payment_receipt(student)
+Notify --> Service: sent
+Service --> API: success
+API --> Agent: 200 OK
+@enduml

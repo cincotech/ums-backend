@@ -1,0 +1,12 @@
+@startuml
+start
+:Director reviews programs;
+:Check curriculum;
+:Validate courses;
+if (Approved?) then (yes)
+  :Forward to rector;
+else (no)
+  :Request revisions;
+endif
+stop
+@enduml

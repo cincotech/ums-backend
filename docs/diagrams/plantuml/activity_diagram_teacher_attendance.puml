@@ -1,0 +1,10 @@
+@startuml
+start
+:Teacher marks attendance;
+:Select class session;
+:Mark present/absent;
+:Submit attendance;
+:Update records;
+:Notify absent students;
+stop
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+autonumber
+actor Student
+participant "Registration API" as API
+participant "Student Service" as Service
+database "Database" as DB
+
+Student -> API: POST /api/register
+API -> Service: create_student(data)
+Service -> DB: save(student)
+DB --> Service: student_id
+Service --> API: success
+API --> Student: 201 Created
+@enduml

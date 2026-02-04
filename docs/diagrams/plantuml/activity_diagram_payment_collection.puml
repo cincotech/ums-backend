@@ -1,0 +1,18 @@
+@startuml
+start
+:Agent reviews fees;
+if (Payment overdue?) then (yes)
+  :Send reminder;
+  if (Payment received?) then (yes)
+    :Record payment;
+    :Update fees sheet;
+    :Send receipt;
+  else (no)
+    :Create payment promise;
+    :Schedule follow-up;
+  endif
+else (no)
+  :Mark as current;
+endif
+stop
+@enduml

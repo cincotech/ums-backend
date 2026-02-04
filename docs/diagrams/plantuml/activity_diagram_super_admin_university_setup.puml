@@ -1,0 +1,10 @@
+@startuml
+start
+:Create university profile;
+:Configure modules;
+:Set subscription;
+:Create admin accounts;
+:Initialize system;
+:Activate university;
+stop
+@enduml

@@ -1,0 +1,13 @@
+@startuml
+start
+:Student requests document;
+:Student service validates;
+if (Valid request?) then (yes)
+  :Process request;
+  :Generate document;
+  :Notify student;
+else (no)
+  :Reject with reason;
+endif
+stop
+@enduml

@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "services.dependent_service.infrastructure_module.room_app",
     "services.dependent_service.notification_module.event_notification_app",
     "services.dependent_service.scheduling_module.scheduling_app",
+    "services.dependent_service.visualization_module.diagram_app",
     "services.dependent_service.dashboard_module.dashboard_super_admin_app",
     "services.dependent_service.dashboard_module.dashboard_recteur_app",
     "services.dependent_service.dashboard_module.dashboard_quality_director_app",

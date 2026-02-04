@@ -20,6 +20,10 @@ urlpatterns = [
         include("services.dependent_service.infrastructure_module.urls"),
     ),
     path("api/", include("services.dependent_service.notification_module.urls")),
+    path(
+        "api/visualization/",
+        include("services.dependent_service.visualization_module.urls"),
+    ),
     # Raw OpenAPI schema
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     # Swagger UI
@@ -51,4 +55,5 @@ urlpatterns = [
         "api/",
         include("services.dependent_service.exam_module.urls"),
     ),
+    path("api/", include("services.dependent_service.visualization_module.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
