@@ -1,0 +1,14 @@
+@startuml
+start
+:Request document;
+:Validate request;
+if (Valid?) then (yes)
+  :Generate document;
+  :Sign document;
+  :Store document;
+  :Notify requester;
+else (no)
+  :Reject request;
+endif
+stop
+@enduml

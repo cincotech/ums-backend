@@ -253,28 +253,61 @@ class PaymentInstallementSerializer(serializers.ModelSerializer):
 
 class PaymentSerializer(serializers.ModelSerializer):
     inscription = serializers.UUIDField(required=False, allow_null=True)
-    remittance_slip_uri = serializers.ImageField(required=False, allow_null=True)
+    remittance_slip = serializers.ImageField(
+        required=False, allow_null=True, source="remittance_slip_uri"
+    )
+    paymentplan_info = serializers.SerializerMethodField()
+    bank_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Payment
         fields = [
             "id",
-            "paymentplan",
+            "paymentplan_info",
             "amount_paid",
             "payment_date",
             "reception_date",
             "payment_method",
-            "bank",
+            "bank_info",
             "transaction_code",
             "inscription",
             "user",
             "description",
-            "remittance_slip_uri",
+            "remittance_slip",
             "payment_status",
             "verified_by",
             "verified_at",
         ]
         read_only_fields = ["user", "verified_by", "verified_at"]
+
+    def get_paymentplan_info(self, obj):
+        if obj.paymentplan:
+            return {
+                "id": str(obj.paymentplan.id),
+                "description": obj.paymentplan.description,
+                "total_amount": obj.paymentplan.total_amount,
+                "monthly_amount": obj.paymentplan.monthly_amount,
+                "start_date": obj.paymentplan.start_date,
+                "end_date": obj.paymentplan.end_date,
+                "status": obj.paymentplan.status,
+                "wording_name": (
+                    obj.paymentplan.feessheet.wording.wording_name
+                    if obj.paymentplan.feessheet and obj.paymentplan.feessheet.wording
+                    else None
+                ),
+            }
+        return None
+
+    def get_bank_info(self, obj):
+        if obj.bank:
+            return {
+                "id": str(obj.bank.id),
+                "bank_name": obj.bank.bank_name,
+                "bank_abreviation": obj.bank.bank_abreviation,
+                "account_number": obj.bank.account_number,
+                "status": obj.bank.status,
+            }
+        return None
 
     def validate_inscription(self, value):
         if value == "" or value == "<uuid-inscription>" or value is None:
@@ -291,6 +324,13 @@ class PaymentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Inscription non trouvée.")
 
     def to_internal_value(self, data):
+        # Debug: afficher les données reçues
+        print(f"DEBUG PaymentSerializer - données reçues: {data}")
+        print(
+            f"DEBUG PaymentSerializer - clés: {list(data.keys()) if hasattr(data, 'keys') else 'N/A'}"
+        )
+
+        # Ne pas modifier les données du fichier
         if "inscription" in data and (
             data["inscription"] == "" or data["inscription"] == "<uuid-inscription>"
         ):

@@ -1,0 +1,18 @@
+@startuml
+start
+:Student selects courses;
+:Check prerequisites;
+if (Prerequisites met?) then (yes)
+  :Check course capacity;
+  if (Space available?) then (yes)
+    :Register student;
+    :Update enrollment;
+    :Send confirmation;
+  else (no)
+    :Add to waitlist;
+  endif
+else (no)
+  :Show prerequisite error;
+endif
+stop
+@enduml

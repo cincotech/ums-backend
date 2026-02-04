@@ -1,0 +1,15 @@
+@startuml
+start
+:Dean reviews courses;
+:Check teaching progress;
+if (Teacher available?) then (yes)
+  :Assign teacher;
+  :Update workload;
+  :Notify teacher;
+else (no)
+  :Request visitor teacher;
+  :Rector approves;
+  :Assign visitor;
+endif
+stop
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+
+node "Web Server" {
+  [Django Application]
+  [Static Files]
+}
+
+node "Database Server" {
+  database "PostgreSQL/MySQL" {
+    [UMS Database]
+  }
+}
+
+node "Cache Server" {
+  [Redis]
+}
+
+[Django Application] --> [UMS Database]
+[Django Application] --> [Redis]
+
+@enduml

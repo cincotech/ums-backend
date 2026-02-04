@@ -1,0 +1,31 @@
+@startuml
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+autonumber
+actor Student
+participant "Inscription API" as API
+participant "Inscription Service" as Service
+database "Student" as StudentDB
+database "Class" as ClassDB
+database "AcademicYear" as YearDB
+database "Inscription" as InscriptionDB
+participant "Payment Service" as Payment
+participant "Notification Service" as Notify
+
+Student -> API: POST /inscriptions
+API -> Service: validate_request(payload)
+Service -> StudentDB: get_student(student_id)
+StudentDB --> Service: student
+Service -> ClassDB: get_class(class_id)
+ClassDB --> Service: class
+Service -> YearDB: get_academic_year(year_id)
+YearDB --> Service: academic_year
+Service -> InscriptionDB: create_inscription(student, class, year)
+InscriptionDB --> Service: inscription
+Service -> Payment: create_payment_plan(inscription)
+Payment --> Service: payment_plan
+Service -> Notify: send_inscription_confirmation(student)
+Notify --> Service: sent
+Service --> API: success
+API --> Student: 201 Created
+@enduml

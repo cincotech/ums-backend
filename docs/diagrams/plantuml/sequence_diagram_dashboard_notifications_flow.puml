@@ -1,0 +1,23 @@
+@startuml
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+autonumber
+actor "Dashboard User" as User
+participant "Dashboard API" as API
+participant "Notification Service" as Service
+database "Notification" as DB
+
+User -> API: GET /dashboard/notifications
+API -> Service: list_notifications(user)
+Service -> DB: fetch_by_user(user)
+DB --> Service: notifications
+Service --> API: notifications
+API --> User: 200 OK
+
+User -> API: PATCH /dashboard/notifications/{id}
+API -> Service: mark_read(notification_id)
+Service -> DB: update_is_read(true)
+DB --> Service: updated
+Service --> API: ok
+API --> User: 200 OK
+@enduml

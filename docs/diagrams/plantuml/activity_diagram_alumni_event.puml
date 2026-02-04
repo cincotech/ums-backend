@@ -1,0 +1,11 @@
+@startuml
+start
+:Alumni creates event;
+:Set event details;
+:Publish event;
+:Alumni register;
+:Send reminders;
+:Event occurs;
+:Collect testimonials;
+stop
+@enduml

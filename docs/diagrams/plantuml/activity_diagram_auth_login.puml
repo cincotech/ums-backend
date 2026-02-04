@@ -1,0 +1,22 @@
+@startuml
+start
+:User enters credentials;
+if (Valid credentials?) then (yes)
+  if (2FA enabled?) then (yes)
+    :Send OTP;
+    :Verify OTP;
+    if (OTP valid?) then (yes)
+      :Generate JWT tokens;
+      :Return tokens;
+    else (no)
+      :Return 401;
+    endif
+  else (no)
+    :Generate JWT tokens;
+    :Return tokens;
+  endif
+else (no)
+  :Return 401;
+endif
+stop
+@enduml

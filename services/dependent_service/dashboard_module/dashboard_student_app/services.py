@@ -199,22 +199,22 @@ class StudentDashboardService:
 
     @staticmethod
     def get_student_schedule(student):
-        """Get student class schedule: current day and full week"""
+        """Get student class schedule: today's timetable and full week using TimetableMerge"""
         from django.db.models import Q
         from django.utils import timezone
 
         from services.dependent_service.scheduling_module.scheduling_app.models import (
-            Timetable,
+            TimetableMerge,
         )
 
         inscription = (
             Inscription.objects.filter(student=student, regist_status="Active")
-            .select_related("class_fk", "academic_year")
+            .select_related("class_fk", "academic_year", "class_group")
             .first()
         )
 
         if not inscription:
-            return {"day_of_week": None, "merge": []}
+            return {"today": None, "week": []}
 
         if not inscription.class_group:
             default_group = ClassGroupManagementService.get_or_create_default_group(
@@ -235,55 +235,88 @@ class StudentDashboardService:
             "Sunday",
         ]
 
-        # Get current day timetable
-        current_timetable = (
-            Timetable.objects.filter(
-                Q(class_group=inscription.class_group)
-                | Q(shared_with=inscription.class_group),
+        # Get merged timetables for class group (including shared_with)
+        merged_timetables = (
+            TimetableMerge.objects.filter(
+                Q(timetables__class_group=inscription.class_group)
+                | Q(timetables__shared_with=inscription.class_group)
+            )
+            .prefetch_related(
+                "timetables__slots",
+                "timetables__attribution__course",
+                "timetables__attribution__principal_teacher__user",
+                "timetables__room",
+                "timetables__class_group",
+                "timetables__shared_with",
+            )
+            .distinct()
+        )
+        print(merged_timetables.count())
+
+        def calculate_card_width(timetable):
+            """Calculate card width based on last day of course"""
+            if not timetable.slots.exists():
+                return 0.1
+
+            last_day_index = 0
+            for slot in timetable.slots.all():
+                day_index = (
+                    days_order.index(slot.day_of_week)
+                    if slot.day_of_week in days_order
+                    else 0
+                )
+                if day_index > last_day_index:
+                    last_day_index = day_index
+
+            total_days = 7  # Monday to Sunday
+            calculated_width = (last_day_index + 1) / total_days
+            return max(0.1, calculated_width)
+
+        def enrich_timetable(timetable):
+            """Add metadata to timetable object"""
+            timetable.card_width = calculate_card_width(timetable)
+            timetable.start_date = timetable.start_date
+            timetable.end_date = timetable.end_date
+            timetable.is_active = timetable.start_date <= today <= timetable.end_date
+            return timetable
+
+        # Get today's schedule from merged timetables (avoid duplicates)
+        today_timetable_ids = set()
+        today_timetables = []
+        for merge in merged_timetables:
+            for timetable in merge.timetables.filter(
                 start_date__lte=today,
                 end_date__gte=today,
                 slots__day_of_week=current_day,
-            )
-            .select_related(
-                "class_group",
-                "attribution",
-                "attribution__course",
-                "attribution__principal_teacher",
-                "attribution__principal_teacher__user",
-                "room",
-            )
-            .prefetch_related("slots", "shared_with")
-            .first()
-        )
+            ).distinct():
+                if timetable.id not in today_timetable_ids:
+                    today_timetable_ids.add(timetable.id)
+                    today_timetables.append(enrich_timetable(timetable))
 
-        # Get full week schedule
+        # Get full week schedule from merged timetables (avoid duplicates across all days)
+        all_timetable_ids = set()
         week_schedule = []
         for day in days_order:
-            timetables = (
-                Timetable.objects.filter(
-                    Q(class_group=inscription.class_group)
-                    | Q(shared_with=inscription.class_group),
-                    start_date__lte=today,
-                    end_date__gte=today,
-                    slots__day_of_week=day,
-                )
-                .select_related(
-                    "class_group",
-                    "attribution",
-                    "attribution__course",
-                    "attribution__principal_teacher",
-                    "attribution__principal_teacher__user",
-                    "room",
-                )
-                .prefetch_related("slots", "shared_with")
-            )
+            day_timetables = []
+            for merge in merged_timetables:
+                for timetable in merge.timetables.filter(
+                    start_date__lte=today, end_date__gte=today, slots__day_of_week=day
+                ).distinct():
+                    if timetable.id not in all_timetable_ids:
+                        all_timetable_ids.add(timetable.id)
+                        day_timetables.append(enrich_timetable(timetable))
 
-            if timetables.exists():
-                week_schedule.append(
-                    {"day_of_week": day, "timetables": list(timetables)}
-                )
+            if day_timetables:
+                week_schedule.append({"day": day, "timetables": day_timetables})
 
-        return {"day_of_week": current_timetable, "merge": week_schedule}
+        return {
+            "today": (
+                {"day": current_day, "timetables": today_timetables}
+                if today_timetables
+                else None
+            ),
+            "week": week_schedule,
+        }
 
     @staticmethod
     def get_student_attendance(student):

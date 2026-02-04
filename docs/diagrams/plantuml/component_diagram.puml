@@ -1,0 +1,24 @@
+@startuml
+
+package foundational_service {
+  component geo_module
+  component auth_module
+}
+
+package core_service {
+  component academic_module
+  component student_module
+}
+
+package dependent_service {
+  component document_module
+  component exam_module
+  component infrastructure_module
+  component notification_module
+  component scheduling_module
+  component dashboard_module
+}
+
+foundational_service --> core_service
+core_service --> dependent_service
+@enduml
