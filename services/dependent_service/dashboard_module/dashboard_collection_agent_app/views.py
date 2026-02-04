@@ -587,8 +587,8 @@ class PaymentPlanViewSet(BaseViewSet):
         if user.role.name in ["finance_service", "student_service"]:
             # Finance et service étudiant voient tous les plans
             return self.queryset
-        elif user.role.name == "student":
-            # Étudiant voit seulement les plans applicables à sa classe/département/faculté
+        elif user.role.name in ["student", "guest"]:
+            # Étudiant et invité voient seulement les plans applicables à sa classe/département/faculté
             try:
                 from services.core_service.student_module.student_profile_app.models import (
                     Student,
@@ -681,14 +681,15 @@ class PaymentViewSet(BaseViewSet):
     def get_queryset(self):
         """Filtre les paiements selon le rôle de l'utilisateur"""
         user = self.request.user
+        base_queryset = self.queryset.select_related("paymentplan", "bank")
 
         if user.role.name == "finance_service":
-            return self.queryset
+            return base_queryset
         elif user.role.name == "student":
-            return self.queryset.filter(inscription__student__user=user)
+            return base_queryset.filter(inscription__student__user=user)
         elif user.role.name == "student_service":
             # Service aux étudiants voit tous les paiements
-            return self.queryset
+            return base_queryset
         else:
             return Payment.objects.none()
 
