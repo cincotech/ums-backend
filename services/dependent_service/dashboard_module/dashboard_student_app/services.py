@@ -251,7 +251,6 @@ class StudentDashboardService:
             )
             .distinct()
         )
-        print(merged_timetables.count())
 
         def calculate_card_width(timetable):
             """Calculate card width based on last day of course"""
@@ -299,12 +298,12 @@ class StudentDashboardService:
         for day in days_order:
             day_timetables = []
             for merge in merged_timetables:
-                for timetable in merge.timetables.filter(
-                    start_date__lte=today, end_date__gte=today, slots__day_of_week=day
-                ).distinct():
+                print(merge.timetables.all().count())
+                for timetable in merge.timetables.all():
                     if timetable.id not in all_timetable_ids:
                         all_timetable_ids.add(timetable.id)
                         day_timetables.append(enrich_timetable(timetable))
+                    print(timetable.id, all_timetable_ids)
 
             if day_timetables:
                 week_schedule.append({"day": day, "timetables": day_timetables})

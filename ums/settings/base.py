@@ -204,7 +204,7 @@ EMAIL_USE_TLS = get_env_variable("EMAIL_USE_TLS", "True").lower() == "true"
 EMAIL_HOST_USER = get_env_variable("EMAIL_HOST_USER", "testcomlab24@gmail.com")
 EMAIL_HOST_PASSWORD = get_env_variable("EMAIL_HOST_PASSWORD", "nyhbfgzcvhsadrpp")
 DEFAULT_FROM_EMAIL = get_env_variable(
-    "DEFAULT_FROM_EMAIL", "UMS Finance <testcomlab24@gmail.com>"
+    "DEFAULT_FROM_EMAIL", "UMS <testcomlab24@gmail.com>"
 )
 ADMIN_EMAIL = get_env_variable("ADMIN_EMAIL", "ndiku6241@gmail.com")
 COMPANY_NAME = get_env_variable("COMPANY_NAME", "Upg")
