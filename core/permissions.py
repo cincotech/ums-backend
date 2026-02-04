@@ -113,7 +113,7 @@ class CanSendMessages(permissions.BasePermission):
 
 
 class IsStudentOrFinanceService(RolePermission):
-    allowed_roles = ["student", "finance_service"]
+    allowed_roles = ["student", "guest", "finance_service"]
 
 
 # -----------------------------

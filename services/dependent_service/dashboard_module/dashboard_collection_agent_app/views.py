@@ -601,9 +601,8 @@ class PaymentPlanViewSet(BaseViewSet):
 
                 raise PermissionDenied("Profil étudiant non trouvé.")
         else:
-            from rest_framework.exceptions import PermissionDenied
-
-            raise PermissionDenied(f"Accès refusé pour le rôle '{user.role.name}'.")
+            # Tous les autres rôles voient tous les plans
+            return self.queryset
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -685,7 +684,7 @@ class PaymentViewSet(BaseViewSet):
 
         if user.role.name == "finance_service":
             return base_queryset
-        elif user.role.name == "student":
+        elif user.role.name in ["student", "guest"]:
             return base_queryset.filter(inscription__student__user=user)
         elif user.role.name == "student_service":
             # Service aux étudiants voit tous les paiements
