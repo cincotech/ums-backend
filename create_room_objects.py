@@ -3,16 +3,17 @@ import os
 
 import django
 
+# Setup Django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ums.settings.development")
+django.setup()
+
+
 from services.core_service.academic_module.university_app.models import University
 from services.dependent_service.infrastructure_module.building_app.models import (
     Building,
 )
 from services.dependent_service.infrastructure_module.room_app.models import Room
 from services.foundational_service.geo_module.country_app.models import Country
-
-# Setup Django
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ums.settings.development")
-django.setup()
 
 # Créer ou récupérer un pays
 country, created = Country.objects.get_or_create(

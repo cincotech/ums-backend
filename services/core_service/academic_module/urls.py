@@ -7,8 +7,11 @@ from services.core_service.academic_module.faculty_app.views import (
     FacultyViewSet,
     TypeFormationViewSet,
 )
-from services.core_service.academic_module.public_app.views import ProgramViewSet
 from services.core_service.academic_module.module_app.views import ModuleViewSet
+from services.core_service.academic_module.public_app.views import (
+    AcademicTeamViewSet,
+    ProgramViewSet,
+)
 from services.core_service.academic_module.teacher_app.views import (
     AttributionViewSet,
     SuggestionViewSet,
@@ -22,6 +25,7 @@ from services.core_service.academic_module.university_app.views import (
 
 router = DefaultRouter()
 router.register(r"programs", ProgramViewSet, basename="programs")
+router.register(r"academic-team", AcademicTeamViewSet, basename="academic-team")
 router.register(r"typeformations", TypeFormationViewSet, basename="typeformations")
 router.register(r"faculties", FacultyViewSet, basename="faculties")
 router.register("academic-years", AcademicYearViewSet, basename="academic-year")

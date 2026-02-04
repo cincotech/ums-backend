@@ -8,7 +8,7 @@ from unfold.admin import ModelAdmin
 
 from services.core_service.academic_module.faculty_app.models import Faculty
 
-from .models import Program
+from .models import Program, ProgramImage
 
 
 # ----------------------------
@@ -33,12 +33,16 @@ class ProgramResource(resources.ModelResource):
         )
         export_order = (
             "id",
-
             "presentation",
             "faculty_name",
             "duration",
             "is_active",
         )
+
+
+class ProgramImageInline(admin.TabularInline):
+    model = ProgramImage
+    extra = 1
 
 
 # ----------------------------
@@ -47,6 +51,7 @@ class ProgramResource(resources.ModelResource):
 @admin.register(Program)
 class ProgramAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = ProgramResource
+    inlines = [ProgramImageInline]
     list_display = ("faculty", "duration", "is_active")
     list_filter = ("faculty", "is_active")
     search_fields = ("presentation", "faculty__faculty_name")
