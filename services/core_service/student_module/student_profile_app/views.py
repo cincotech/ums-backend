@@ -124,7 +124,7 @@ class StudentFileViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def create(self, request, *args, **kwargs):
-        print(request)
+        print(request.data)
         serializer = self.get_serializer(
             data=request.data, context={"request": request}
         )

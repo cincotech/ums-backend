@@ -33,12 +33,14 @@ class ClassResource(resources.ModelResource):
 @admin.register(Class)
 class ClassAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = ClassResource
-    list_display = ("class_name", "department")
+    list_display = ("class_name", "department", "is_default")
     list_filter = ("department",)
     search_fields = ("class_name", "department__department_name")
     ordering = ("class_name",)
 
-    fieldsets = (("Class Information", {"fields": ("class_name", "department")}),)
+    fieldsets = (
+        ("Class Information", {"fields": ("class_name", "department", "is_default")}),
+    )
 
     formfield_overrides = {
         models.CharField: {
