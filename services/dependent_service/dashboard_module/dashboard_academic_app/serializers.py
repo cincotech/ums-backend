@@ -53,13 +53,15 @@ class AttributionValidationSerializer(serializers.ModelSerializer):
             "validated_by",
             "validation_date",
         ]
+    
 
+
+
+    
     def get_course(self, obj):
         course = obj.course
-
-        if course.course_code:
+        if hasattr(course, "course_code") and course.course_code:
             return f"{course.course_code} - {course.course_name}"
-
         return course.course_name
 
     def get_principal_teacher_name(self, obj):
@@ -70,7 +72,9 @@ class AttributionValidationSerializer(serializers.ModelSerializer):
                 return f"{teacher.user.first_name} {teacher.user.last_name}".strip()
             return teacher.user.email
         return None
+    
 
+    
     def get_substitute_teacher_name(self, obj):
         """Get the substitute teacher's display name."""
         if obj.substitute_teacher:
@@ -100,6 +104,7 @@ class AttributionValidationSerializer(serializers.ModelSerializer):
             )
 
         return data
+
 
 
 class TeacherValidationSerializer(serializers.Serializer):
