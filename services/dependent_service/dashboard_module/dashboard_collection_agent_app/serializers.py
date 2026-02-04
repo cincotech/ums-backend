@@ -253,7 +253,9 @@ class PaymentInstallementSerializer(serializers.ModelSerializer):
 
 class PaymentSerializer(serializers.ModelSerializer):
     inscription = serializers.UUIDField(required=False, allow_null=True)
-    remittance_slip_uri = serializers.ImageField(required=False, allow_null=True)
+    remittance_slip = serializers.ImageField(
+        required=False, allow_null=True, source="remittance_slip_uri"
+    )
 
     class Meta:
         model = Payment
@@ -269,7 +271,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             "inscription",
             "user",
             "description",
-            "remittance_slip_uri",
+            "remittance_slip",
             "payment_status",
             "verified_by",
             "verified_at",
@@ -291,6 +293,13 @@ class PaymentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Inscription non trouvée.")
 
     def to_internal_value(self, data):
+        # Debug: afficher les données reçues
+        print(f"DEBUG PaymentSerializer - données reçues: {data}")
+        print(
+            f"DEBUG PaymentSerializer - clés: {list(data.keys()) if hasattr(data, 'keys') else 'N/A'}"
+        )
+
+        # Ne pas modifier les données du fichier
         if "inscription" in data and (
             data["inscription"] == "" or data["inscription"] == "<uuid-inscription>"
         ):
