@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-2xl mx-auto my-8 bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-center">
+            <h1 class="text-3xl font-bold text-white mb-2">🔐 Verification Required</h1>
+            <p class="text-blue-100 text-lg">Two-Factor Authentication Code</p>
+        </div>
+
+        <div class="px-8 py-8">
+            <p class="text-gray-700 text-lg mb-6">Hello <span class="font-semibold">{{ user_name }}</span>,</p>
+            <p class="text-gray-600 mb-6">A verification code is required to complete your {{ action }}. Enter the code below:</p>
+
+            <div class="bg-indigo-50 border-2 border-dashed border-indigo-300 rounded-lg p-6 text-center my-6">
+                <div class="text-4xl font-bold text-indigo-600 tracking-widest">{{ otp_code }}</div>
+                <p class="text-indigo-500 text-sm mt-2">Valid for {{ expiry_minutes }} minutes</p>
+            </div>
+
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="flex items-start">
+                    <svg class="h-5 w-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Security Alert</h3>
+                        <p class="mt-1 text-sm text-red-700">If you didn't request this code, your account may be compromised. Change your password immediately.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-100 px-8 py-6 border-t border-gray-200">
+            <p class="text-gray-500 text-sm text-center">{{ company_name }} &copy; 2024. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

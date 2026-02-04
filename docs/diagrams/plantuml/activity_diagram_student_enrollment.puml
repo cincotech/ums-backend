@@ -1,0 +1,17 @@
+@startuml
+start
+:Student submits application;
+if (Documents complete?) then (yes)
+  :Verify documents;
+  if (Valid?) then (yes)
+    :Create student profile;
+    :Generate student ID;
+    :Send confirmation;
+  else (no)
+    :Reject application;
+  endif
+else (no)
+  :Request missing documents;
+endif
+stop
+@enduml

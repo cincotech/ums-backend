@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "services.dependent_service.infrastructure_module.room_app",
     "services.dependent_service.notification_module.event_notification_app",
     "services.dependent_service.scheduling_module.scheduling_app",
+    "services.dependent_service.visualization_module.diagram_app",
     "services.dependent_service.dashboard_module.dashboard_super_admin_app",
     "services.dependent_service.dashboard_module.dashboard_recteur_app",
     "services.dependent_service.dashboard_module.dashboard_quality_director_app",
@@ -203,7 +204,7 @@ EMAIL_USE_TLS = get_env_variable("EMAIL_USE_TLS", "True").lower() == "true"
 EMAIL_HOST_USER = get_env_variable("EMAIL_HOST_USER", "testcomlab24@gmail.com")
 EMAIL_HOST_PASSWORD = get_env_variable("EMAIL_HOST_PASSWORD", "nyhbfgzcvhsadrpp")
 DEFAULT_FROM_EMAIL = get_env_variable(
-    "DEFAULT_FROM_EMAIL", "UMS Finance <testcomlab24@gmail.com>"
+    "DEFAULT_FROM_EMAIL", "UMS <testcomlab24@gmail.com>"
 )
 ADMIN_EMAIL = get_env_variable("ADMIN_EMAIL", "ndiku6241@gmail.com")
 COMPANY_NAME = get_env_variable("COMPANY_NAME", "Upg")

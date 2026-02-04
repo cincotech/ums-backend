@@ -1,0 +1,16 @@
+@startuml
+start
+:Super admin accesses system;
+if (Action?) then (config)
+  :Update configuration;
+  :Log audit trail;
+elseif (backup)
+  :Create backup;
+  :Store backup record;
+elseif (emergency)
+  :Activate recovery;
+  :Execute recovery;
+endif
+:Notify admins;
+stop
+@enduml

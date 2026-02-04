@@ -1,0 +1,1793 @@
+@startuml
+skinparam linetype ortho
+
+class LogEntry {
+  +id: AutoField
+  +action_time: DateTimeField
+  +user: ForeignKey
+  +content_type: ForeignKey
+  +object_id: TextField
+  +object_repr: CharField
+  +action_flag: PositiveSmallIntegerField
+  +change_message: TextField
+}
+
+class Permission {
+  +group: ManyToManyField
+  +user: ManyToManyField
+  +id: AutoField
+  +name: CharField
+  +content_type: ForeignKey
+  +codename: CharField
+}
+
+class Group {
+  +user: ManyToManyField
+  +id: AutoField
+  +name: CharField
+  +permissions: ManyToManyField
+}
+
+class ContentType {
+  +logentry: ForeignKey
+  +permission: ForeignKey
+  +id: AutoField
+  +app_label: CharField
+  +model: CharField
+}
+
+class Session {
+  +session_key: CharField
+  +session_data: TextField
+  +expire_date: DateTimeField
+}
+
+class Country {
+  +provinces: ForeignKey
+  +nationals: ForeignKey
+  +universities: ForeignKey
+  +id: UUIDField
+  +code: CharField
+  +country_name: CharField
+}
+
+class Province {
+  +communes: ForeignKey
+  +id: UUIDField
+  +province_name: CharField
+  +country: ForeignKey
+}
+
+class Commune {
+  +zones: ForeignKey
+  +training_centers: ForeignKey
+  +id: UUIDField
+  +commune_name: CharField
+  +province: ForeignKey
+}
+
+class Zone {
+  +collines: ForeignKey
+  +highschools: ForeignKey
+  +id: UUIDField
+  +zone_name: CharField
+  +commune: ForeignKey
+}
+
+class Colline {
+  +residences: ManyToManyField
+  +birthplaces: ForeignKey
+  +id: UUIDField
+  +colline_name: CharField
+  +zone: ForeignKey
+}
+
+class Profile {
+  +position: CharField
+  +room: ForeignKey
+  +start_date: DateField
+  +end_date: DateField
+  +faculty: ForeignKey
+  +university: ForeignKey
+  +id: UUIDField
+  +user: ForeignKey
+}
+
+class Supervisor {
+  +examsupervisor: ForeignKey
+  +id: UUIDField
+  +user: OneToOneField
+  +is_supervisor_active: BooleanField
+}
+
+class Role {
+  +users: ForeignKey
+  +guestrequest: ForeignKey
+  +document_requirements: ForeignKey
+  +id: UUIDField
+  +name: CharField
+  +description: TextField
+}
+
+class User {
+  +logentry: ForeignKey
+  +profiles: ForeignKey
+  +supervisor: OneToOneField
+  +teacher: OneToOneField
+  +submitted_attributions: ForeignKey
+  +authorized_attributions: ForeignKey
+  +validated_attributions: ForeignKey
+  +suggestion: ForeignKey
+  +closed_academic_years: ForeignKey
+  +university_admin: OneToOneField
+  +generated_reports: ForeignKey
+  +printed_cards: ForeignKey
+  +students_users: OneToOneField
+  +verified_student_files: ForeignKey
+  +examattendance: ForeignKey
+  +exam: ForeignKey
+  +equipmentallocation: ForeignKey
+  +created_timetables: ForeignKey
+  +created_timetable_merges: ForeignKey
+  +created_system_configs: ForeignKey
+  +modified_system_configs: ForeignKey
+  +audit_logs: ForeignKey
+  +initiated_backups: ForeignKey
+  +emergency_recoveries: ForeignKey
+  +performed_recoveries: ForeignKey
+  +created_subscriptions: ForeignKey
+  +derogations: ForeignKey
+  +derogation_requests: ForeignKey
+  +rector_derogations: ForeignKey
+  +visitorcourseattribution: ForeignKey
+  +qualitystandard: ForeignKey
+  +complianceaudit: ForeignKey
+  +academicperformancereport: ForeignKey
+  +documentrequest: ForeignKey
+  +absencejustification: ForeignKey
+  +studentactivity: ForeignKey
+  +scholarship: ForeignKey
+  +counselingsession: ForeignKey
+  +requested_status_changes: ForeignKey
+  +approved_status_changes: ForeignKey
+  +paymentplan: ForeignKey
+  +paymentinstallement: ForeignKey
+  +payments_user: ForeignKey
+  +verified_payments: ForeignKey
+  +paymentreminder: ForeignKey
+  +paymentpromise: ForeignKey
+  +collectioncorrespondence: ForeignKey
+  +jurysession: ForeignKey
+  +jury_sessions: ManyToManyField
+  +jurydecision: ForeignKey
+  +gradecomplaint: ForeignKey
+  +created_documents: ForeignKey
+  +signed_documents: ForeignKey
+  +verified_claims: ForeignKey
+  +approved_claims: ForeignKey
+  +created_configurations: ForeignKey
+  +modified_configurations: ForeignKey
+  +admin_notifications: ForeignKey
+  +submitted_progress: ForeignKey
+  +workloads: ForeignKey
+  +secretarynote: ForeignKey
+  +notifications: ForeignKey
+  +sent_messages_unified: ForeignKey
+  +received_messages_unified: ForeignKey
+  +guest_request: OneToOneField
+  +reviewed_guests: ForeignKey
+  +verified_guest_docs: ForeignKey
+  +staticdevice: ForeignKey
+  +totpdevice: ForeignKey
+  +emaildevice: ForeignKey
+  +outstandingtoken: ForeignKey
+  +password: CharField
+  +last_login: DateTimeField
+  +is_superuser: BooleanField
+  +first_name: CharField
+  +last_name: CharField
+  +is_staff: BooleanField
+  +is_active: BooleanField
+  +date_joined: DateTimeField
+  +id: UUIDField
+  +gender: CharField
+  +email: CharField
+  +phone_number: CharField
+  +birth_date: DateField
+  +nationality: ForeignKey
+  +university: ForeignKey
+  +marital_status: CharField
+  +role: ForeignKey
+  +email_verified: BooleanField
+  +requires_2fa: BooleanField
+  +requires_2fa_qr: BooleanField
+  +requires_2fa_email: BooleanField
+  +requires_2fa_static: BooleanField
+  +totp_secret_key: CharField
+  +profile_picture: FileField
+  +spoken_languages: JSONField
+  +created_at: DateTimeField
+  +updated_at: DateTimeField
+  +groups: ManyToManyField
+  +user_permissions: ManyToManyField
+  +residence: ManyToManyField
+}
+
+class Class {
+  +groups: ForeignKey
+  +modules: ForeignKey
+  +inscriptions: ForeignKey
+  +fees_sheets_class: ForeignKey
+  +id: UUIDField
+  +class_name: CharField
+  +department: ForeignKey
+  +is_default: BooleanField
+}
+
+class ClassGroup {
+  +inscription: ForeignKey
+  +timetables: ForeignKey
+  +shared_timetables: ManyToManyField
+  +jury_sessions: ForeignKey
+  +id: UUIDField
+  +class_fk: ForeignKey
+  +academic_year: ForeignKey
+  +group_name: CharField
+  +created_date: DateTimeField
+  +is_default: BooleanField
+}
+
+class Course {
+  +attribution: ForeignKey
+  +exam: ForeignKey
+  +results: ForeignKey
+  +supplements: ForeignKey
+  +gradecomplaint: ForeignKey
+  +teacherpaymentclaim: ForeignKey
+  +id: UUIDField
+  +module: ForeignKey
+  +course_code: CharField
+  +course_name: CharField
+  +cm: PositiveSmallIntegerField
+  +td: PositiveSmallIntegerField
+  +tp: PositiveSmallIntegerField
+  +credits: PositiveSmallIntegerField
+}
+
+class Department {
+  +classes: ForeignKey
+  +studentgraduateinfo: ForeignKey
+  +fees_sheets_department: ForeignKey
+  +id: UUIDField
+  +department_name: CharField
+  +abreviation: CharField
+  +faculty: ForeignKey
+  +is_default: BooleanField
+}
+
+class TypeFormation {
+  +typeformation: ForeignKey
+  +id: UUIDField
+  +name: CharField
+  +code: CharField
+  +description: TextField
+}
+
+class Faculty {
+  +dean_profile: ForeignKey
+  +departments: ForeignKey
+  +fees_sheets_faculty: ForeignKey
+  +teaching_progresses: ForeignKey
+  +workloads: ForeignKey
+  +secretarynote: ForeignKey
+  +programs: ForeignKey
+  +id: UUIDField
+  +faculty_name: CharField
+  +faculty_abreviation: CharField
+  +types: ForeignKey
+  +university: ForeignKey
+}
+
+class Semester {
+  +modules: ForeignKey
+  +id: UUIDField
+  +number: PositiveSmallIntegerField
+  +name: CharField
+}
+
+class Module {
+  +courses: ForeignKey
+  +id: UUIDField
+  +class_fk: ForeignKey
+  +module_name: CharField
+  +code: CharField
+  +semester: ForeignKey
+}
+
+class Teacher {
+  +principal_attributions: ForeignKey
+  +substitute_attributions: ForeignKey
+  +suggestion: ForeignKey
+  +teacherpaymentclaim: ForeignKey
+  +id: UUIDField
+  +user: OneToOneField
+  +teacher_grade: CharField
+  +degree: ForeignKey
+  +university: ForeignKey
+  +speciality: CharField
+  +url_cv: CharField
+  +url_other: JSONField
+  +url_diploma: FileField
+}
+
+class Attribution {
+  +suggestion: ForeignKey
+  +timetable: ForeignKey
+  +teaching_progress: OneToOneField
+  +id: UUIDField
+  +course: ForeignKey
+  +principal_teacher: ForeignKey
+  +substitute_teacher: ForeignKey
+  +academic_year: ForeignKey
+  +date_attribution: DateField
+  +status_principal_teacher: CharField
+  +status_substitute_teacher: CharField
+  +commentaire: TextField
+  +submitted_by: ForeignKey
+  +authorized_by: ForeignKey
+  +validated_by: ForeignKey
+  +validation_date: DateTimeField
+  +validation_comments: TextField
+}
+
+class Suggestion {
+  +id: UUIDField
+  +suggestion_date: DateField
+  +suggestion: TextField
+  +attribution: ForeignKey
+  +teacher: ForeignKey
+  +user: ForeignKey
+}
+
+class University {
+  +rector_profile: ForeignKey
+  +users: ForeignKey
+  +faculties: ForeignKey
+  +teacher: ForeignKey
+  +academic_years: ForeignKey
+  +admins: ForeignKey
+  +buildings: ForeignKey
+  +audit_logs: ForeignKey
+  +profile: OneToOneField
+  +subscriptions: ForeignKey
+  +configurations: ForeignKey
+  +statistics: ForeignKey
+  +admin_notifications: ForeignKey
+  +id: UUIDField
+  +university_name: CharField
+  +university_abrev: CharField
+  +country: ForeignKey
+}
+
+class AcademicYear {
+  +classgroup: ForeignKey
+  +attribution: ForeignKey
+  +inscriptions: ForeignKey
+  +exam: ForeignKey
+  +fees_sheets_academicyear: ForeignKey
+  +teaching_academic_year: ForeignKey
+  +id: UUIDField
+  +academic_year: CharField
+  +description: CharField
+  +university: ForeignKey
+  +civil_year: CharField
+  +start_date: DateField
+  +end_date: DateField
+  +is_closed: BooleanField
+  +closed_date: DateField
+  +closed_by: ForeignKey
+}
+
+class UniversityAdmin {
+  +id: UUIDField
+  +user: OneToOneField
+  +university: ForeignKey
+  +is_super_admin: BooleanField
+}
+
+class UniversityDegree {
+  +teacher: ForeignKey
+  +studentgraduateinfo: ForeignKey
+  +id: UUIDField
+  +degree_name: CharField
+  +description: CharField
+}
+
+class QualityReport {
+  +id: UUIDField
+  +report_type: CharField
+  +title: CharField
+  +data: JSONField
+  +summary: TextField
+  +generated_date: DateTimeField
+  +generated_by: ForeignKey
+}
+
+class StudentCard {
+  +logs: ForeignKey
+  +examattendance: ForeignKey
+  +id: UUIDField
+  +student: ForeignKey
+  +card_number: CharField
+  +issue_date: DateField
+  +expiry_date: DateField
+  +status: CharField
+  +printed_by: ForeignKey
+  +photo: FileField
+  +qrcode_data: TextField
+}
+
+class StudentCardLog {
+  +id: UUIDField
+  +card: ForeignKey
+  +action: CharField
+  +action_date: DateTimeField
+  +performed_by: CharField
+  +remarks: CharField
+}
+
+class Highschool {
+  +studenthsinfo: ForeignKey
+  +id: UUIDField
+  +hs_name: CharField
+  +zone: ForeignKey
+  +code: CharField
+}
+
+class Section {
+  +certificates: ForeignKey
+  +options: ForeignKey
+  +id: UUIDField
+  +section_name: CharField
+}
+
+class Certificate {
+  +studenthsinfo: ForeignKey
+  +id: UUIDField
+  +certificate_name: CharField
+  +section: ForeignKey
+}
+
+class Option {
+  +id: UUIDField
+  +option_name: CharField
+  +section: ForeignKey
+}
+
+class TrainingCenter {
+  +training: ForeignKey
+  +id: UUIDField
+  +name: CharField
+  +commune: ForeignKey
+}
+
+class Inscription {
+  +examattendance: ForeignKey
+  +results_inscription: ForeignKey
+  +compiled_results: ForeignKey
+  +supplements_inscription: ForeignKey
+  +status_changes: ForeignKey
+  +payments_inscription: ForeignKey
+  +id: UUIDField
+  +student: ForeignKey
+  +academic_year: ForeignKey
+  +class_fk: ForeignKey
+  +class_group: ForeignKey
+  +date_inscription: DateField
+  +regist_status: CharField
+  +withdrawal_date: DateField
+  +is_year_close: BooleanField
+}
+
+class Profession {
+  +parent: ForeignKey
+  +id: UUIDField
+  +profession_name: CharField
+}
+
+class Parent {
+  +students_parents: ManyToManyField
+  +id: UUIDField
+  +parent_name: CharField
+  +parent_phone: CharField
+  +parent_email: CharField
+  +profession: ForeignKey
+  +parent_type: CharField
+  +is_alive: BooleanField
+  +is_contact_person: BooleanField
+}
+
+class Student {
+  +cards: ForeignKey
+  +inscriptions: ForeignKey
+  +files: ForeignKey
+  +hs_infos: ForeignKey
+  +graduate_infos: ForeignKey
+  +request: ForeignKey
+  +attendance: ForeignKey
+  +documentrequest: ForeignKey
+  +absencejustification: ForeignKey
+  +organized_activities: ForeignKey
+  +participated_activities: ManyToManyField
+  +scholarship: ForeignKey
+  +counselingsession: ManyToManyField
+  +studentstatuschange: ForeignKey
+  +paymentinstallement: ForeignKey
+  +paymentreminder: ForeignKey
+  +paymentpromise: ForeignKey
+  +collectioncorrespondence: ForeignKey
+  +jurydecision: ForeignKey
+  +gradecomplaint: ForeignKey
+  +alumniprofile: OneToOneField
+  +mentorshipprogram: ForeignKey
+  +id: UUIDField
+  +user: OneToOneField
+  +matricule: CharField
+  +colline: ForeignKey
+  +cam: PositiveSmallIntegerField
+  +parent: ManyToManyField
+}
+
+class StudentFile {
+  +id: UUIDField
+  +student: ForeignKey
+  +file_type: CharField
+  +file_name: CharField
+  +file: FileField
+  +uploaded_at: DateTimeField
+  +is_verified: BooleanField
+  +verified_at: DateTimeField
+  +verified_by: ForeignKey
+  +notes: TextField
+}
+
+class Training {
+  +formations: ManyToManyField
+  +id: UUIDField
+  +domaine: CharField
+  +certificate: CharField
+  +training_center: ForeignKey
+}
+
+class StudentHsInfo {
+  +id: UUIDField
+  +student: ForeignKey
+  +highschool: ForeignKey
+  +certificate: ForeignKey
+  +se_mark: CharField
+  +date_of_obtention: PositiveSmallIntegerField
+  +formation: ManyToManyField
+}
+
+class StudentGraduateInfo {
+  +id: UUIDField
+  +student: ForeignKey
+  +department: ForeignKey
+  +option: CharField
+  +mention: CharField
+  +degree: ForeignKey
+}
+
+class Document {
+  +request: ForeignKey
+  +id: UUIDField
+  +document_name: CharField
+  +document_description: TextField
+  +document_price: PositiveIntegerField
+  +processing_time: PositiveIntegerField
+}
+
+class Request {
+  +id: UUIDField
+  +student: ForeignKey
+  +document: ForeignKey
+  +request_date: DateTimeField
+  +request_status: CharField
+  +payment_verified: BooleanField
+  +admin_comment: TextField
+  +updated_at: DateTimeField
+  +payment: ForeignKey
+}
+
+class ExamAttendance {
+  +id: UUIDField
+  +examroom: ForeignKey
+  +card: ForeignKey
+  +inscription: ForeignKey
+  +attendance_time: DateTimeField
+  +status: CharField
+  +incident_notes: TextField
+  +recorded_by: ForeignKey
+  +recorded_at: DateTimeField
+}
+
+class ExamType {
+  +exam: ForeignKey
+  +id: UUIDField
+  +exam_type_name: CharField
+  +description: CharField
+}
+
+class Exam {
+  +rooms: ForeignKey
+  +id: UUIDField
+  +course: ForeignKey
+  +exam_type: ForeignKey
+  +academic_year: ForeignKey
+  +exam_date: DateField
+  +start_time: DateTimeField
+  +end_time: DateTimeField
+  +status: CharField
+  +created_by: ForeignKey
+  +created_at: DateTimeField
+}
+
+class ExamRoom {
+  +examattendance: ForeignKey
+  +supervisors: ForeignKey
+  +id: UUIDField
+  +exam: ForeignKey
+  +room: ForeignKey
+  +range_student: CharField
+}
+
+class ExamSupervisor {
+  +id: UUIDField
+  +exam_room: ForeignKey
+  +supervisor: ForeignKey
+}
+
+class Session {
+  +results_session: ForeignKey
+  +id: UUIDField
+  +session_name: CharField
+}
+
+class Result {
+  +id: UUIDField
+  +course: ForeignKey
+  +inscription: ForeignKey
+  +session: ForeignKey
+  +mark: FloatField
+}
+
+class CompiledResult {
+  +id: UUIDField
+  +results: JSONField
+  +inscription: ForeignKey
+  +average_mark: DecimalField
+  +status: CharField
+  +is_promoted: BooleanField
+}
+
+class Supplement {
+  +id: UUIDField
+  +inscription: ForeignKey
+  +course: ForeignKey
+  +validation: BooleanField
+  +validation_date: DateField
+  +mark: DecimalField
+}
+
+class Building {
+  +rooms: ForeignKey
+  +id: UUIDField
+  +university: ForeignKey
+  +building_name: CharField
+  +building_code: CharField
+  +location: CharField
+}
+
+class EquipmentType {
+  +equipment: ForeignKey
+  +id: UUIDField
+  +name: CharField
+}
+
+class Equipment {
+  +equipmentallocation: ForeignKey
+  +maintenances: ForeignKey
+  +id: UUIDField
+  +equipment_name: CharField
+  +equipment_type: ForeignKey
+  +serial_number: CharField
+  +equipment_number: CharField
+  +purchase_date: DateField
+  +status: CharField
+}
+
+class EquipmentAllocation {
+  +id: UUIDField
+  +equipment: ForeignKey
+  +room: ForeignKey
+  +allocated_to: ForeignKey
+  +allocation_date: DateField
+  +return_date: DateField
+  +status: CharField
+}
+
+class EquipmentMaintenance {
+  +id: UUIDField
+  +equipment: ForeignKey
+  +maintenance_date: DateField
+  +return_date: DateField
+  +description: TextField
+  +performed_by: CharField
+  +cost: DecimalField
+}
+
+class Room {
+  +room_profiles: ForeignKey
+  +examroom: ForeignKey
+  +equipmentallocation: ForeignKey
+  +timetable: ForeignKey
+  +building: ForeignKey
+  +id: UUIDField
+  +room_name: CharField
+  +capacity: PositiveIntegerField
+  +room_code: CharField
+  +room_type: CharField
+  +is_available: BooleanField
+}
+
+class Notification {
+  +id: UUIDField
+  +email: CharField
+  +telephone: CharField
+  +message: TextField
+  +sent_at: DateTimeField
+  +delivery_status: CharField
+}
+
+class ScheduleSlot {
+  +timetable: ManyToManyField
+  +id: UUIDField
+  +day_of_week: CharField
+  +start_time: TimeField
+  +end_time: TimeField
+  +schedule_name: CharField
+}
+
+class Timetable {
+  +timetable_merges: ManyToManyField
+  +attendances: ForeignKey
+  +activity_reports: ForeignKey
+  +id: UUIDField
+  +class_group: ForeignKey
+  +attribution: ForeignKey
+  +room: ForeignKey
+  +start_date: DateField
+  +end_date: DateField
+  +status: CharField
+  +created_by: ForeignKey
+  +created_date: DateTimeField
+  +published_date: DateTimeField
+  +shared_with: ManyToManyField
+  +slots: ManyToManyField
+}
+
+class TimetableMerge {
+  +id: UUIDField
+  +name: CharField
+  +created_at: DateTimeField
+  +created_by: ForeignKey
+  +timetables: ManyToManyField
+}
+
+class Attendance {
+  +id: UUIDField
+  +timetable: ForeignKey
+  +student: ForeignKey
+  +status: CharField
+  +remarks: TextField
+}
+
+class ActivityReport {
+  +id: UUIDField
+  +timetable: ForeignKey
+  +planned_hours: PositiveIntegerField
+  +delivered_hours: PositiveIntegerField
+  +completion_rate: DecimalField
+  +observations: TextField
+}
+
+class SystemConfiguration {
+  +id: UUIDField
+  +category: CharField
+  +key: CharField
+  +value: JSONField
+  +description: TextField
+  +is_active: BooleanField
+  +created_by: ForeignKey
+  +modified_by: ForeignKey
+  +created_at: DateTimeField
+  +updated_at: DateTimeField
+}
+
+class AuditLog {
+  +id: UUIDField
+  +user: ForeignKey
+  +university: ForeignKey
+  +action: CharField
+  +severity: CharField
+  +entity_type: CharField
+  +entity_id: CharField
+  +description: TextField
+  +changes: JSONField
+  +ip_address: GenericIPAddressField
+  +user_agent: CharField
+  +location: CharField
+  +success: BooleanField
+  +error_message: TextField
+  +timestamp: DateTimeField
+}
+
+class BackupRecord {
+  +id: UUIDField
+  +backup_type: CharField
+  +status: CharField
+  +file_path: CharField
+  +file_size: BigIntegerField
+  +backup_location: CharField
+  +initiated_by: ForeignKey
+  +started_at: DateTimeField
+  +completed_at: DateTimeField
+  +error_message: TextField
+  +metadata: JSONField
+}
+
+class EmergencyRecovery {
+  +id: UUIDField
+  +recovery_type: CharField
+  +target_user: ForeignKey
+  +performed_by: ForeignKey
+  +status: CharField
+  +reason: TextField
+  +details: JSONField
+  +result: TextField
+  +initiated_at: DateTimeField
+  +completed_at: DateTimeField
+}
+
+class UniversityProfile {
+  +id: UUIDField
+  +university: OneToOneField
+  +status: CharField
+  +contact_email: CharField
+  +contact_phone: CharField
+  +website: CharField
+  +logo: FileField
+  +description: TextField
+  +max_users: IntegerField
+  +max_storage_gb: IntegerField
+  +created_at: DateTimeField
+  +updated_at: DateTimeField
+}
+
+class Module {
+  +subscriptions: ForeignKey
+  +id: UUIDField
+  +name: CharField
+  +description: TextField
+  +code: CharField
+  +is_active: BooleanField
+  +created_at: DateTimeField
+}
+
+class UniversitySubscription {
+  +id: UUIDField
+  +university: ForeignKey
+  +module: ForeignKey
+  +status: CharField
+  +start_date: DateField
+  +end_date: DateField
+  +is_trial: BooleanField
+  +created_by: ForeignKey
+  +created_at: DateTimeField
+  +updated_at: DateTimeField
+}
+
+class PaymentDerogation {
+  +id: BigAutoField
+  +student: ForeignKey
+  +reason: TextField
+  +requested_by: ForeignKey
+  +status: CharField
+  +rector_decision_by: ForeignKey
+  +decision_comment: TextField
+  +created_at: DateTimeField
+  +decision_date: DateTimeField
+}
+
+class VisitorCourseAttribution {
+  +id: BigAutoField
+  +professor: ForeignKey
+  +course_name: CharField
+  +recommended_by: CharField
+  +rector_validation: BooleanField
+  +validation_date: DateTimeField
+}
+
+class QualityStandard {
+  +complianceaudit: ForeignKey
+  +id: UUIDField
+  +title: CharField
+  +description: TextField
+  +compliance_criteria: JSONField
+  +is_active: BooleanField
+  +created_by: ForeignKey
+  +created_at: DateTimeField
+}
+
+class ComplianceAudit {
+  +id: UUIDField
+  +standard: ForeignKey
+  +audit_period: CharField
+  +compliance_status: CharField
+  +findings: JSONField
+  +recommendations: TextField
+  +audited_by: ForeignKey
+  +audit_date: DateTimeField
+}
+
+class AcademicPerformanceReport {
+  +id: UUIDField
+  +academic_year: CharField
+  +semester: IntegerField
+  +success_rate: FloatField
+  +failure_rate: FloatField
+  +average_grade: FloatField
+  +underperforming_courses: JSONField
+  +generated_by: ForeignKey
+  +generated_at: DateTimeField
+}
+
+class ProgramExecutionTracking {
+  +id: UUIDField
+  +program_name: CharField
+  +academic_year: CharField
+  +planned_coverage: IntegerField
+  +actual_coverage: IntegerField
+  +progress_percentage: FloatField
+  +objectives_met: BooleanField
+  +last_updated: DateTimeField
+}
+
+class StudentRetentionAudit {
+  +id: UUIDField
+  +academic_year: CharField
+  +total_enrolled: IntegerField
+  +retained_students: IntegerField
+  +retention_rate: FloatField
+  +dropout_rate: FloatField
+  +dropout_reasons: JSONField
+  +audited_at: DateTimeField
+}
+
+class CourseSatisfactionSurvey {
+  +id: UUIDField
+  +course_name: CharField
+  +teacher_name: CharField
+  +academic_year: CharField
+  +course_quality_rating: IntegerField
+  +teacher_rating: IntegerField
+  +environment_rating: IntegerField
+  +comments: TextField
+  +survey_date: DateTimeField
+}
+
+class DocumentRequest {
+  +id: UUIDField
+  +student: ForeignKey
+  +document_type: CharField
+  +purpose: TextField
+  +status: CharField
+  +processed_by: ForeignKey
+  +requested_at: DateTimeField
+  +processed_at: DateTimeField
+  +notes: TextField
+}
+
+class AbsenceJustification {
+  +id: UUIDField
+  +student: ForeignKey
+  +absence_type: CharField
+  +start_date: DateField
+  +end_date: DateField
+  +reason: TextField
+  +supporting_documents: JSONField
+  +status: CharField
+  +reviewed_by: ForeignKey
+  +submitted_at: DateTimeField
+  +reviewed_at: DateTimeField
+}
+
+class StudentActivity {
+  +id: UUIDField
+  +activity_type: CharField
+  +name: CharField
+  +description: TextField
+  +organizer: ForeignKey
+  +start_date: DateTimeField
+  +end_date: DateTimeField
+  +location: CharField
+  +is_approved: BooleanField
+  +approved_by: ForeignKey
+  +created_at: DateTimeField
+  +participants: ManyToManyField
+}
+
+class Scholarship {
+  +id: UUIDField
+  +student: ForeignKey
+  +scholarship_type: CharField
+  +provider: CharField
+  +amount: DecimalField
+  +academic_year: CharField
+  +is_active: BooleanField
+  +managed_by: ForeignKey
+  +created_at: DateTimeField
+}
+
+class CounselingSession {
+  +id: UUIDField
+  +session_type: CharField
+  +title: CharField
+  +description: TextField
+  +counselor: ForeignKey
+  +scheduled_date: DateTimeField
+  +duration_minutes: IntegerField
+  +location: CharField
+  +is_group_session: BooleanField
+  +created_at: DateTimeField
+  +participants: ManyToManyField
+}
+
+class StudentStatusChange {
+  +id: UUIDField
+  +student: ForeignKey
+  +inscription: ForeignKey
+  +status_type: CharField
+  +reason: TextField
+  +supporting_documents: JSONField
+  +requested_by: ForeignKey
+  +approved_by: ForeignKey
+  +approval_status: CharField
+  +effective_date: DateField
+  +requested_at: DateTimeField
+  +processed_at: DateTimeField
+  +notes: TextField
+}
+
+class Bank {
+  +bank: ForeignKey
+  +id: UUIDField
+  +bank_name: CharField
+  +bank_abreviation: CharField
+  +account_number: CharField
+  +status: CharField
+}
+
+class Wording {
+  +fees_sheets_wording: ForeignKey
+  +id: UUIDField
+  +wording_name: CharField
+}
+
+class FeesSheet {
+  +paymentplan_feessheet: ForeignKey
+  +id: UUIDField
+  +class_fk: ForeignKey
+  +department: ForeignKey
+  +faculty: ForeignKey
+  +academic_year: ForeignKey
+  +wording: ForeignKey
+  +base_amount: PositiveIntegerField
+}
+
+class PaymentPlan {
+  +installments: ForeignKey
+  +payments_paymentplan: ForeignKey
+  +id: UUIDField
+  +feessheet: ForeignKey
+  +description: CharField
+  +total_amount: DecimalField
+  +monthly_amount: DecimalField
+  +start_date: DateField
+  +end_date: DateField
+  +status: CharField
+  +created_by: ForeignKey
+  +created_at: DateTimeField
+}
+
+class PaymentInstallement {
+  +id: UUIDField
+  +payment_plan: ForeignKey
+  +student: ForeignKey
+  +amount: DecimalField
+  +due_date: DateField
+  +status: CharField
+  +paid_amount: DecimalField
+  +paid_date: DateField
+  +created_by: ForeignKey
+  +created_at: DateTimeField
+}
+
+class Payment {
+  +document_payment: ForeignKey
+  +id: UUIDField
+  +paymentplan: ForeignKey
+  +amount_paid: DecimalField
+  +payment_date: DateField
+  +reception_date: DateField
+  +payment_method: CharField
+  +bank: ForeignKey
+  +transaction_code: CharField
+  +inscription: ForeignKey
+  +user: ForeignKey
+  +description: CharField
+  +remittance_slip_uri: FileField
+  +payment_status: CharField
+  +verified_by: ForeignKey
+  +verified_at: DateTimeField
+}
+
+class PaymentReminder {
+  +id: UUIDField
+  +student: ForeignKey
+  +reminder_type: CharField
+  +amount_due: DecimalField
+  +message: TextField
+  +status: CharField
+  +sent_by: ForeignKey
+  +sent_at: DateTimeField
+}
+
+class PaymentPromise {
+  +id: UUIDField
+  +student: ForeignKey
+  +promised_amount: DecimalField
+  +promised_date: DateField
+  +status: CharField
+  +notes: TextField
+  +recorded_by: ForeignKey
+  +recorded_at: DateTimeField
+}
+
+class CollectionCorrespondence {
+  +id: UUIDField
+  +student: ForeignKey
+  +correspondence_type: CharField
+  +subject: CharField
+  +content: TextField
+  +response: TextField
+  +sent_by: ForeignKey
+  +sent_at: DateTimeField
+}
+
+class JurySession {
+  +jurydecision: ForeignKey
+  +id: UUIDField
+  +session_name: CharField
+  +session_date: DateTimeField
+  +class_group: ForeignKey
+  +status: CharField
+  +minutes_document: TextField
+  +created_by: ForeignKey
+  +created_at: DateTimeField
+  +jury_members: ManyToManyField
+}
+
+class JuryDecision {
+  +id: UUIDField
+  +jury_session: ForeignKey
+  +student: ForeignKey
+  +decision: CharField
+  +notes: TextField
+  +validated_by: ForeignKey
+  +validated_at: DateTimeField
+}
+
+class GradeComplaint {
+  +id: UUIDField
+  +student: ForeignKey
+  +course: ForeignKey
+  +original_grade: FloatField
+  +complaint_reason: TextField
+  +status: CharField
+  +assigned_to: ForeignKey
+  +new_grade: FloatField
+  +resolution_notes: TextField
+  +submitted_at: DateTimeField
+  +resolved_at: DateTimeField
+}
+
+class OfficialDocument {
+  +id: UUIDField
+  +document_type: CharField
+  +title: CharField
+  +content: TextField
+  +status: CharField
+  +created_by: ForeignKey
+  +signed_by: ForeignKey
+  +created_at: DateTimeField
+  +signed_at: DateTimeField
+}
+
+class TeacherPaymentClaim {
+  +id: UUIDField
+  +teacher: ForeignKey
+  +course: ForeignKey
+  +hours_taught: IntegerField
+  +hourly_rate: DecimalField
+  +total_amount: DecimalField
+  +status: CharField
+  +verified_by: ForeignKey
+  +approved_by: ForeignKey
+  +submitted_at: DateTimeField
+  +processed_at: DateTimeField
+}
+
+class AlumniProfile {
+  +joboffer: ForeignKey
+  +mentorshipprogram: ForeignKey
+  +alumnitestimonial: ForeignKey
+  +alumnieventregistration: ForeignKey
+  +alumidonation: ForeignKey
+  +id: UUIDField
+  +student: OneToOneField
+  +current_position: CharField
+  +company: CharField
+  +sector: CharField
+  +city: CharField
+  +linkedin_profile: CharField
+  +is_mentor: BooleanField
+  +updated_at: DateTimeField
+}
+
+class JobOffer {
+  +id: UUIDField
+  +alumni: ForeignKey
+  +title: CharField
+  +company: CharField
+  +job_type: CharField
+  +description: TextField
+  +requirements: TextField
+  +location: CharField
+  +is_active: BooleanField
+  +created_at: DateTimeField
+}
+
+class MentorshipProgram {
+  +id: UUIDField
+  +mentor: ForeignKey
+  +mentee: ForeignKey
+  +expertise_area: CharField
+  +status: CharField
+  +started_at: DateTimeField
+}
+
+class AlumniTestimonial {
+  +id: UUIDField
+  +alumni: ForeignKey
+  +title: CharField
+  +content: TextField
+  +is_published: BooleanField
+  +created_at: DateTimeField
+}
+
+class AlumniEvent {
+  +alumnieventregistration: ForeignKey
+  +id: UUIDField
+  +title: CharField
+  +event_type: CharField
+  +description: TextField
+  +date: DateTimeField
+  +location: CharField
+  +max_attendees: IntegerField
+  +created_at: DateTimeField
+}
+
+class AlumniEventRegistration {
+  +id: UUIDField
+  +event: ForeignKey
+  +alumni: ForeignKey
+  +registered_at: DateTimeField
+}
+
+class AlumiDonation {
+  +id: UUIDField
+  +alumni: ForeignKey
+  +amount: DecimalField
+  +donation_type: CharField
+  +purpose: TextField
+  +transaction_id: CharField
+  +donated_at: DateTimeField
+}
+
+class UniversityConfiguration {
+  +id: UUIDField
+  +university: ForeignKey
+  +category: CharField
+  +key: CharField
+  +value: JSONField
+  +description: TextField
+  +is_active: BooleanField
+  +created_by: ForeignKey
+  +modified_by: ForeignKey
+  +created_at: DateTimeField
+  +updated_at: DateTimeField
+}
+
+class UniversityStatistics {
+  +id: UUIDField
+  +university: ForeignKey
+  +total_students: IntegerField
+  +total_teachers: IntegerField
+  +total_faculties: IntegerField
+  +total_departments: IntegerField
+  +total_courses: IntegerField
+  +active_enrollments: IntegerField
+  +pending_payments: DecimalField
+  +completed_exams: IntegerField
+  +pending_document_requests: IntegerField
+  +statistics_data: JSONField
+  +calculated_at: DateTimeField
+}
+
+class UniversityNotification {
+  +id: UUIDField
+  +university: ForeignKey
+  +recipient: ForeignKey
+  +notification_type: CharField
+  +priority: CharField
+  +title: CharField
+  +message: TextField
+  +action_url: CharField
+  +is_read: BooleanField
+  +read_at: DateTimeField
+  +created_at: DateTimeField
+}
+
+class TeachingProgress {
+  +id: UUIDField
+  +attribution: OneToOneField
+  +faculty: ForeignKey
+  +progress_percentage: DecimalField
+  +last_updated: DateTimeField
+  +submitted_by: ForeignKey
+}
+
+class TeacherWorkload {
+  +id: UUIDField
+  +faculty: ForeignKey
+  +teacher: ForeignKey
+  +academic_year: ForeignKey
+  +total_hours: IntegerField
+  +assigned_hours: DecimalField
+  +is_permanent: BooleanField
+}
+
+class SecretaryNote {
+  +id: UUIDField
+  +faculty: ForeignKey
+  +subject: CharField
+  +message: TextField
+  +created_by: ForeignKey
+  +created_date: DateTimeField
+  +is_resolved: BooleanField
+}
+
+class Notification {
+  +id: UUIDField
+  +recipient: ForeignKey
+  +recipient_type: CharField
+  +notification_type: CharField
+  +title: CharField
+  +message: TextField
+  +is_read: BooleanField
+  +created_at: DateTimeField
+}
+
+class Message {
+  +id: UUIDField
+  +sender: ForeignKey
+  +recipient: ForeignKey
+  +message_type: CharField
+  +subject: CharField
+  +content: TextField
+  +is_read: BooleanField
+  +sent_at: DateTimeField
+}
+
+class GuestRequest {
+  +documents: ForeignKey
+  +notifications: ForeignKey
+  +id: UUIDField
+  +user: OneToOneField
+  +requested_role: ForeignKey
+  +status: CharField
+  +phone: CharField
+  +birth_date: DateField
+  +address: TextField
+  +profile_submitted: BooleanField
+  +profile_submitted_at: DateTimeField
+  +reviewed_at: DateTimeField
+  +reviewed_by: ForeignKey
+  +rejection_reason: TextField
+  +created_at: DateTimeField
+  +updated_at: DateTimeField
+}
+
+class GuestDocument {
+  +guestnotification: ForeignKey
+  +id: UUIDField
+  +guest_request: ForeignKey
+  +name: CharField
+  +type: CharField
+  +status: CharField
+  +file: FileField
+  +file_size: IntegerField
+  +mime_type: CharField
+  +uploaded_at: DateTimeField
+  +verified_at: DateTimeField
+  +verified_by: ForeignKey
+  +rejection_reason: TextField
+}
+
+class GuestNotification {
+  +id: UUIDField
+  +guest_request: ForeignKey
+  +type: CharField
+  +title: CharField
+  +message: TextField
+  +action_url: CharField
+  +is_read: BooleanField
+  +document: ForeignKey
+  +created_at: DateTimeField
+}
+
+class RoleDocumentRequirement {
+  +id: UUIDField
+  +role: ForeignKey
+  +document_type: CharField
+  +label: CharField
+  +description: TextField
+  +required: BooleanField
+  +max_size_mb: IntegerField
+  +accepted_formats: JSONField
+}
+
+class Program {
+  +id: UUIDField
+  +faculty: ForeignKey
+  +presentation: TextField
+  +content: JSONField
+  +admission_conditions: JSONField
+  +prerequisites: JSONField
+  +internship: TextField
+  +duration: CharField
+  +career_opportunities: JSONField
+  +is_active: BooleanField
+}
+
+class StaticDevice {
+  +token_set: ForeignKey
+  +id: AutoField
+  +user: ForeignKey
+  +name: CharField
+  +confirmed: BooleanField
+  +throttling_failure_timestamp: DateTimeField
+  +throttling_failure_count: PositiveIntegerField
+  +created_at: DateTimeField
+  +last_used_at: DateTimeField
+}
+
+class StaticToken {
+  +id: AutoField
+  +device: ForeignKey
+  +token: CharField
+}
+
+class TOTPDevice {
+  +id: AutoField
+  +user: ForeignKey
+  +name: CharField
+  +confirmed: BooleanField
+  +throttling_failure_timestamp: DateTimeField
+  +throttling_failure_count: PositiveIntegerField
+  +created_at: DateTimeField
+  +last_used_at: DateTimeField
+  +key: CharField
+  +step: PositiveSmallIntegerField
+  +t0: BigIntegerField
+  +digits: PositiveSmallIntegerField
+  +tolerance: PositiveSmallIntegerField
+  +drift: SmallIntegerField
+  +last_t: BigIntegerField
+}
+
+class EmailDevice {
+  +id: AutoField
+  +user: ForeignKey
+  +name: CharField
+  +confirmed: BooleanField
+  +token: CharField
+  +valid_until: DateTimeField
+  +last_generated_timestamp: DateTimeField
+  +throttling_failure_timestamp: DateTimeField
+  +throttling_failure_count: PositiveIntegerField
+  +created_at: DateTimeField
+  +last_used_at: DateTimeField
+  +email: CharField
+}
+
+class OutstandingToken {
+  +blacklistedtoken: OneToOneField
+  +id: BigAutoField
+  +user: ForeignKey
+  +jti: CharField
+  +token: TextField
+  +created_at: DateTimeField
+  +expires_at: DateTimeField
+}
+
+class BlacklistedToken {
+  +id: BigAutoField
+  +token: OneToOneField
+  +blacklisted_at: DateTimeField
+}
+
+LogEntry --> User
+LogEntry --> ContentType
+Permission --* Group
+Permission --* User
+Permission --> ContentType
+Group --* User
+Group --* Permission
+Province --> Country
+Commune --> Province
+Zone --> Commune
+Colline --* User
+Colline --> Zone
+Profile --> Room
+Profile --> Faculty
+Profile --> University
+Profile --> User
+Supervisor -- User
+User -- Supervisor
+User -- Teacher
+User -- UniversityAdmin
+User -- Student
+User --* JurySession
+User -- GuestRequest
+User --> Country
+User --> University
+User --> Role
+User --* Group
+User --* Permission
+User --* Colline
+Class --> Department
+ClassGroup --* Timetable
+ClassGroup --> Class
+ClassGroup --> AcademicYear
+Course --> Module
+Department --> Faculty
+Faculty --> TypeFormation
+Faculty --> University
+Module --> Class
+Module --> Semester
+Teacher -- User
+Teacher --> UniversityDegree
+Teacher --> University
+Attribution -- TeachingProgress
+Attribution --> Course
+Attribution --> Teacher
+Attribution --> Teacher
+Attribution --> AcademicYear
+Attribution --> User
+Attribution --> User
+Attribution --> User
+Suggestion --> Attribution
+Suggestion --> Teacher
+Suggestion --> User
+University -- UniversityProfile
+University --> Country
+AcademicYear --> University
+AcademicYear --> User
+UniversityAdmin -- User
+UniversityAdmin --> University
+QualityReport --> User
+StudentCard --> Student
+StudentCard --> User
+StudentCardLog --> StudentCard
+Highschool --> Zone
+Certificate --> Section
+Option --> Section
+TrainingCenter --> Commune
+Inscription --> Student
+Inscription --> AcademicYear
+Inscription --> Class
+Inscription --> ClassGroup
+Parent --* Student
+Parent --> Profession
+Student --* StudentActivity
+Student --* CounselingSession
+Student -- AlumniProfile
+Student -- User
+Student --> Colline
+Student --* Parent
+StudentFile --> Student
+StudentFile --> User
+Training --* StudentHsInfo
+Training --> TrainingCenter
+StudentHsInfo --> Student
+StudentHsInfo --> Highschool
+StudentHsInfo --> Certificate
+StudentHsInfo --* Training
+StudentGraduateInfo --> Student
+StudentGraduateInfo --> Department
+StudentGraduateInfo --> UniversityDegree
+Request --> Student
+Request --> Document
+Request --> Payment
+ExamAttendance --> ExamRoom
+ExamAttendance --> StudentCard
+ExamAttendance --> Inscription
+ExamAttendance --> User
+Exam --> Course
+Exam --> ExamType
+Exam --> AcademicYear
+Exam --> User
+ExamRoom --> Exam
+ExamRoom --> Room
+ExamSupervisor --> ExamRoom
+ExamSupervisor --> Supervisor
+Result --> Course
+Result --> Inscription
+Result --> Session
+CompiledResult --> Inscription
+Supplement --> Inscription
+Supplement --> Course
+Building --> University
+Equipment --> EquipmentType
+EquipmentAllocation --> Equipment
+EquipmentAllocation --> Room
+EquipmentAllocation --> User
+EquipmentMaintenance --> Equipment
+Room --> Building
+ScheduleSlot --* Timetable
+Timetable --* TimetableMerge
+Timetable --> ClassGroup
+Timetable --> Attribution
+Timetable --> Room
+Timetable --> User
+Timetable --* ClassGroup
+Timetable --* ScheduleSlot
+TimetableMerge --> User
+TimetableMerge --* Timetable
+Attendance --> Timetable
+Attendance --> Student
+ActivityReport --> Timetable
+SystemConfiguration --> User
+SystemConfiguration --> User
+AuditLog --> User
+AuditLog --> University
+BackupRecord --> User
+EmergencyRecovery --> User
+EmergencyRecovery --> User
+UniversityProfile -- University
+UniversitySubscription --> University
+UniversitySubscription --> Module
+UniversitySubscription --> User
+PaymentDerogation --> User
+PaymentDerogation --> User
+PaymentDerogation --> User
+VisitorCourseAttribution --> User
+QualityStandard --> User
+ComplianceAudit --> QualityStandard
+ComplianceAudit --> User
+AcademicPerformanceReport --> User
+DocumentRequest --> Student
+DocumentRequest --> User
+AbsenceJustification --> Student
+AbsenceJustification --> User
+StudentActivity --> Student
+StudentActivity --> User
+StudentActivity --* Student
+Scholarship --> Student
+Scholarship --> User
+CounselingSession --> User
+CounselingSession --* Student
+StudentStatusChange --> Student
+StudentStatusChange --> Inscription
+StudentStatusChange --> User
+StudentStatusChange --> User
+FeesSheet --> Class
+FeesSheet --> Department
+FeesSheet --> Faculty
+FeesSheet --> AcademicYear
+FeesSheet --> Wording
+PaymentPlan --> FeesSheet
+PaymentPlan --> User
+PaymentInstallement --> PaymentPlan
+PaymentInstallement --> Student
+PaymentInstallement --> User
+Payment --> PaymentPlan
+Payment --> Bank
+Payment --> Inscription
+Payment --> User
+Payment --> User
+PaymentReminder --> Student
+PaymentReminder --> User
+PaymentPromise --> Student
+PaymentPromise --> User
+CollectionCorrespondence --> Student
+CollectionCorrespondence --> User
+JurySession --> ClassGroup
+JurySession --> User
+JurySession --* User
+JuryDecision --> JurySession
+JuryDecision --> Student
+JuryDecision --> User
+GradeComplaint --> Student
+GradeComplaint --> Course
+GradeComplaint --> User
+OfficialDocument --> User
+OfficialDocument --> User
+TeacherPaymentClaim --> Teacher
+TeacherPaymentClaim --> Course
+TeacherPaymentClaim --> User
+TeacherPaymentClaim --> User
+AlumniProfile -- Student
+JobOffer --> AlumniProfile
+MentorshipProgram --> AlumniProfile
+MentorshipProgram --> Student
+AlumniTestimonial --> AlumniProfile
+AlumniEventRegistration --> AlumniEvent
+AlumniEventRegistration --> AlumniProfile
+AlumiDonation --> AlumniProfile
+UniversityConfiguration --> University
+UniversityConfiguration --> User
+UniversityConfiguration --> User
+UniversityStatistics --> University
+UniversityNotification --> University
+UniversityNotification --> User
+TeachingProgress -- Attribution
+TeachingProgress --> Faculty
+TeachingProgress --> User
+TeacherWorkload --> Faculty
+TeacherWorkload --> User
+TeacherWorkload --> AcademicYear
+SecretaryNote --> Faculty
+SecretaryNote --> User
+Notification --> User
+Message --> User
+Message --> User
+GuestRequest -- User
+GuestRequest --> Role
+GuestRequest --> User
+GuestDocument --> GuestRequest
+GuestDocument --> User
+GuestNotification --> GuestRequest
+GuestNotification --> GuestDocument
+RoleDocumentRequirement --> Role
+Program --> Faculty
+StaticDevice --> User
+StaticToken --> StaticDevice
+TOTPDevice --> User
+EmailDevice --> User
+OutstandingToken -- BlacklistedToken
+OutstandingToken --> User
+BlacklistedToken -- OutstandingToken
+@enduml

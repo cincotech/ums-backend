@@ -1,0 +1,10 @@
+@startuml
+start
+:Create survey;
+:Distribute to students;
+:Collect responses;
+:Analyze results;
+:Generate report;
+:Share with stakeholders;
+stop
+@enduml

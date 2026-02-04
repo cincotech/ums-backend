@@ -1,0 +1,14 @@
+@startuml
+start
+:Student requests derogation;
+:Finance reviews;
+:Forward to rector;
+if (Rector approves?) then (yes)
+  :Create derogation;
+  :Update payment plan;
+  :Notify student;
+else (no)
+  :Reject request;
+endif
+stop
+@enduml

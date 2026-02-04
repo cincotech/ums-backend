@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import parsers
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import IsAuthenticated
 
 from core.permissions import (
     IsFinanceService,
@@ -60,11 +61,19 @@ class BankViewSet(BaseViewSet):
 
     def get_permissions(self):
         if self.action == "list" or self.action == "retrieve":
-            # Lecture : student, finance_service, student_service
-            return [IsStudentOrFinanceService() or IsStudentService()]
+            return [IsAuthenticated()]
         else:
             # Création, modification, suppression : seulement finance_service
             return [IsFinanceService()]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role.name == "finance_service":
+            return self.queryset
+        else:
+            # Tous les autres rôles voient les banques actives
+            return self.queryset.filter(status="active")
 
 
 class WordingViewSet(BaseViewSet):
@@ -574,11 +583,11 @@ class PaymentPlanViewSet(BaseViewSet):
 
             raise PermissionDenied("Utilisateur sans rôle défini.")
 
-        if user.role.name == "finance_service":
-            # Finance voit tous les plans
+        if user.role.name in ["finance_service", "student_service"]:
+            # Finance et service étudiant voient tous les plans
             return self.queryset
-        elif user.role.name == "student":
-            # Étudiant voit seulement les plans applicables à sa classe/département/faculté
+        elif user.role.name in ["student", "guest"]:
+            # Étudiant et invité voient seulement les plans applicables à sa classe/département/faculté
             try:
                 from services.core_service.student_module.student_profile_app.models import (
                     Student,
@@ -591,9 +600,8 @@ class PaymentPlanViewSet(BaseViewSet):
 
                 raise PermissionDenied("Profil étudiant non trouvé.")
         else:
-            from rest_framework.exceptions import PermissionDenied
-
-            raise PermissionDenied(f"Accès refusé pour le rôle '{user.role.name}'.")
+            # Tous les autres rôles voient tous les plans
+            return self.queryset
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -671,42 +679,36 @@ class PaymentViewSet(BaseViewSet):
     def get_queryset(self):
         """Filtre les paiements selon le rôle de l'utilisateur"""
         user = self.request.user
+        base_queryset = self.queryset.select_related("paymentplan", "bank")
 
         if user.role.name == "finance_service":
-            return self.queryset
-        elif user.role.name == "student":
-            return self.queryset.filter(inscription__student__user=user)
+            return base_queryset
+        elif user.role.name in ["student", "guest"]:
+            return base_queryset.filter(inscription__student__user=user)
         elif user.role.name == "student_service":
             # Service aux étudiants voit tous les paiements
-            return self.queryset
+            return base_queryset
         else:
             return Payment.objects.none()
 
     def create(self, request, *args, **kwargs):
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        logger.debug(f"PaymentSerializer - données reçues: {request.data}")
+        logger.debug(f"PaymentSerializer - clés: {list(request.data.keys())}")
+
         serializer = self.get_serializer(data=request.data)
         from rest_framework import status
 
-        from core.response_handler import (
-            error_response,
-            success_response,
-            validate_serializer,
-        )
+        from core.response_handler import success_response, validate_serializer
 
         validation_error = validate_serializer(serializer)
         if validation_error:
             return validation_error
 
-        payment = serializer.save(user=request.user)
-
-        # Gérer l'image base64 si fournie
-        if "remittance_slip_base64" in request.data:
-            try:
-                payment.save_remittance_slip_from_base64(
-                    request.data["remittance_slip_base64"]
-                )
-                payment.save()
-            except ValueError as e:
-                return error_response(message=str(e), status_code=400)
+        serializer.save(user=request.user)
 
         return success_response(
             data=serializer.data,

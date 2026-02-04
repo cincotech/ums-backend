@@ -1,0 +1,14 @@
+@startuml
+start
+:Teacher submits grades;
+:Validate grade data;
+if (Valid?) then (yes)
+  :Save to database;
+  :Calculate statistics;
+  :Notify students;
+  :Complete;
+else (no)
+  :Return error;
+endif
+stop
+@enduml

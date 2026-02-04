@@ -1,0 +1,14 @@
+@startuml
+start
+:User submits registration;
+:Validate data;
+if (Valid?) then (yes)
+  :Create user account;
+  :Assign role;
+  :Send verification email;
+  :Return success;
+else (no)
+  :Return validation errors;
+endif
+stop
+@enduml

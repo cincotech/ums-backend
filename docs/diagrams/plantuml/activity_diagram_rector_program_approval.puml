@@ -1,0 +1,13 @@
+@startuml
+start
+:Dean submits program;
+:Rector reviews;
+if (Meets standards?) then (yes)
+  :Approve program;
+  :Publish program;
+  :Notify stakeholders;
+else (no)
+  :Request revisions;
+endif
+stop
+@enduml

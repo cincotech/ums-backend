@@ -229,6 +229,10 @@ class StudentTimetableSerializer(serializers.ModelSerializer):
     shared_with_groups = serializers.SerializerMethodField()
     is_shared = serializers.SerializerMethodField()
     slots = StudentTimetableSlotSerializer(many=True, read_only=True)
+    card_width = serializers.FloatField(read_only=True, required=False)
+    start_date = serializers.DateField(read_only=True, required=False)
+    end_date = serializers.DateField(read_only=True, required=False)
+    is_active = serializers.BooleanField(read_only=True, required=False)
 
     class Meta:
         model = Timetable
@@ -244,6 +248,10 @@ class StudentTimetableSerializer(serializers.ModelSerializer):
             "shared_with_groups",
             "is_shared",
             "slots",
+            "card_width",
+            "start_date",
+            "end_date",
+            "is_active",
         ]
         read_only_fields = ["id"]
 
@@ -270,5 +278,4 @@ class StudentTimetableSerializer(serializers.ModelSerializer):
 
 
 class StudentTimetableMergeSerializer(serializers.Serializer):
-    day_of_week = serializers.CharField()
     timetables = StudentTimetableSerializer(many=True, read_only=True)

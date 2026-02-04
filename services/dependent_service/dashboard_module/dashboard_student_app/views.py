@@ -154,29 +154,27 @@ def academic_progress(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsStudent])
 def student_schedule(request):
-    """Get student schedule: current day and full week"""
+    """Get student schedule: day_of_week and merge"""
     try:
         student = request.user.students_users
         schedule_data = StudentDashboardService.get_student_schedule(student)
 
-        response_data = {}
+        # Process day_of_week (today's timetables)
+        day_of_week = None
+        if schedule_data["today"]:
+            day_of_week = {
+                "day": schedule_data["today"]["day"],
+                "timetables": StudentTimetableSerializer(
+                    schedule_data["today"]["timetables"], many=True
+                ).data,
+            }
 
-        if schedule_data["day_of_week"]:
-            response_data["day_of_week"] = StudentTimetableSerializer(
-                schedule_data["day_of_week"]
-            ).data
-        else:
-            response_data["day_of_week"] = None
-
-        if schedule_data["merge"]:
-            response_data["merge"] = StudentTimetableMergeSerializer(
-                schedule_data["merge"], many=True
-            ).data
-        else:
-            response_data["merge"] = []
+        # Process merge (week timetables with metadata)
+        merge = StudentTimetableMergeSerializer(schedule_data["week"], many=True).data
 
         return success_response(
-            data=response_data, message="Student schedule retrieved"
+            data={"day_of_week": day_of_week, "merge": merge},
+            message="Student schedule retrieved",
         )
     except Exception as e:
         return error_response(
