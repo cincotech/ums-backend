@@ -17,7 +17,7 @@ from services.core_service.student_module.parent_app.models import Parent
 from services.foundational_service.auth_module.user_app.models import User
 from services.foundational_service.geo_module.colline_app.models import Colline
 
-from .models import Student, StudentGraduateInfo, StudentHsInfo, Training
+from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, Training
 
 
 # ----------------------------
@@ -229,3 +229,11 @@ class StudentGraduateInfoAdmin(ImportExportModelAdmin, ModelAdmin):
         "degree__degree_name",
     )
     ordering = ("student",)
+
+
+@admin.register(StudentFile)
+class StudentFileAdmin(ModelAdmin):
+    list_display = ("student", "file_type", "file_name", "is_verified", "uploaded_at")
+    search_fields = ("student__matricule", "file_name")
+    list_filter = ("file_type", "is_verified")
+    ordering = ("-uploaded_at",)

@@ -53,11 +53,18 @@ User = get_user_model()
 class BankViewSet(BaseViewSet):
     queryset = Bank.objects.all()
     serializer_class = BankSerializer
-    permission_classes = [IsFinanceService]
     filter_backends = [SearchFilter, DjangoFilterBackend]
     filterset_class = BankFilter
     search_fields = ["bank_name", "bank_abreviation", "account_number"]
     filterset_fields = ["status"]
+
+    def get_permissions(self):
+        if self.action == "list" or self.action == "retrieve":
+            # Lecture : student, finance_service, student_service
+            return [IsStudentOrFinanceService() or IsStudentService()]
+        else:
+            # Création, modification, suppression : seulement finance_service
+            return [IsFinanceService()]
 
 
 class WordingViewSet(BaseViewSet):

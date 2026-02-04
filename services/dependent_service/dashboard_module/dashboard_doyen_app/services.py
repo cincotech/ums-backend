@@ -2060,3 +2060,114 @@ class TeacherClaimService:
         return claims.select_related(
             "teacher", "teacher__user", "course", "verified_by", "approved_by"
         )
+
+
+class TimetableMergeService:
+    @staticmethod
+    def validate_merge(timetable_ids):
+        from services.dependent_service.scheduling_module.scheduling_app.models import (
+            Timetable,
+        )
+
+        timetables = Timetable.objects.filter(id__in=timetable_ids).prefetch_related(
+            "slots", "class_group"
+        )
+
+        if timetables.count() < 2:
+            return {
+                "valid": False,
+                "errors": [
+                    {
+                        "type": "INSUFFICIENT_TIMETABLES",
+                        "message": "At least 2 timetables required",
+                        "details": [],
+                    }
+                ],
+            }
+
+        errors = []
+
+        # Check class match
+        class_ids = set(tt.class_group_id for tt in timetables if tt.class_group_id)
+        if len(class_ids) > 1:
+            errors.append(
+                {
+                    "type": "CLASS_MISMATCH",
+                    "message": "All timetables must belong to same class",
+                    "details": [str(cid) for cid in class_ids],
+                }
+            )
+
+        # Check status match
+        statuses = set(tt.status for tt in timetables)
+        if len(statuses) > 1:
+            errors.append(
+                {
+                    "type": "STATUS_MISMATCH",
+                    "message": "All timetables must have same status",
+                    "details": list(statuses),
+                }
+            )
+
+        # Check slot conflicts
+        slot_map = {}
+        for tt in timetables:
+            for slot in tt.slots.all():
+                key = (slot.day_of_week, slot.start_time, slot.end_time)
+                if key in slot_map:
+                    errors.append(
+                        {
+                            "type": "SLOT_CONFLICT",
+                            "message": "Conflicting time slots detected",
+                            "details": [str(slot.id), str(slot_map[key])],
+                        }
+                    )
+                slot_map[key] = slot.id
+
+        return {"valid": len(errors) == 0, "errors": errors if errors else None}
+
+    @staticmethod
+    def get_merge_preview(merge_id):
+        from services.dependent_service.scheduling_module.scheduling_app.models import (
+            TimetableMerge,
+        )
+
+        return TimetableMerge.objects.prefetch_related(
+            "timetables__slots",
+            "timetables__class_group__class_fk",
+            "timetables__attribution__course",
+            "timetables__attribution__principal_teacher__user",
+            "timetables__room",
+            "timetables__created_by",
+        ).get(id=merge_id)
+
+    @staticmethod
+    def add_to_merge(merge_id, timetable_id):
+        from services.dependent_service.scheduling_module.scheduling_app.models import (
+            TimetableMerge,
+        )
+
+        merge = TimetableMerge.objects.get(id=merge_id)
+
+        existing_ids = list(merge.timetables.values_list("id", flat=True))
+        validation = TimetableMergeService.validate_merge(existing_ids + [timetable_id])
+
+        if not validation["valid"]:
+            raise ValueError(validation["errors"][0]["message"])
+
+        merge.timetables.add(timetable_id)
+        return merge
+
+    @staticmethod
+    def remove_from_merge(merge_id, timetable_id):
+        from services.dependent_service.scheduling_module.scheduling_app.models import (
+            TimetableMerge,
+        )
+
+        merge = TimetableMerge.objects.get(id=merge_id)
+
+        if merge.timetables.count() <= 2:
+            raise ValueError("Cannot remove - merge must have at least 2 timetables")
+
+        merge.timetables.remove(timetable_id)
+        return merge
