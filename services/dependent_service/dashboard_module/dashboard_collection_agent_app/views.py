@@ -71,10 +71,9 @@ class BankViewSet(BaseViewSet):
 
         if user.role.name == "finance_service":
             return self.queryset
-        elif user.role.name in ["student", "student_service"]:
-            return self.queryset.filter(status="active")
         else:
-            return Bank.objects.none()
+            # Tous les autres rôles voient les banques actives
+            return self.queryset.filter(status="active")
 
 
 class WordingViewSet(BaseViewSet):
