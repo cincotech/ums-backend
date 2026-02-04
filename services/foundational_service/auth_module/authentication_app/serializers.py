@@ -7,7 +7,6 @@ from rest_framework import serializers
 
 from services.core_service.academic_module.university_app.models import University
 from services.foundational_service.auth_module.user_app.models import Role, User
-from services.foundational_service.geo_module.country_app.models import Country
 from services.foundational_service.geo_module.serializers import CollineSerializer
 
 logger = logging.getLogger(__name__)
@@ -26,12 +25,6 @@ class UserSerializer(serializers.ModelSerializer):
     )
     nationality_name = serializers.CharField(
         read_only=True, source="nationality.country_name"
-    )
-    nationality_id = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.all(),
-        source="nationality",
-        write_only=True,
-        required=False,
     )
     residence = CollineSerializer(many=True, read_only=True)
     residence_ids = serializers.PrimaryKeyRelatedField(
@@ -65,7 +58,6 @@ class UserSerializer(serializers.ModelSerializer):
             "profile_picture",
             "spoken_languages",
             "role_id",
-            "nationality_id",
             "residence_ids",
         ]
         read_only_fields = [
