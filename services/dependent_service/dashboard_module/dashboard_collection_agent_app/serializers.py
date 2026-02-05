@@ -260,6 +260,7 @@ class PaymentSerializer(serializers.ModelSerializer):
     )
     paymentplan_info = serializers.SerializerMethodField()
     bank_info = serializers.SerializerMethodField()
+    verified_by_info = serializers.SerializerMethodField()
     paymentplan = serializers.UUIDField(write_only=True)
     bank = serializers.UUIDField(write_only=True)
 
@@ -282,6 +283,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             "remittance_slip",
             "payment_status",
             "verified_by",
+            "verified_by_info",
             "verified_at",
         ]
         read_only_fields = ["user", "verified_by", "verified_at"]
@@ -312,6 +314,17 @@ class PaymentSerializer(serializers.ModelSerializer):
                 "bank_abreviation": obj.bank.bank_abreviation,
                 "account_number": obj.bank.account_number,
                 "status": obj.bank.status,
+            }
+        return None
+
+    def get_verified_by_info(self, obj):
+        if obj.verified_by:
+            return {
+                "id": str(obj.verified_by.id),
+                "first_name": obj.verified_by.first_name,
+                "last_name": obj.verified_by.last_name,
+                "email": obj.verified_by.email,
+                "role": obj.verified_by.role.name if obj.verified_by.role else None,
             }
         return None
 
