@@ -6,12 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import (
-    IsFinanceService,
-    IsStudent,
-    IsStudentOrFinanceService,
-    IsStudentService,
-)
+from core.permissions import IsFinanceService, IsStudent, IsStudentOrFinanceService
 from core.views import BaseViewSet
 
 from .filters import (
@@ -587,18 +582,8 @@ class PaymentPlanViewSet(BaseViewSet):
             # Finance et service étudiant voient tous les plans
             return self.queryset
         elif user.role.name in ["student", "guest"]:
-            # Étudiant et invité voient seulement les plans applicables à sa classe/département/faculté
-            try:
-                from services.core_service.student_module.student_profile_app.models import (
-                    Student,
-                )
-
-                student = Student.objects.get(user=user)
-                return PaymentPlan.get_plans_for_student(student)
-            except Student.DoesNotExist:
-                from rest_framework.exceptions import PermissionDenied
-
-                raise PermissionDenied("Profil étudiant non trouvé.")
+            # Étudiant et invité voient tous les plans
+            return self.queryset
         else:
             # Tous les autres rôles voient tous les plans
             return self.queryset
@@ -667,14 +652,14 @@ class PaymentViewSet(BaseViewSet):
 
     def get_permissions(self):
         if self.action == "create":
-            # Création : student, finance_service, student_service
-            return [IsStudentOrFinanceService() or IsStudentService()]
+            # Création : tous les utilisateurs authentifiés
+            return [IsAuthenticated()]
         elif self.action in ["update", "partial_update"]:
             # Modification : seulement finance_service
             return [IsFinanceService()]
         else:
-            # Lecture : student, finance_service, student_service
-            return [IsStudentOrFinanceService() or IsStudentService()]
+            # Lecture : tous les utilisateurs authentifiés
+            return [IsAuthenticated()]
 
     def get_queryset(self):
         """Filtre les paiements selon le rôle de l'utilisateur"""
@@ -684,12 +669,16 @@ class PaymentViewSet(BaseViewSet):
         if user.role.name == "finance_service":
             return base_queryset
         elif user.role.name in ["student", "guest"]:
-            return base_queryset.filter(inscription__student__user=user)
+            return base_queryset.filter(
+                inscription__student__user=user,
+                inscription__regist_status__in=["Active", "Pending"],
+            )
         elif user.role.name == "student_service":
             # Service aux étudiants voit tous les paiements
             return base_queryset
         else:
-            return Payment.objects.none()
+            # Tous les autres rôles voient tous les paiements
+            return base_queryset
 
     def create(self, request, *args, **kwargs):
         import logging
