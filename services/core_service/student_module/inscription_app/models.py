@@ -56,9 +56,34 @@ class Inscription(models.Model):
         return f"{self.student} - {self.class_fk} ({self.regist_status})"
 
     # ----------------- STATUS HANDLER FUNCTIONS -----------------
+    def has_verified_payment(self):
+        """Check if inscription has verified payment"""
+        return self.payments_inscription.filter(
+            paymentplan__feessheet__wording__wording_name__icontains="inscription",
+            payment_status="verified",
+        ).exists()
+
     def activate(self):
         if self.regist_status in ["Pending", "Suspended"]:
+            # Check payment before activation
+            if not self.has_verified_payment():
+                raise ValidationError(
+                    "Cannot activate inscription: Payment for inscription fees must be verified first."
+                )
+
             self.regist_status = "Active"
+
+            # Assign Student role if user doesn't have it
+            user = self.student.user
+            if not user.role or user.role.name != "student":
+                from services.foundational_service.auth_module.user_app.models import (
+                    Role,
+                )
+
+                student_role, _ = Role.objects.get_or_create(name="student")
+                user.role = student_role
+                user.save(update_fields=["role"])
+
             self.save()
 
     def complete(self):
@@ -213,9 +238,21 @@ class Inscription(models.Model):
         1. Prevent faculty change via update (must use replace).
         2. Ensure student matricule type matches class faculty type.
         3. Ensure student has only one active/pending inscription per academic year.
+        4. Ensure payment is verified before activation.
         """
         if not self.student or not self.class_fk:
             return
+
+        # ---------------------------------------------------------
+        # 0️⃣ CHECK PAYMENT BEFORE ACTIVATION
+        # ---------------------------------------------------------
+        if self.regist_status == "Active" and self.pk:
+            previous = Inscription.objects.filter(pk=self.pk).first()
+            if previous and previous.regist_status != "Active":
+                if not self.has_verified_payment():
+                    raise ValidationError(
+                        "Cannot activate inscription: Payment for inscription fees must be verified first."
+                    )
 
         # ---------------------------------------------------------
         # 1️⃣ BLOCK FACULTY CHANGE VIA UPDATE

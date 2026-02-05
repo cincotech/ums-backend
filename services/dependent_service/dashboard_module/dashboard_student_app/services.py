@@ -62,6 +62,20 @@ class StudentDashboardService:
             * 30
         )  # Assuming 30 credits per semester
 
+        # Total courses in current class
+        inscription = Inscription.objects.filter(
+            student=student, regist_status="Active"
+        ).first()
+        total_courses = 0
+        if inscription and inscription.class_fk:
+            from services.core_service.academic_module.course_app.models import Course
+            from services.core_service.academic_module.module_app.models import Module
+
+            # Get all modules for the class
+            modules = Module.objects.filter(class_fk=inscription.class_fk)
+            # Count distinct courses across all modules
+            total_courses = Course.objects.filter(module__in=modules).distinct().count()
+
         return {
             "unread_notifications": unread_notifications,
             "pending_documents": pending_documents,
@@ -70,6 +84,7 @@ class StudentDashboardService:
             "amount_paid": payment_info["amount_paid"],
             "total_amount": payment_info["total_amount"],
             "credits_earned": credits_earned,
+            "total_courses": total_courses,
         }
 
     @staticmethod
