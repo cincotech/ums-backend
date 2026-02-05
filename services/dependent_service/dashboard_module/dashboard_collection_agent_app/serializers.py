@@ -252,22 +252,28 @@ class PaymentInstallementSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    inscription = serializers.UUIDField(required=False, allow_null=True)
+    inscription = serializers.UUIDField(
+        required=False, allow_null=True, write_only=True
+    )
     remittance_slip = serializers.ImageField(
         required=False, allow_null=True, source="remittance_slip_uri"
     )
     paymentplan_info = serializers.SerializerMethodField()
     bank_info = serializers.SerializerMethodField()
+    paymentplan = serializers.UUIDField(write_only=True)
+    bank = serializers.UUIDField(write_only=True)
 
     class Meta:
         model = Payment
         fields = [
             "id",
+            "paymentplan",
             "paymentplan_info",
             "amount_paid",
             "payment_date",
             "reception_date",
             "payment_method",
+            "bank",
             "bank_info",
             "transaction_code",
             "inscription",
@@ -342,11 +348,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         user_role = user.role.name
 
-        if user_role not in ["student", "finance_service", "student_service"]:
-            raise serializers.ValidationError(
-                "Rôle non autorisé pour créer des paiements."
-            )
-
         # Vérifier que les plans précédents sont payés (pour tous les rôles)
         paymentplan = data.get("paymentplan")
         inscription = data.get("inscription")
@@ -362,7 +363,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             student = None
 
             # Récupérer l'étudiant selon le rôle
-            if user_role == "student":
+            if user_role in ["student", "guest"]:
                 try:
                     student = Student.objects.get(user=user)
                 except Student.DoesNotExist:
@@ -412,7 +413,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             except Inscription.DoesNotExist:
                 raise serializers.ValidationError("Inscription non trouvée.")
 
-        if user_role == "student":
+        if user_role in ["student", "guest"]:
             try:
                 student = Student.objects.get(user=user)
                 # Si pas d'inscription fournie, prendre l'inscription Active en priorité
