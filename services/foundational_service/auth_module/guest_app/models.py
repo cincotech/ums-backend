@@ -96,6 +96,31 @@ class GuestDocument(models.Model):
     def __str__(self):
         return f"{self.guest_request.user.email} - {self.get_type_display()}"
 
+    def check_and_assign_role(self):
+        """Check if all required documents are verified and assign role to user"""
+        if self.status == "verified":
+            guest_request = self.guest_request
+
+            # Get all required documents for the requested role
+            required_docs = RoleDocumentRequirement.objects.filter(
+                role=guest_request.requested_role, required=True
+            )
+
+            # Check if all required documents are verified
+            verified_docs = guest_request.documents.filter(status="verified")
+            required_types = set(required_docs.values_list("document_type", flat=True))
+            verified_types = set(verified_docs.values_list("type", flat=True))
+
+            # If all required documents are verified, assign role
+            if required_types.issubset(verified_types):
+                user = guest_request.user
+                user.role = guest_request.requested_role
+                user.save(update_fields=["role"])
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.check_and_assign_role()
+
 
 @receiver(post_save, sender=GuestDocument)
 def update_user_profile_picture(sender, instance, created, **kwargs):

@@ -40,15 +40,38 @@ def guest_profile(request):
             verified_docs = guest_request.documents.filter(status="verified").count()
             rejected_docs = guest_request.documents.filter(status="rejected").count()
 
-            profile_fields = ["phone", "birth_date", "address"]
-            filled_fields = sum(
-                1 for field in profile_fields if getattr(guest_request, field)
+            # Calculate profile completion based on user fields and verified documents
+            user_fields = [
+                "first_name",
+                "last_name",
+                "email",
+                "phone_number",
+                "gender",
+                "birth_date",
+            ]
+            guest_fields = ["phone", "birth_date", "address"]
+
+            user_filled = sum(
+                1 for field in user_fields if getattr(request.user, field, None)
             )
-            profile_completion = (
-                int((filled_fields / len(profile_fields)) * 100)
-                if profile_fields
-                else 0
+            guest_filled = sum(
+                1 for field in guest_fields if getattr(guest_request, field, None)
             )
+
+            total_fields = len(user_fields) + len(guest_fields)
+            filled_fields = user_filled + guest_filled
+
+            # Add document verification to completion
+            if total_docs > 0:
+                doc_completion = (verified_docs / total_docs) * 100
+                field_completion = (filled_fields / total_fields) * 100
+                profile_completion = int(
+                    (field_completion * 0.2) + (doc_completion * 0.8)
+                )
+            else:
+                profile_completion = (
+                    int((filled_fields / total_fields) * 100) if total_fields else 0
+                )
 
             stats = {
                 "profile_completion": profile_completion,
@@ -84,6 +107,31 @@ def guest_profile(request):
             )
             if serializer.is_valid():
                 serializer.save()
+
+                # Check if all required documents are uploaded
+                required_docs = RoleDocumentRequirement.objects.filter(
+                    role=guest_request.requested_role, required=True
+                )
+                uploaded_types = set(
+                    guest_request.documents.values_list("type", flat=True)
+                )
+                required_types = set(
+                    required_docs.values_list("document_type", flat=True)
+                )
+
+                # If all required documents uploaded, mark profile as submitted
+                if (
+                    required_types.issubset(uploaded_types)
+                    and not guest_request.profile_submitted
+                ):
+                    from django.utils import timezone
+
+                    guest_request.profile_submitted = True
+                    guest_request.profile_submitted_at = timezone.now()
+                    guest_request.save(
+                        update_fields=["profile_submitted", "profile_submitted_at"]
+                    )
+
                 return success_response(
                     data=serializer.data, message="Profile updated successfully"
                 )

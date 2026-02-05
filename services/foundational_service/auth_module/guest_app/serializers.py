@@ -85,7 +85,6 @@ class GuestProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source="user.first_name")
     last_name = serializers.CharField(source="user.last_name")
     profile_image_url = serializers.SerializerMethodField()
-    requested_role = serializers.CharField(source="requested_role.name", read_only=True)
 
     class Meta:
         model = GuestRequest
@@ -156,7 +155,7 @@ class GuestUserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source="user.first_name", read_only=True)
     last_name = serializers.CharField(source="user.last_name", read_only=True)
     profile_image_url = serializers.SerializerMethodField()
-    requested_role = serializers.CharField(source="requested_role.name", read_only=True)
+    requested_role = serializers.CharField(source="requested_role.id", read_only=True)
     reviewed_by = serializers.SerializerMethodField()
 
     class Meta:
