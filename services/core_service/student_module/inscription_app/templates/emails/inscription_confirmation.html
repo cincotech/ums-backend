@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation d'Inscription</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 700px; margin: 20px auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
+        .header p { margin: 10px 0 0; font-size: 14px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .section { margin-bottom: 25px; }
+        .section-title { color: #1e3a8a; font-size: 18px; font-weight: 600; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
+        .info-grid { display: table; width: 100%; }
+        .info-row { display: table-row; }
+        .info-label { display: table-cell; padding: 8px 15px 8px 0; font-weight: 600; color: #4b5563; width: 40%; }
+        .info-value { display: table-cell; padding: 8px 0; color: #1f2937; }
+        .highlight-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .highlight-box strong { color: #1e3a8a; font-size: 16px; }
+        .payment-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .payment-box strong { color: #92400e; }
+        .documents-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .documents-box strong { color: #991b1b; }
+        .address-box { background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px; text-align: center; }
+        .address-box strong { color: #065f46; font-size: 18px; }
+        .footer { background: #f9fafb; padding: 20px 30px; text-align: center; font-size: 13px; color: #6b7280; border-top: 1px solid #e5e7eb; }
+        .footer p { margin: 5px 0; }
+        ul { margin: 10px 0; padding-left: 20px; }
+        li { margin: 5px 0; }
+        @media only screen and (max-width: 600px) {
+            .container { margin: 10px; }
+            .content { padding: 20px; }
+            .info-label, .info-value { display: block; width: 100%; padding: 5px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✓ Confirmation d'Inscription</h1>
+            <p>{{ university_name }} - Année Académique {{ academic_year }}</p>
+        </div>
+
+        <div class="content">
+            <div class="highlight-box">
+                <strong>Cher(e) {{ student_name }},</strong>
+                <p style="margin: 10px 0 0;">Votre inscription a été enregistrée avec succès. Veuillez trouver ci-dessous le récapitulatif complet de votre dossier d'inscription.</p>
+            </div>
+
+            <!-- Informations Personnelles -->
+            <div class="section">
+                <div class="section-title">📋 Informations Personnelles</div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <div class="info-label">Nom complet :</div>
+                        <div class="info-value">{{ student_name }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Matricule :</div>
+                        <div class="info-value"><strong>{{ matricule }}</strong></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email :</div>
+                        <div class="info-value">{{ email }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Téléphone :</div>
+                        <div class="info-value">{{ phone }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Date de naissance :</div>
+                        <div class="info-value">{{ birth_date }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Lieu de naissance :</div>
+                        <div class="info-value">{{ birth_place }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Adresse :</div>
+                        <div class="info-value">{{ address }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations Académiques -->
+            <div class="section">
+                <div class="section-title">🎓 Informations Académiques</div>
+                <div class="info-grid">
+                    <div class="info-row">
+                        <div class="info-label">Faculté :</div>
+                        <div class="info-value">{{ faculty }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Département :</div>
+                        <div class="info-value">{{ department }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Classe :</div>
+                        <div class="info-value">{{ class_name }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Groupe :</div>
+                        <div class="info-value">{{ class_group }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Année académique :</div>
+                        <div class="info-value">{{ academic_year }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Date d'inscription :</div>
+                        <div class="info-value">{{ inscription_date }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Statut :</div>
+                        <div class="info-value"><strong style="color: #059669;">{{ status }}</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations de Paiement -->
+            {% if payment_info %}
+            <div class="section">
+                <div class="section-title">💳 Informations de Paiement</div>
+                <div class="payment-box">
+                    <strong>⚠️ Paiement Requis</strong>
+                    <div class="info-grid" style="margin-top: 10px;">
+                        <div class="info-row">
+                            <div class="info-label">Montant :</div>
+                            <div class="info-value"><strong>{{ payment_amount }} BIF</strong></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Statut :</div>
+                            <div class="info-value">{{ payment_status }}</div>
+                        </div>
+                        {% if payment_reference %}
+                        <div class="info-row">
+                            <div class="info-label">Référence :</div>
+                            <div class="info-value">{{ payment_reference }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Documents Soumis -->
+            {% if documents %}
+            <div class="section">
+                <div class="section-title">📄 Documents Soumis</div>
+                <ul>
+                    {% for doc in documents %}
+                    <li><strong>{{ doc.type }}</strong> - {{ doc.status }} ({{ doc.uploaded_at }})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Instructions pour Documents Physiques -->
+            <div class="section">
+                <div class="section-title">📮 Envoi des Documents Physiques</div>
+                <div class="documents-box">
+                    <strong>⚠️ IMPORTANT - Documents Originaux Requis</strong>
+                    <p style="margin: 10px 0;">Vous devez soumettre les documents originaux suivants :</p>
+                    <ul style="margin: 10px 0;">
+                        <li>Certificat de naissance (original)</li>
+                        <li>Diplôme d'État (original ou copie certifiée)</li>
+                        <li>Relevé de notes (original ou copie certifiée)</li>
+                        <li>Carte d'identité (copie certifiée)</li>
+                        <li>Photos d'identité (4 exemplaires)</li>
+                        <li>Certificat médical (original)</li>
+                    </ul>
+                </div>
+
+                <p><strong>Vous avez DEUX options pour soumettre vos documents :</strong></p>
+
+                <div style="margin: 20px 0;">
+                    <p><strong>Option 1 : Envoi par Poste</strong></p>
+                    <div class="address-box">
+                        <strong>📮 Adresse Postale</strong>
+                        <p style="margin: 15px 0; font-size: 16px; line-height: 1.8;">
+                            <strong>{{ university_name }}</strong><br>
+                            Service des Inscriptions<br>
+                            <strong style="font-size: 20px; color: #059669;">B.P. 490 GITEGA</strong><br>
+                            Burundi
+                        </p>
+                        <p style="font-size: 13px; color: #065f46; margin-top: 10px;">
+                            ⚠️ Mentionnez votre matricule : <strong>{{ matricule }}</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0;">
+                    <p><strong>Option 2 : Dépôt en Personne</strong></p>
+                    <div class="address-box" style="background: #eff6ff; border-left-color: #3b82f6;">
+                        <strong style="color: #1e3a8a;">🏛️ Visite à l'Université</strong>
+                        <p style="margin: 15px 0; font-size: 15px; line-height: 1.8; color: #1e40af;">
+                            Vous pouvez déposer vos documents directement au :<br>
+                            <strong>Bureau des Inscriptions</strong><br>
+                            {{ university_name }} - Campus de Gitega<br>
+                            <strong>Heures d'ouverture :</strong> Lundi - Vendredi, 8h00 - 16h00
+                        </p>
+                    </div>
+                </div>
+
+                <p style="background: #fef3c7; padding: 12px; border-radius: 4px; margin-top: 15px;">
+                    <strong>⏰ Délai :</strong> Les documents doivent être reçus dans un délai de <strong>30 jours</strong> suivant votre inscription en ligne.
+                </p>
+            </div>
+
+            <!-- Prochaines Étapes -->
+            <div class="section">
+                <div class="section-title">✅ Prochaines Étapes</div>
+                <ol style="line-height: 1.8;">
+                    <li>Effectuez le paiement des frais d'inscription si ce n'est pas encore fait</li>
+                    <li>Préparez vos documents originaux</li>
+                    <li>Envoyez-les par poste à l'adresse indiquée OU déposez-les en personne</li>
+                    <li>Attendez la confirmation de réception (vous recevrez un email)</li>
+                    <li>Une fois validé, vous pourrez accéder à votre emploi du temps et commencer les cours</li>
+                </ol>
+            </div>
+
+            <div class="highlight-box" style="background: #f0fdf4; border-left-color: #10b981;">
+                <strong style="color: #065f46;">📧 Besoin d'aide ?</strong>
+                <p style="margin: 10px 0 0;">
+                    Pour toute question, contactez-nous :<br>
+                    Email : <a href="mailto:inscriptions@ub.edu.bi" style="color: #059669;">inscriptions@ub.edu.bi</a><br>
+                    Téléphone : +257 22 24 XX XX
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>{{ university_name }}</strong></p>
+            <p>B.P. 490 GITEGA - Burundi</p>
+            <p>© {{ current_year }} - Tous droits réservés</p>
+            <p style="margin-top: 10px; font-size: 11px;">
+                Cet email a été généré automatiquement. Merci de ne pas y répondre directement.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

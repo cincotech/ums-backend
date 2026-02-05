@@ -24,6 +24,7 @@ class StudentDashboardStatsSerializer(serializers.Serializer):
     amount_paid = serializers.FloatField()
     total_amount = serializers.FloatField()
     credits_earned = serializers.IntegerField()
+    total_courses = serializers.FloatField()
 
 
 class StudentProfileSerializer(serializers.Serializer):
@@ -271,7 +272,16 @@ class StudentTimetableSerializer(serializers.ModelSerializer):
         return None
 
     def get_shared_with_groups(self, obj):
-        return [group.group_name for group in obj.shared_with.all()]
+        groups = obj.shared_with.all()
+        return [
+            {
+                "group_name": group.group_name,
+                "class_name": group.class_fk.class_name,
+                "department_abreviation": group.class_fk.department.abreviation,
+                "faculty_abreviation": group.class_fk.department.faculty.faculty_abreviation,
+            }
+            for group in groups
+        ]
 
     def get_is_shared(self, obj):
         return obj.shared_with.exists()
