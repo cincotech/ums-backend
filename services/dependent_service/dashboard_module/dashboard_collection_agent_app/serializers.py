@@ -261,6 +261,8 @@ class PaymentSerializer(serializers.ModelSerializer):
     paymentplan_info = serializers.SerializerMethodField()
     bank_info = serializers.SerializerMethodField()
     verified_by_info = serializers.SerializerMethodField()
+    inscription_info = serializers.SerializerMethodField()
+    user_info = serializers.SerializerMethodField()
     paymentplan = serializers.UUIDField(write_only=True)
     bank = serializers.UUIDField(write_only=True)
 
@@ -278,7 +280,9 @@ class PaymentSerializer(serializers.ModelSerializer):
             "bank_info",
             "transaction_code",
             "inscription",
+            "inscription_info",
             "user",
+            "user_info",
             "description",
             "remittance_slip",
             "payment_status",
@@ -325,6 +329,58 @@ class PaymentSerializer(serializers.ModelSerializer):
                 "last_name": obj.verified_by.last_name,
                 "email": obj.verified_by.email,
                 "role": obj.verified_by.role.name if obj.verified_by.role else None,
+            }
+        return None
+
+    def get_inscription_info(self, obj):
+        if obj.inscription:
+            return {
+                "id": str(obj.inscription.id),
+                "regist_status": obj.inscription.regist_status,
+                "date_inscription": (
+                    obj.inscription.date_inscription.isoformat()
+                    if obj.inscription.date_inscription
+                    else None
+                ),
+                "student": {
+                    "id": str(obj.inscription.student.id),
+                    "matricule": obj.inscription.student.matricule,
+                    "first_name": obj.inscription.student.user.first_name,
+                    "last_name": obj.inscription.student.user.last_name,
+                    "email": obj.inscription.student.user.email,
+                },
+                "class_fk": (
+                    {
+                        "id": str(obj.inscription.class_fk.id),
+                        "class_name": obj.inscription.class_fk.class_name,
+                        "department": (
+                            obj.inscription.class_fk.department.department_name
+                            if obj.inscription.class_fk.department
+                            else None
+                        ),
+                    }
+                    if obj.inscription.class_fk
+                    else None
+                ),
+                "academic_year": (
+                    {
+                        "id": str(obj.inscription.academic_year.id),
+                        "academic_year": obj.inscription.academic_year.academic_year,
+                    }
+                    if obj.inscription.academic_year
+                    else None
+                ),
+            }
+        return None
+
+    def get_user_info(self, obj):
+        if obj.user:
+            return {
+                "id": str(obj.user.id),
+                "first_name": obj.user.first_name,
+                "last_name": obj.user.last_name,
+                "email": obj.user.email,
+                "role": obj.user.role.name if obj.user.role else None,
             }
         return None
 
