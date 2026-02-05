@@ -398,6 +398,24 @@ class PaymentSerializer(serializers.ModelSerializer):
         except Inscription.DoesNotExist:
             raise serializers.ValidationError("Inscription non trouvée.")
 
+    def validate_paymentplan(self, value):
+        if value is None:
+            return None
+
+        try:
+            return PaymentPlan.objects.get(id=value)
+        except PaymentPlan.DoesNotExist:
+            raise serializers.ValidationError("Plan de paiement non trouvé.")
+
+    def validate_bank(self, value):
+        if value is None:
+            return None
+
+        try:
+            return Bank.objects.get(id=value)
+        except Bank.DoesNotExist:
+            raise serializers.ValidationError("Banque non trouvée.")
+
     def to_internal_value(self, data):
         # Debug: afficher les données reçues
         print(f"DEBUG PaymentSerializer - données reçues: {data}")
@@ -439,11 +457,16 @@ class PaymentSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError("Profil étudiant non trouvé.")
             elif user_role == "finance_service" and inscription:
                 try:
-                    inscription_obj = Inscription.objects.select_related("student").get(
-                        id=inscription
-                    )
-                    student = inscription_obj.student
-                except Inscription.DoesNotExist:
+                    # inscription est déjà un objet Inscription après validate_inscription
+                    if hasattr(inscription, "student"):
+                        student = inscription.student
+                    else:
+                        # Si c'est encore un UUID, le convertir
+                        inscription_obj = Inscription.objects.select_related(
+                            "student"
+                        ).get(id=inscription)
+                        student = inscription_obj.student
+                except (Inscription.DoesNotExist, AttributeError):
                     raise serializers.ValidationError("Inscription non trouvée.")
 
             # Vérifier les plans précédents pour cet étudiant
@@ -473,20 +496,14 @@ class PaymentSerializer(serializers.ModelSerializer):
         user_role = user.role.name
         validated_data["user"] = user
 
-        # Convertir l'UUID inscription en objet Inscription si fourni
-        inscription_uuid = validated_data.get("inscription")
-        if inscription_uuid:
-            try:
-                inscription_obj = Inscription.objects.get(id=inscription_uuid)
-                validated_data["inscription"] = inscription_obj
-            except Inscription.DoesNotExist:
-                raise serializers.ValidationError("Inscription non trouvée.")
+        # inscription est déjà un objet après validate_inscription
+        inscription = validated_data.get("inscription")
 
         if user_role in ["student", "guest"]:
             try:
                 student = Student.objects.get(user=user)
                 # Si pas d'inscription fournie, prendre l'inscription Active en priorité
-                if not inscription_uuid:
+                if not inscription:
                     # D'abord chercher une inscription Active
                     inscription = (
                         Inscription.objects.filter(
