@@ -582,18 +582,8 @@ class PaymentPlanViewSet(BaseViewSet):
             # Finance et service étudiant voient tous les plans
             return self.queryset
         elif user.role.name in ["student", "guest"]:
-            # Étudiant et invité voient seulement les plans applicables à sa classe/département/faculté
-            try:
-                from services.core_service.student_module.student_profile_app.models import (
-                    Student,
-                )
-
-                student = Student.objects.get(user=user)
-                return PaymentPlan.get_plans_for_student(student)
-            except Student.DoesNotExist:
-                from rest_framework.exceptions import PermissionDenied
-
-                raise PermissionDenied("Profil étudiant non trouvé.")
+            # Étudiant et invité voient tous les plans
+            return self.queryset
         else:
             # Tous les autres rôles voient tous les plans
             return self.queryset
