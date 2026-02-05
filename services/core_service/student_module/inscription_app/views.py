@@ -7,6 +7,7 @@ from core.response_handler import error_response, success_response
 from core.views import BaseViewSet
 from services.core_service.academic_module.university_app.models import AcademicYear
 
+from .email_utils import send_inscription_email
 from .filters import InscriptionFilter
 from .models import Class, Inscription
 from .serializers import InscriptionSerializer
@@ -48,8 +49,9 @@ class InscriptionViewSet(BaseViewSet):
         if inscription.regist_status in ["Pending", "Suspended"]:
             inscription.activate()
             inscription.generate_matricule()
+            send_inscription_email(inscription, "Active")
             return success_response(
-                message="Inscription activated",
+                message="Inscription activated and email sent",
                 data=InscriptionSerializer(inscription).data,
             )
         return error_response(message="Cannot activate")
@@ -59,6 +61,7 @@ class InscriptionViewSet(BaseViewSet):
         inscription = self.get_object()
         if inscription.is_active():
             inscription.complete()
+            send_inscription_email(inscription, "Completed")
             return success_response(
                 message="Inscription completed",
                 data=InscriptionSerializer(inscription).data,
@@ -70,6 +73,7 @@ class InscriptionViewSet(BaseViewSet):
         inscription = self.get_object()
         if inscription.regist_status in ["Active", "Pending"]:
             inscription.withdraw()
+            send_inscription_email(inscription, "Withdrawn")
             return success_response(
                 message="Inscription withdrawn",
                 data=InscriptionSerializer(inscription).data,
@@ -81,6 +85,7 @@ class InscriptionViewSet(BaseViewSet):
         inscription = self.get_object()
         if inscription.is_active():
             inscription.drop()
+            send_inscription_email(inscription, "Dropped")
             return success_response(
                 message="Inscription dropped",
                 data=InscriptionSerializer(inscription).data,
@@ -92,6 +97,7 @@ class InscriptionViewSet(BaseViewSet):
         inscription = self.get_object()
         if inscription.is_active():
             inscription.suspend()
+            send_inscription_email(inscription, "Suspended")
             return success_response(
                 message="Inscription suspended",
                 data=InscriptionSerializer(inscription).data,
@@ -103,6 +109,7 @@ class InscriptionViewSet(BaseViewSet):
         inscription = self.get_object()
         if inscription.regist_status in ["Pending", "Active"]:
             inscription.cancel()
+            send_inscription_email(inscription, "Canceled")
             return success_response(
                 message="Inscription canceled",
                 data=InscriptionSerializer(inscription).data,
@@ -124,9 +131,20 @@ class InscriptionViewSet(BaseViewSet):
         if inscription.regist_status in ["Active", "Pending"]:
             new_inscription = inscription.replace(new_class)
             new_inscription.generate_matricule()
+            send_inscription_email(new_inscription, "Replaced")
             return success_response(
-                message="Inscription replaced",
+                message="Inscription replaced and email sent",
                 data={"new_inscription_id": str(new_inscription.id)},
             )
 
         return error_response(message="Cannot replace")
+
+    @action(detail=True, methods=["post"])
+    def send_email(self, request, pk=None):
+        """Envoyer manuellement l'email pour le statut actuel"""
+        inscription = self.get_object()
+        email_type = request.data.get("email_type", inscription.regist_status)
+
+        if send_inscription_email(inscription, email_type):
+            return success_response(message="Email envoyé avec succès")
+        return error_response(message="Erreur lors de l'envoi de l'email")

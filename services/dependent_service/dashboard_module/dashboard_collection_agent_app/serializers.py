@@ -252,30 +252,42 @@ class PaymentInstallementSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    inscription = serializers.UUIDField(required=False, allow_null=True)
+    inscription = serializers.UUIDField(
+        required=False, allow_null=True, write_only=True
+    )
     remittance_slip = serializers.ImageField(
         required=False, allow_null=True, source="remittance_slip_uri"
     )
     paymentplan_info = serializers.SerializerMethodField()
     bank_info = serializers.SerializerMethodField()
+    verified_by_info = serializers.SerializerMethodField()
+    inscription_info = serializers.SerializerMethodField()
+    user_info = serializers.SerializerMethodField()
+    paymentplan = serializers.UUIDField(write_only=True)
+    bank = serializers.UUIDField(write_only=True)
 
     class Meta:
         model = Payment
         fields = [
             "id",
+            "paymentplan",
             "paymentplan_info",
             "amount_paid",
             "payment_date",
             "reception_date",
             "payment_method",
+            "bank",
             "bank_info",
             "transaction_code",
             "inscription",
+            "inscription_info",
             "user",
+            "user_info",
             "description",
             "remittance_slip",
             "payment_status",
             "verified_by",
+            "verified_by_info",
             "verified_at",
         ]
         read_only_fields = ["user", "verified_by", "verified_at"]
@@ -309,6 +321,69 @@ class PaymentSerializer(serializers.ModelSerializer):
             }
         return None
 
+    def get_verified_by_info(self, obj):
+        if obj.verified_by:
+            return {
+                "id": str(obj.verified_by.id),
+                "first_name": obj.verified_by.first_name,
+                "last_name": obj.verified_by.last_name,
+                "email": obj.verified_by.email,
+                "role": obj.verified_by.role.name if obj.verified_by.role else None,
+            }
+        return None
+
+    def get_inscription_info(self, obj):
+        if obj.inscription:
+            return {
+                "id": str(obj.inscription.id),
+                "regist_status": obj.inscription.regist_status,
+                "date_inscription": (
+                    obj.inscription.date_inscription.isoformat()
+                    if obj.inscription.date_inscription
+                    else None
+                ),
+                "student": {
+                    "id": str(obj.inscription.student.id),
+                    "matricule": obj.inscription.student.matricule,
+                    "first_name": obj.inscription.student.user.first_name,
+                    "last_name": obj.inscription.student.user.last_name,
+                    "email": obj.inscription.student.user.email,
+                },
+                "class_fk": (
+                    {
+                        "id": str(obj.inscription.class_fk.id),
+                        "class_name": obj.inscription.class_fk.class_name,
+                        "department": (
+                            obj.inscription.class_fk.department.department_name
+                            if obj.inscription.class_fk.department
+                            else None
+                        ),
+                    }
+                    if obj.inscription.class_fk
+                    else None
+                ),
+                "academic_year": (
+                    {
+                        "id": str(obj.inscription.academic_year.id),
+                        "academic_year": obj.inscription.academic_year.academic_year,
+                    }
+                    if obj.inscription.academic_year
+                    else None
+                ),
+            }
+        return None
+
+    def get_user_info(self, obj):
+        if obj.user:
+            return {
+                "id": str(obj.user.id),
+                "first_name": obj.user.first_name,
+                "last_name": obj.user.last_name,
+                "email": obj.user.email,
+                "role": obj.user.role.name if obj.user.role else None,
+            }
+        return None
+
     def validate_inscription(self, value):
         if value == "" or value == "<uuid-inscription>" or value is None:
             return None
@@ -322,6 +397,24 @@ class PaymentSerializer(serializers.ModelSerializer):
             return Inscription.objects.get(id=value)
         except Inscription.DoesNotExist:
             raise serializers.ValidationError("Inscription non trouvée.")
+
+    def validate_paymentplan(self, value):
+        if value is None:
+            return None
+
+        try:
+            return PaymentPlan.objects.get(id=value)
+        except PaymentPlan.DoesNotExist:
+            raise serializers.ValidationError("Plan de paiement non trouvé.")
+
+    def validate_bank(self, value):
+        if value is None:
+            return None
+
+        try:
+            return Bank.objects.get(id=value)
+        except Bank.DoesNotExist:
+            raise serializers.ValidationError("Banque non trouvée.")
 
     def to_internal_value(self, data):
         # Debug: afficher les données reçues
@@ -342,11 +435,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         user_role = user.role.name
 
-        if user_role not in ["student", "finance_service", "student_service"]:
-            raise serializers.ValidationError(
-                "Rôle non autorisé pour créer des paiements."
-            )
-
         # Vérifier que les plans précédents sont payés (pour tous les rôles)
         paymentplan = data.get("paymentplan")
         inscription = data.get("inscription")
@@ -362,18 +450,23 @@ class PaymentSerializer(serializers.ModelSerializer):
             student = None
 
             # Récupérer l'étudiant selon le rôle
-            if user_role == "student":
+            if user_role in ["student", "guest"]:
                 try:
                     student = Student.objects.get(user=user)
                 except Student.DoesNotExist:
                     raise serializers.ValidationError("Profil étudiant non trouvé.")
             elif user_role == "finance_service" and inscription:
                 try:
-                    inscription_obj = Inscription.objects.select_related("student").get(
-                        id=inscription
-                    )
-                    student = inscription_obj.student
-                except Inscription.DoesNotExist:
+                    # inscription est déjà un objet Inscription après validate_inscription
+                    if hasattr(inscription, "student"):
+                        student = inscription.student
+                    else:
+                        # Si c'est encore un UUID, le convertir
+                        inscription_obj = Inscription.objects.select_related(
+                            "student"
+                        ).get(id=inscription)
+                        student = inscription_obj.student
+                except (Inscription.DoesNotExist, AttributeError):
                     raise serializers.ValidationError("Inscription non trouvée.")
 
             # Vérifier les plans précédents pour cet étudiant
@@ -403,20 +496,14 @@ class PaymentSerializer(serializers.ModelSerializer):
         user_role = user.role.name
         validated_data["user"] = user
 
-        # Convertir l'UUID inscription en objet Inscription si fourni
-        inscription_uuid = validated_data.get("inscription")
-        if inscription_uuid:
-            try:
-                inscription_obj = Inscription.objects.get(id=inscription_uuid)
-                validated_data["inscription"] = inscription_obj
-            except Inscription.DoesNotExist:
-                raise serializers.ValidationError("Inscription non trouvée.")
+        # inscription est déjà un objet après validate_inscription
+        inscription = validated_data.get("inscription")
 
-        if user_role == "student":
+        if user_role in ["student", "guest"]:
             try:
                 student = Student.objects.get(user=user)
                 # Si pas d'inscription fournie, prendre l'inscription Active en priorité
-                if not inscription_uuid:
+                if not inscription:
                     # D'abord chercher une inscription Active
                     inscription = (
                         Inscription.objects.filter(
