@@ -1,4 +1,3 @@
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -85,10 +84,6 @@ def guest_profile(request):
             )
             if serializer.is_valid():
                 serializer.save()
-                if not guest_request.profile_submitted:
-                    guest_request.profile_submitted = True
-                    guest_request.profile_submitted_at = timezone.now()
-                    guest_request.save()
                 return success_response(
                     data=serializer.data, message="Profile updated successfully"
                 )

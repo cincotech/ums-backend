@@ -1,0 +1,115 @@
+========================================
+CONFIRMATION D'INSCRIPTION
+Université du Burundi
+Année Académique {{ academic_year }}
+========================================
+
+Cher(e) {{ student_name }},
+
+Votre inscription a été enregistrée avec succès. Veuillez trouver ci-dessous le récapitulatif complet de votre dossier d'inscription.
+
+========================================
+INFORMATIONS PERSONNELLES
+========================================
+
+Nom complet       : {{ student_name }}
+Matricule         : {{ matricule }}
+Email             : {{ email }}
+Téléphone         : {{ phone }}
+Date de naissance : {{ birth_date }}
+Lieu de naissance : {{ birth_place }}
+Adresse           : {{ address }}
+
+========================================
+INFORMATIONS ACADÉMIQUES
+========================================
+
+Faculté           : {{ faculty }}
+Département       : {{ department }}
+Classe            : {{ class_name }}
+Groupe            : {{ class_group }}
+Année académique  : {{ academic_year }}
+Date d'inscription: {{ inscription_date }}
+Statut            : {{ status }}
+
+{% if payment_info %}
+========================================
+INFORMATIONS DE PAIEMENT
+========================================
+
+Montant           : {{ payment_amount }} BIF
+Statut            : {{ payment_status }}
+{% if payment_reference %}Référence         : {{ payment_reference }}{% endif %}
+{% endif %}
+
+{% if documents %}
+========================================
+DOCUMENTS SOUMIS
+========================================
+
+{% for doc in documents %}
+- {{ doc.type }} - {{ doc.status }} ({{ doc.uploaded_at }})
+{% endfor %}
+{% endif %}
+
+========================================
+ENVOI DES DOCUMENTS PHYSIQUES
+========================================
+
+⚠️ IMPORTANT - Documents Originaux Requis
+
+Vous devez soumettre les documents originaux suivants :
+- Certificat de naissance (original)
+- Diplôme d'État (original ou copie certifiée)
+- Relevé de notes (original ou copie certifiée)
+- Carte d'identité (copie certifiée)
+- Photos d'identité (4 exemplaires)
+- Certificat médical (original)
+
+VOUS AVEZ DEUX OPTIONS :
+
+Option 1 : Envoi par Poste
+---------------------------
+Adresse :
+    Université du Burundi
+    Service des Inscriptions
+    B.P. 490 GITEGA
+    Burundi
+
+⚠️ Mentionnez votre matricule : {{ matricule }}
+
+Option 2 : Dépôt en Personne
+-----------------------------
+Vous pouvez déposer vos documents directement au :
+    Bureau des Inscriptions
+    Université du Burundi - Campus de Gitega
+    Heures d'ouverture : Lundi - Vendredi, 8h00 - 16h00
+
+⏰ DÉLAI : Les documents doivent être reçus dans un délai de 30 jours suivant votre inscription en ligne.
+
+========================================
+PROCHAINES ÉTAPES
+========================================
+
+1. Effectuez le paiement des frais d'inscription si ce n'est pas encore fait
+2. Préparez vos documents originaux
+3. Envoyez-les par poste à l'adresse indiquée OU déposez-les en personne
+4. Attendez la confirmation de réception (vous recevrez un email)
+5. Une fois validé, vous pourrez accéder à votre emploi du temps et commencer les cours
+
+========================================
+BESOIN D'AIDE ?
+========================================
+
+Pour toute question, contactez-nous :
+Email     : inscriptions@ub.edu.bi
+Téléphone : +257 22 24 XX XX
+
+========================================
+Université du Burundi
+B.P. 490 GITEGA - Burundi
+© {{ current_year }} - Tous droits réservés
+
+Cet email a été généré automatiquement.
+Merci de ne pas y répondre directement.
+========================================

@@ -38,6 +38,7 @@ class InscriptionSerializer(serializers.ModelSerializer):
     # Extra fields
     # ---------------------------
     faculty_id = serializers.UUIDField(required=False, allow_null=True)
+    payment_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Inscription
@@ -56,7 +57,14 @@ class InscriptionSerializer(serializers.ModelSerializer):
             "student_matricule",
             "year",
             "faculty_id",
+            "payment_status",
         ]
+
+    def get_payment_status(self, obj):
+        return obj.payments_inscription.filter(
+            paymentplan__feessheet__wording__wording_name__icontains="inscription",
+            payment_status="verified",
+        ).exists()
 
     # ---------------------------
     # CREATE METHOD
