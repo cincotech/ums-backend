@@ -532,7 +532,21 @@ class PaymentSerializer(serializers.ModelSerializer):
             except Student.DoesNotExist:
                 raise serializers.ValidationError("Profil étudiant non trouvé.")
 
-        return super().create(validated_data)
+        # Créer l'instance en passant l'utilisateur actuel
+        payment = Payment(**validated_data)
+        payment.save(_current_user=user)
+        return payment
+
+    def update(self, instance, validated_data):
+        user = self.context["request"].user
+
+        # Mettre à jour les champs
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Sauvegarder en passant l'utilisateur actuel
+        instance.save(_current_user=user)
+        return instance
 
 
 class PaymentReminderSerializer(serializers.ModelSerializer):
