@@ -475,6 +475,61 @@ class Payment(models.Model):
             if total_verified_payments > installment.amount:
                 surplus = total_verified_payments - installment.amount
                 self._handle_payment_surplus(student, surplus)
+            else:
+                # Si plus de surplus, supprimer le paiement de surplus créé précédemment
+                self._remove_surplus_payment(student)
+
+    def _remove_surplus_payment(self, student):
+        """Supprime le paiement de surplus si le paiement original n'est plus vérifié"""
+        import logging
+
+        from django.db import transaction
+
+        logger = logging.getLogger(__name__)
+
+        # Chercher le paiement de surplus créé pour ce paiement
+        surplus_description = (
+            f"Surplus transféré du plan {self.paymentplan.id} (Paiement #{self.id})"
+        )
+        surplus_payments = Payment.objects.filter(
+            inscription=self.inscription,
+            description=surplus_description,
+            payment_status="verified",
+        )
+
+        if surplus_payments.exists():
+            with transaction.atomic():
+                for surplus_payment in surplus_payments:
+                    next_plan = surplus_payment.paymentplan
+                    logger.info(
+                        f"Suppression du paiement de surplus: {surplus_payment.id}"
+                    )
+
+                    # Supprimer le paiement de surplus
+                    surplus_payment.delete()
+
+                    # Recalculer le PaymentInstallement du plan suivant
+                    try:
+                        next_installment = PaymentInstallement.objects.get(
+                            payment_plan=next_plan, student=student
+                        )
+
+                        # Recalculer le total vérifié pour le plan suivant
+                        total_verified = (
+                            Payment.objects.filter(
+                                paymentplan=next_plan,
+                                payment_status="verified",
+                                inscription__student=student,
+                            ).aggregate(total=Sum("amount_paid"))["total"]
+                            or 0
+                        )
+                        next_installment.paid_amount = total_verified
+                        next_installment.save()
+                        logger.info(
+                            f"PaymentInstallement du plan suivant recalculé: paid_amount={total_verified}"
+                        )
+                    except PaymentInstallement.DoesNotExist:
+                        pass
 
     def _handle_payment_surplus(self, student, surplus_amount):
         """Gère automatiquement le surplus de paiement vers le plan suivant"""
