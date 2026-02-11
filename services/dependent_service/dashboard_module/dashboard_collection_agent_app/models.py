@@ -67,6 +67,9 @@ class Wording(models.Model):
     class Meta:
         db_table = "wordings"
 
+    def __str__(self):
+        return self.wording_name
+
 
 class FeesSheet(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
