@@ -47,6 +47,9 @@ urlpatterns = [
         include("services.dependent_service.infrastructure_module.urls"),
     ),
     path("api/academic/", include("services.core_service.academic_module.urls")),
+    path(
+        "api/surveys/", include("services.core_service.academic_module.survey_app.urls")
+    ),
     path("api/", include("services.core_service.student_module.urls")),
     # path("api/", include("services.core_service.finance_module.urls")),
     path("api/", include("services.dependent_service.scheduling_module.urls")),

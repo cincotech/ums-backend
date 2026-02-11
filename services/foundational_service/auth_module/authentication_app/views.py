@@ -94,12 +94,15 @@ class RegisterView(APIView):
         user = serializer.save()
         password = request.data.get("password")
         user.set_password(password)
-        guest_role, _ = Role.objects.get_or_create(name="guest")
+
+        if not user.role:
+            guest_role, _ = Role.objects.get_or_create(name="guest")
+            user.role = guest_role
+
         upg, created = University.objects.get_or_create(
             university_name="Université Polytechnique de Gitega", university_abrev="UPG"
         )
         user.university = upg
-        user.role = guest_role
         user.save()
 
         # log_user_action(user, "create", f"User registered: {email}", "User", user.id)
