@@ -107,10 +107,27 @@ class PaymentPromiseFilter(django_filters.FilterSet):
 
 class PaymentFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="filter_search")
+    payment_status = django_filters.CharFilter(
+        field_name="payment_status", lookup_expr="iexact"
+    )
+    payment_method = django_filters.CharFilter(
+        field_name="payment_method", lookup_expr="iexact"
+    )
+    paymentplan = django_filters.UUIDFilter(field_name="paymentplan")
+    inscription = django_filters.UUIDFilter(field_name="inscription")
+    bank = django_filters.UUIDFilter(field_name="bank")
+    user = django_filters.UUIDFilter(field_name="user")
 
     class Meta:
         model = Payment
-        fields = []
+        fields = [
+            "payment_status",
+            "payment_method",
+            "paymentplan",
+            "inscription",
+            "bank",
+            "user",
+        ]
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(
