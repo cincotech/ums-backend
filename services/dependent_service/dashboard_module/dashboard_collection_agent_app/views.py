@@ -578,15 +578,8 @@ class PaymentPlanViewSet(BaseViewSet):
 
             raise PermissionDenied("Utilisateur sans rôle défini.")
 
-        if user.role.name in ["finance_service", "student_service"]:
-            # Finance et service étudiant voient tous les plans
-            return self.queryset
-        elif user.role.name in ["student", "guest"]:
-            # Étudiant et invité voient tous les plans
-            return self.queryset
-        else:
-            # Tous les autres rôles voient tous les plans
-            return self.queryset
+        # Utiliser la méthode du modèle pour filtrer selon le rôle
+        return PaymentPlan.get_plans_for_user(user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

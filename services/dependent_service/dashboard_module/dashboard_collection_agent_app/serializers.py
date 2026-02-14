@@ -544,7 +544,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # Sauvegarder en passant l'utilisateur actuel
+        # Le modèle Payment appellera automatiquement PaymentService si nécessaire
         instance.save(_current_user=user)
         return instance
 
