@@ -70,8 +70,25 @@ class InscriptionSerializer(serializers.ModelSerializer):
     # CREATE METHOD
     # ---------------------------
     def create(self, validated_data):
+        from django.utils import timezone
+
+        from services.core_service.academic_module.university_app.models import (
+            AcademicYear,
+        )
+
         student = validated_data.get("student")
         faculty_id = validated_data.pop("faculty_id", None)
+
+        # Set current academic year if not provided
+        if (
+            "academic_year" not in validated_data
+            or validated_data.get("academic_year") is None
+        ):
+            current_year = AcademicYear.objects.filter(
+                start_date__lte=timezone.now(), end_date__gte=timezone.now()
+            ).first()
+            if current_year:
+                validated_data["academic_year"] = current_year
 
         # Resolve class_fk
         class_fk_id = validated_data.pop("class_fk_id", None)
