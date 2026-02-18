@@ -1,6 +1,30 @@
 from rest_framework import serializers
 
 
+class DashboardStatsSerializer(serializers.Serializer):
+    """Serializer for dashboard statistics with inscription status breakdown"""
+
+    total_students = serializers.IntegerField()
+    pending_documents = serializers.IntegerField()
+    pending_absences = serializers.IntegerField()
+    active_scholarships = serializers.IntegerField()
+    upcoming_sessions = serializers.IntegerField()
+    active_activities = serializers.IntegerField()
+    pending_status_changes = serializers.IntegerField()
+
+    # Inscription Status Counts
+    inscriptions_active = serializers.IntegerField()
+    inscriptions_pending = serializers.IntegerField()
+    inscriptions_completed = serializers.IntegerField()
+    inscriptions_withdrawn = serializers.IntegerField()
+    inscriptions_dropped = serializers.IntegerField()
+    inscriptions_suspended = serializers.IntegerField()
+    inscriptions_canceled = serializers.IntegerField()
+    inscriptions_replaced = serializers.IntegerField()
+    inscriptions_complement = serializers.IntegerField()
+    inscriptions_total = serializers.IntegerField()
+
+
 class PopulationDataSerializer(serializers.Serializer):
     """Serializer for student population data with age and gender breakdown"""
 

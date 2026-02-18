@@ -19,23 +19,140 @@ from .models import (
 class StudentServicesService:
 
     @staticmethod
-    def get_dashboard_stats():
+    def get_dashboard_stats(academic_year_id=None):
+        academic_year = None
+
+        # If academic_year_id is not provided, get the current academic year (not closed)
+        if not academic_year_id:
+            academic_year = AcademicYear.objects.filter(is_closed=False).first()
+            if academic_year:
+                academic_year_id = academic_year.id
+        else:
+            academic_year = AcademicYear.objects.filter(id=academic_year_id).first()
+            if not academic_year:
+                raise ValueError("Invalid academic_year_id")
+
+        if academic_year_id:
+            # Filter by academic year and active inscription status
+            student_filter = Q(
+                student__inscriptions__academic_year_id=academic_year_id,
+            )
+
+            active_scholarships = Scholarship.objects.filter(is_active=True)
+            if academic_year:
+                active_scholarships = active_scholarships.filter(
+                    academic_year=academic_year.academic_year
+                )
+
+            # Get inscription status counts
+            inscriptions_qs = Inscription.objects.filter(
+                academic_year_id=academic_year_id
+            )
+            inscription_stats = {
+                status[0]: inscriptions_qs.filter(regist_status=status[0]).count()
+                for status in Inscription.STATUS_CHOICES
+            }
+
+            return {
+                "total_students": Student.objects.filter(
+                    inscriptions__academic_year_id=academic_year_id
+                )
+                .distinct()
+                .count(),
+                "pending_documents": DocumentRequest.objects.filter(status="pending")
+                .filter(student_filter)
+                .distinct()
+                .count(),
+                "pending_absences": AbsenceJustification.objects.filter(
+                    status="pending"
+                )
+                .filter(student_filter)
+                .distinct()
+                .count(),
+                "active_scholarships": active_scholarships.filter(
+                    student__inscriptions__academic_year_id=academic_year_id,
+                )
+                .distinct()
+                .count(),
+                "upcoming_sessions": CounselingSession.objects.filter(
+                    participants__inscriptions__academic_year_id=academic_year_id
+                )
+                .distinct()
+                .count(),
+                "active_activities": StudentActivity.objects.filter(is_approved=True)
+                .filter(
+                    organizer__inscriptions__academic_year_id=academic_year_id,
+                )
+                .distinct()
+                .count(),
+                "pending_status_changes": StudentStatusChange.objects.filter(
+                    approval_status="pending",
+                    inscription__academic_year_id=academic_year_id,
+                )
+                .distinct()
+                .count(),
+                "inscriptions_active": inscription_stats.get("Active", 0),
+                "inscriptions_pending": inscription_stats.get("Pending", 0),
+                "inscriptions_completed": inscription_stats.get("Completed", 0),
+                "inscriptions_withdrawn": inscription_stats.get("Withdrawn", 0),
+                "inscriptions_dropped": inscription_stats.get("Dropped", 0),
+                "inscriptions_suspended": inscription_stats.get("Suspended", 0),
+                "inscriptions_canceled": inscription_stats.get("Canceled", 0),
+                "inscriptions_replaced": inscription_stats.get("Replaced", 0),
+                "inscriptions_complement": inscription_stats.get("Complement", 0),
+                "inscriptions_total": inscriptions_qs.count(),
+            }
+
+        # Get all inscription status counts without academic year filter
+        inscriptions_qs = Inscription.objects.all()
+        inscription_stats = {
+            status[0]: inscriptions_qs.filter(regist_status=status[0]).count()
+            for status in Inscription.STATUS_CHOICES
+        }
+
         return {
-            "total_students": Student.objects.count(),
+            "total_students": Student.objects.filter(
+                inscriptions__regist_status="Active"
+            )
+            .distinct()
+            .count(),
             "pending_documents": DocumentRequest.objects.filter(
-                status="pending"
-            ).count(),
+                status="pending",
+            )
+            .distinct()
+            .count(),
             "pending_absences": AbsenceJustification.objects.filter(
-                status="pending"
-            ).count(),
-            "active_scholarships": Scholarship.objects.filter(is_active=True).count(),
-            "upcoming_sessions": CounselingSession.objects.count(),
+                status="pending",
+            )
+            .distinct()
+            .count(),
+            "active_scholarships": Scholarship.objects.filter(
+                is_active=True,
+            )
+            .distinct()
+            .count(),
+            "upcoming_sessions": CounselingSession.objects.filter().distinct().count(),
             "active_activities": StudentActivity.objects.filter(
-                is_approved=True
-            ).count(),
+                is_approved=True,
+            )
+            .distinct()
+            .count(),
             "pending_status_changes": StudentStatusChange.objects.filter(
-                approval_status="pending"
-            ).count(),
+                approval_status="pending",
+                inscription__academic_year_id=academic_year_id,
+            )
+            .distinct()
+            .count(),
+            "inscriptions_active": inscription_stats.get("Active", 0),
+            "inscriptions_pending": inscription_stats.get("Pending", 0),
+            "inscriptions_completed": inscription_stats.get("Completed", 0),
+            "inscriptions_withdrawn": inscription_stats.get("Withdrawn", 0),
+            "inscriptions_dropped": inscription_stats.get("Dropped", 0),
+            "inscriptions_suspended": inscription_stats.get("Suspended", 0),
+            "inscriptions_canceled": inscription_stats.get("Canceled", 0),
+            "inscriptions_replaced": inscription_stats.get("Replaced", 0),
+            "inscriptions_complement": inscription_stats.get("Complement", 0),
+            "inscriptions_total": inscriptions_qs.count(),
         }
 
 

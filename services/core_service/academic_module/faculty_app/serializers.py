@@ -24,6 +24,9 @@ class FacultySerializer(serializers.ModelSerializer):
     university_id = serializers.PrimaryKeyRelatedField(
         queryset=University.objects.all(), source="university", write_only=True
     )
+    country_name = serializers.CharField(
+        source="university.country.country_name", read_only=True
+    )
 
     class Meta:
         model = Faculty
@@ -35,4 +38,5 @@ class FacultySerializer(serializers.ModelSerializer):
             "types_id",
             "university",
             "university_id",
+            "country_name",
         ]

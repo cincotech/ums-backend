@@ -12,9 +12,7 @@ class FacultyFilter(django_filters.FilterSet):
         fields = []
 
     def filter_search(self, queryset, name, value):
-        return queryset.filter(
-            Q(faculty_name__icontains=value) | Q(faculty_code__icontains=value)
-        )
+        return queryset.filter(Q(faculty_name__icontains=value))
 
 
 class TypeFormationFilter(django_filters.FilterSet):
@@ -25,4 +23,4 @@ class TypeFormationFilter(django_filters.FilterSet):
         fields = []
 
     def filter_search(self, queryset, name, value):
-        return queryset.filter(Q(type_name__icontains=value))
+        return queryset.filter(Q(name__icontains=value))

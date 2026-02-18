@@ -13,9 +13,9 @@ class TypeFormationViewSet(BaseViewSet):
     serializer_class = TypeFormationSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = TypeFormationFilter
-    search_fields = ["type_name"]
-    ordering_fields = ["type_name"]
-    ordering = ["type_name"]
+    search_fields = ["name"]
+    ordering_fields = ["name"]
+    ordering = ["name"]
 
 
 class FacultyViewSet(BaseViewSet):

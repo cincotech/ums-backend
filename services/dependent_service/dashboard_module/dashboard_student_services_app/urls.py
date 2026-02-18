@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     AbsenceJustificationViewSet,
     CounselingSessionViewSet,
+    DashboardStatsViewSet,
     DocumentRequestViewSet,
     PopulationDataViewSet,
     ScholarshipViewSet,
@@ -12,6 +13,7 @@ from .views import (
 )
 
 router = DefaultRouter()
+router.register(r"dashboard-stats", DashboardStatsViewSet, basename="dashboard-stats")
 router.register(r"document-requests", DocumentRequestViewSet)
 router.register(r"absence-justifications", AbsenceJustificationViewSet)
 router.register(r"student-activities", StudentActivityViewSet)

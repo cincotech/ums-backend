@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet
 from django.contrib.auth import get_user_model
 from django.core import serializers as django_serializers
 from django.core.management import call_command
+from django.db.models import Sum
 from django.utils import timezone
 
 from services.core_service.academic_module.course_app.models import Course
@@ -15,6 +16,9 @@ from services.core_service.academic_module.teacher_app.models import Teacher
 from services.core_service.academic_module.university_app.models import University
 from services.core_service.student_module.inscription_app.models import Inscription
 from services.core_service.student_module.student_profile_app.models import Student
+from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+    Payment,
+)
 from services.dependent_service.dashboard_module.dashboard_super_admin_app.models import (
     AuditLog,
     BackupRecord,
@@ -89,6 +93,10 @@ class UniversityAdminService:
             ).count(),
             "completed_exams": Exam.objects.all().count(),
             "pending_requests": Request.objects.all().count(),
+            "pending_payments": Payment.objects.filter(
+                payment_status="unverified"
+            ).aggregate(total_amount=Sum("amount_paid"))["total_amount"]
+            or 0.00,
         }
 
     @staticmethod

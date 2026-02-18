@@ -15,6 +15,5 @@ class DepartmentFilter(django_filters.FilterSet):
     def filter_search(self, queryset, name, value):
         return queryset.filter(
             Q(department_name__icontains=value)
-            | Q(department_code__icontains=value)
             | Q(faculty__faculty_name__icontains=value)
         )

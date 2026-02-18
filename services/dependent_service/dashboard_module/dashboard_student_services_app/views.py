@@ -26,13 +26,42 @@ from .models import (
 from .serializers import (
     AbsenceJustificationSerializer,
     CounselingSessionSerializer,
+    DashboardStatsSerializer,
     DocumentRequestSerializer,
     PopulationDataSerializer,
     ScholarshipSerializer,
     StudentActivitySerializer,
     StudentStatusChangeSerializer,
 )
-from .services import PopulationDataService
+from .services import PopulationDataService, StudentServicesService
+
+
+class DashboardStatsViewSet(viewsets.GenericViewSet):
+    """ViewSet for dashboard statistics"""
+
+    serializer_class = DashboardStatsSerializer
+
+    def list(self, request, *args, **kwargs):
+        try:
+            academic_year_id = request.query_params.get("academic_year_id")
+            stats = StudentServicesService.get_dashboard_stats(
+                academic_year_id=academic_year_id
+            )
+            serializer = self.get_serializer(stats)
+            return success_response(
+                data=serializer.data,
+                message="Dashboard statistics retrieved successfully",
+            )
+        except ValueError as e:
+            return error_response(
+                message=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            return error_response(
+                message=f"Error retrieving dashboard statistics: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class PopulationDataViewSet(viewsets.GenericViewSet):
