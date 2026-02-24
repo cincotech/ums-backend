@@ -732,6 +732,22 @@ class PaymentViewSet(BaseViewSet):
                 data=serializer.data, message="Paiement mis à jour avec succès"
             )
         return error_response(message="Erreur de validation", errors=serializer.errors)
+    @action(detail=False, methods=['get'], url_path='by-inscription/(?P<inscription_id>[^/.]+)')
+    def by_inscription(self, request, inscription_id=None):
+        """
+        Récupère tous les paiements liés à une inscription spécifique
+        Usage: /api/payments/by-inscription/<inscription_id>/
+        """
+        # On réutilise le queryset de base qui contient déjà les select_related
+        # pour garder les performances optimales (pas de requêtes N+1)
+        payments = self.get_queryset().filter(inscription_id=inscription_id)
+        
+        serializer = self.get_serializer(payments, many=True)
+        
+        return success_response(
+            data=serializer.data,
+            message=f"Paiements récupérés pour l'inscription {inscription_id}"
+        )
 
 
 class CollectionCorrespondenceViewSet(BaseViewSet):
