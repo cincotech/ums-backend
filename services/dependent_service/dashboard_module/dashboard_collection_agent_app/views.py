@@ -629,6 +629,7 @@ class PaymentViewSet(BaseViewSet):
         "bank",
         "inscription",
         "user",
+        "verified_by",
     ]
     search_fields = [
         "inscription__student__matricule",
@@ -640,7 +641,7 @@ class PaymentViewSet(BaseViewSet):
         "payment_status",
         "description",
     ]
-    ordering_fields = ["payment_date", "amount_paid"]
+    ordering_fields = ["payment_date", "amount_paid", "reception_date", "verified_at"]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
 
     def get_permissions(self):
@@ -655,23 +656,80 @@ class PaymentViewSet(BaseViewSet):
             return [IsAuthenticated()]
 
     def get_queryset(self):
-        """Filtre les paiements selon le rôle de l'utilisateur"""
+        """Filtre les paiements selon le rôle de l'utilisateur avec filtres personnalisés"""
         user = self.request.user
         base_queryset = self.queryset.select_related("paymentplan", "bank")
 
+        # Filtrage par rôle
         if user.role.name == "finance_service":
-            return base_queryset
+            queryset = base_queryset
         elif user.role.name in ["student", "guest"]:
-            return base_queryset.filter(
+            queryset = base_queryset.filter(
                 inscription__student__user=user,
                 inscription__regist_status__in=["Active", "Pending"],
             )
         elif user.role.name == "student_service":
-            # Service aux étudiants voit tous les paiements
-            return base_queryset
+            queryset = base_queryset
         else:
-            # Tous les autres rôles voient tous les paiements
-            return base_queryset
+            queryset = base_queryset
+
+        # Filtres personnalisés supplémentaires
+        student_id = self.request.query_params.get("student_id")
+        if student_id:
+            queryset = queryset.filter(inscription__student__id=student_id)
+
+        class_id = self.request.query_params.get("class_id")
+        if class_id:
+            queryset = queryset.filter(
+                inscription__class_fk__id=class_id,
+                inscription__regist_status__in=["Active", "Pending"],
+            )
+
+        department_id = self.request.query_params.get("department_id")
+        if department_id:
+            queryset = queryset.filter(
+                inscription__class_fk__department__id=department_id,
+                inscription__regist_status__in=["Active", "Pending"],
+            )
+
+        faculty_id = self.request.query_params.get("faculty_id")
+        if faculty_id:
+            queryset = queryset.filter(
+                inscription__class_fk__department__faculty__id=faculty_id,
+                inscription__regist_status__in=["Active", "Pending"],
+            )
+
+        academic_year_id = self.request.query_params.get("academic_year_id")
+        if academic_year_id:
+            queryset = queryset.filter(inscription__academic_year__id=academic_year_id)
+
+        # Filtrage par nom d'année académique (ex: 2024-2025)
+        academic_year = self.request.query_params.get("academic_year")
+        if academic_year:
+            queryset = queryset.filter(
+                inscription__academic_year__academic_year=academic_year
+            )
+
+        # Filtrage par plage de dates
+        payment_date_from = self.request.query_params.get("payment_date_from")
+        if payment_date_from:
+            queryset = queryset.filter(payment_date__gte=payment_date_from)
+
+        payment_date_to = self.request.query_params.get("payment_date_to")
+        if payment_date_to:
+            queryset = queryset.filter(payment_date__lte=payment_date_to)
+
+        # Filtrage par montant
+        amount_min = self.request.query_params.get("amount_min")
+        if amount_min:
+            queryset = queryset.filter(amount_paid__gte=amount_min)
+
+        amount_max = self.request.query_params.get("amount_max")
+        if amount_max:
+            queryset = queryset.filter(amount_paid__lte=amount_max)
+
+        # Ordre par défaut pour éviter UnorderedObjectListWarning
+        return queryset.distinct().order_by("-payment_date", "-verified_at", "-id")
 
     def create(self, request, *args, **kwargs):
         import logging
