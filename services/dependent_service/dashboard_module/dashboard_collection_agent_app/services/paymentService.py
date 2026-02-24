@@ -1,5 +1,3 @@
-# services/paymentService.py
-
 import logging
 
 from django.db import transaction
@@ -340,105 +338,174 @@ class PaymentService:
     def _handle_surplus(
         cls, student, current_plan, surplus, payment_method, bank, transaction_code
     ):
-        """Redistribue le surplus vers les plans suivants"""
+        """Redistribue le surplus hiérarchiquement: précédents puis suivants jusqu'à épuisement"""
         logger.info("\n  💸 HANDLE_SURPLUS - Début")
         logger.info(f"  Surplus: {surplus}")
         logger.info(f"  Plan actuel: {current_plan.description}")
 
         remaining_surplus = surplus
+        last_next_plan = None
+
+        # OPTIMISATION: Récupérer tous les plans et installments en une seule requête
+        student_plans = list(
+            PaymentPlan.get_plans_for_student(student)
+            .select_related("feessheet")
+            .order_by("start_date")
+        )
+
+        # Précharger tous les installments existants
+        existing_installments = {
+            inst.payment_plan_id: inst
+            for inst in PaymentInstallement.objects.filter(
+                student=student, payment_plan__in=student_plans
+            ).select_related("payment_plan")
+        }
+
+        # Récupérer l'inscription une seule fois
+        student_inscription = student.inscriptions.first()
 
         try:
-            with transaction.atomic():
-                iteration = 0
-                while remaining_surplus > 0:
-                    iteration += 1
+            iteration = 0
+            max_iterations = len(student_plans) * 2  # Sécurité contre boucle infinie
+
+            while remaining_surplus > 0 and iteration < max_iterations:
+                iteration += 1
+                logger.info(
+                    f"\n  🔄 Itération {iteration} - Surplus restant: {remaining_surplus}"
+                )
+
+                # Chercher le plan précédent NON COMPLET
+                previous_plan = None
+                for plan in reversed(student_plans):
+                    if (
+                        plan.start_date < current_plan.start_date
+                        and plan.status == "active"
+                    ):
+                        # Vérifier si le plan a encore de la capacité
+                        if plan.id in existing_installments:
+                            inst = existing_installments[plan.id]
+                            if inst.paid_amount < inst.amount:
+                                previous_plan = plan
+                                break
+                        else:
+                            previous_plan = plan
+                            break
+
+                if previous_plan:
                     logger.info(
-                        f"\n  🔄 Itération {iteration} - Surplus restant: {remaining_surplus}"
+                        f"  ⬅️ Plan précédent trouvé: {previous_plan.description}"
                     )
+                    target_plan = previous_plan
+                    is_next_plan = False
+                else:
+                    # Chercher le plan suivant NON COMPLET
+                    next_plan = None
+                    for plan in student_plans:
+                        if (
+                            plan.start_date > current_plan.start_date
+                            and plan.status == "active"
+                        ):
+                            # Vérifier si le plan a encore de la capacité
+                            if plan.id in existing_installments:
+                                inst = existing_installments[plan.id]
+                                if inst.paid_amount < inst.amount:
+                                    next_plan = plan
+                                    break
+                            else:
+                                next_plan = plan
+                                break
 
-                    # Chercher le plan suivant parmi les plans de l'étudiant
-                    student_plans = PaymentPlan.get_plans_for_student(student)
-                    next_plan = (
-                        student_plans.filter(
-                            start_date__gt=current_plan.start_date, status="active"
+                    if next_plan:
+                        logger.info(f"  ➡️ Plan suivant trouvé: {next_plan.description}")
+                        target_plan = next_plan
+                        last_next_plan = next_plan
+                        is_next_plan = True
+                    else:
+                        # TOUS les plans sont complets - Ajouter le surplus au dernier plan suivant
+                        final_plan = last_next_plan if last_next_plan else current_plan
+                        logger.info(
+                            f"  🎯 Tous les plans complets - Ajout du surplus au plan {final_plan.description}"
                         )
-                        .order_by("start_date")
-                        .first()
-                    )
 
-                    if not next_plan:
-                        logger.info("  🚫 Aucun plan suivant - Ajout au plan actuel")
-                        installment, _ = PaymentInstallement.objects.get_or_create(
-                            student=student,
-                            payment_plan=current_plan,
-                            defaults={
-                                "amount": current_plan.total_amount,
-                                "due_date": current_plan.end_date,
-                                "created_by": student.user,
-                            },
-                        )
+                        if final_plan.id in existing_installments:
+                            installment = existing_installments[final_plan.id]
+                        else:
+                            installment = PaymentInstallement(
+                                student=student,
+                                payment_plan=final_plan,
+                                amount=final_plan.total_amount,
+                                due_date=final_plan.end_date,
+                                created_by=student.user,
+                            )
+
                         installment.paid_amount += remaining_surplus
                         installment.save()
+
                         payment = Payment(
-                            paymentplan=current_plan,
+                            paymentplan=final_plan,
                             amount_paid=remaining_surplus,
                             payment_method=payment_method,
                             bank=bank,
                             transaction_code=transaction_code,
-                            inscription=student.inscriptions.first(),
+                            inscription=student_inscription,
                             user=student.user,
                             description=f"Surplus final du plan {current_plan.description}",
                             payment_status="verified",
                         )
                         payment.save(_skip_surplus_handling=True)
-                        logger.info(f"  ✅ Surplus final créé: {payment.id}")
+                        logger.info(
+                            f"  ✅ Surplus final créé: {payment.id} - Montant: {remaining_surplus}"
+                        )
                         break
 
-                    logger.info(f"  🎯 Plan suivant trouvé: {next_plan.description}")
-                    next_installment, _ = PaymentInstallement.objects.get_or_create(
+                # Traiter le plan cible
+                if target_plan.id in existing_installments:
+                    target_installment = existing_installments[target_plan.id]
+                else:
+                    target_installment = PaymentInstallement(
                         student=student,
-                        payment_plan=next_plan,
-                        defaults={
-                            "amount": next_plan.total_amount,
-                            "due_date": next_plan.end_date,
-                            "created_by": student.user,
-                        },
+                        payment_plan=target_plan,
+                        amount=target_plan.total_amount,
+                        due_date=target_plan.end_date,
+                        created_by=student.user,
                     )
+                    existing_installments[target_plan.id] = target_installment
 
-                    remaining_capacity = (
-                        next_installment.amount - next_installment.paid_amount
-                    )
-                    if remaining_capacity <= 0:
-                        logger.info("  ⏭️ Plan déjà payé - Passage au suivant")
-                        current_plan = next_plan
-                        continue
+                remaining_capacity = (
+                    target_installment.amount - target_installment.paid_amount
+                )
+                transfer_amount = min(remaining_surplus, remaining_capacity)
 
-                    transfer_amount = min(remaining_surplus, remaining_capacity)
-                    logger.info(
-                        f"  💵 Transfert de {transfer_amount} vers {next_plan.description}"
-                    )
+                logger.info(
+                    f"  💵 Transfert de {transfer_amount} vers {target_plan.description}"
+                )
 
-                    payment = Payment(
-                        paymentplan=next_plan,
-                        amount_paid=transfer_amount,
-                        payment_method=payment_method,
-                        bank=bank,
-                        transaction_code=transaction_code,
-                        inscription=student.inscriptions.first(),
-                        user=student.user,
-                        description=f"Surplus transféré du plan {current_plan.description}",
-                        payment_status="verified",
-                    )
-                    payment.save(_skip_surplus_handling=True)
-                    logger.info(f"  ✅ Payment surplus créé: {payment.id}")
+                payment = Payment(
+                    paymentplan=target_plan,
+                    amount_paid=transfer_amount,
+                    payment_method=payment_method,
+                    bank=bank,
+                    transaction_code=transaction_code,
+                    inscription=student_inscription,
+                    user=student.user,
+                    description=f"Surplus transféré du plan {current_plan.description}",
+                    payment_status="verified",
+                )
+                payment.save(_skip_surplus_handling=True)
+                logger.info(f"  ✅ Payment surplus créé: {payment.id}")
 
-                    next_installment.paid_amount += transfer_amount
-                    next_installment.save()
+                target_installment.paid_amount = min(
+                    target_installment.paid_amount + transfer_amount,
+                    target_installment.amount,
+                )
+                target_installment.save()
 
-                    remaining_surplus -= transfer_amount
-                    current_plan = next_plan
+                remaining_surplus -= transfer_amount
+                current_plan = target_plan
+                if is_next_plan:
+                    last_next_plan = target_plan
 
-                logger.info("\n  ✅ HANDLE_SURPLUS - Terminé")
+            logger.info("\n  ✅ HANDLE_SURPLUS - Terminé")
         except Exception as e:
             logger.error(f"\n  ❌ HANDLE_SURPLUS - Erreur: {str(e)}")
             raise

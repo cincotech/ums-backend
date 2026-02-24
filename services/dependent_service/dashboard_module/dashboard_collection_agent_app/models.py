@@ -480,27 +480,34 @@ class Payment(models.Model):
                             self.transaction_code,
                         )
 
-            # Si le statut passe de "verified" à "unverified", supprimer les surplus
-            elif old_status == "verified" and self.payment_status == "unverified":
+            # Si le statut passe de "verified" à "unverified" ou "rejected", redistribuer vers les plans précédents
+            elif old_status == "verified" and self.payment_status in [
+                "unverified",
+                "rejected",
+            ]:
                 logger.info(
                     f"\n❌ Modèle Payment - Détection rejet du paiement {self.id}"
                 )
                 logger.info(
-                    "📞 Appel automatique de PaymentService pour nettoyer les surplus"
+                    "📞 Appel automatique de PaymentService pour redistribuer vers plans précédents"
                 )
 
                 student = self.inscription.student if self.inscription else None
                 if student:
-                    # Supprimer tous les paiements de surplus créés automatiquement
+                    # Supprimer tous les paiements de surplus/redistribution créés automatiquement
                     auto_payments = Payment.objects.filter(
                         inscription__student=student,
                         payment_status="verified",
                         description__icontains="Surplus",
+                    ) | Payment.objects.filter(
+                        inscription__student=student,
+                        payment_status="verified",
+                        description__icontains="Redistribution",
                     )
 
                     count = auto_payments.count()
                     if count > 0:
-                        logger.info(f"🗑️ Suppression de {count} paiements de surplus")
+                        logger.info(f"🗑️ Suppression de {count} paiements automatiques")
                         auto_payments.delete()
 
                     # Recalculer TOUS les installments de l'étudiant
