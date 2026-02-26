@@ -432,56 +432,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def validate(self, data):
-        user = self.context["request"].user
-        user_role = user.role.name
-
-        # Vérifier que les plans précédents sont payés (pour tous les rôles)
-        paymentplan = data.get("paymentplan")
-        inscription = data.get("inscription")
-
-        if paymentplan:
-            from services.core_service.student_module.inscription_app.models import (
-                Inscription,
-            )
-            from services.core_service.student_module.student_profile_app.models import (
-                Student,
-            )
-
-            student = None
-
-            # Récupérer l'étudiant selon le rôle
-            if user_role in ["student", "guest"]:
-                try:
-                    student = Student.objects.get(user=user)
-                except Student.DoesNotExist:
-                    raise serializers.ValidationError("Profil étudiant non trouvé.")
-            elif user_role == "finance_service" and inscription:
-                try:
-                    # inscription est déjà un objet Inscription après validate_inscription
-                    if hasattr(inscription, "student"):
-                        student = inscription.student
-                    else:
-                        # Si c'est encore un UUID, le convertir
-                        inscription_obj = Inscription.objects.select_related(
-                            "student"
-                        ).get(id=inscription)
-                        student = inscription_obj.student
-                except (Inscription.DoesNotExist, AttributeError):
-                    raise serializers.ValidationError("Inscription non trouvée.")
-
-            # Vérifier les plans précédents pour cet étudiant
-            if student:
-                previous_unpaid = PaymentInstallement.objects.filter(
-                    student=student,
-                    payment_plan__start_date__lt=paymentplan.start_date,
-                    status__in=["pending", "overdue"],
-                ).exists()
-
-                if previous_unpaid:
-                    raise serializers.ValidationError(
-                        f"Impossible de créer ce paiement. L'étudiant {student.user.get_full_name()} ({student.matricule}) a encore des paiements non terminés sur des plans précédents."
-                    )
-
+        # Validation minimale - laisser _handle_surplus gérer la redistribution
         return data
 
     def create(self, validated_data):
@@ -544,7 +495,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # Sauvegarder en passant l'utilisateur actuel
+        # Le modèle Payment appellera automatiquement PaymentService si nécessaire
         instance.save(_current_user=user)
         return instance
 
