@@ -734,12 +734,16 @@ class PaymentViewSet(BaseViewSet):
         return error_response(message="Erreur de validation", errors=serializer.errors)
     @action(detail=False, methods=['get'], url_path='by-inscription/(?P<inscription_id>[^/.]+)')
     def by_inscription(self, request, inscription_id=None):
+        from core.response_handler import error_response, success_response
         """
         Récupère tous les paiements liés à une inscription spécifique
         Usage: /api/payments/by-inscription/<inscription_id>/
         """
+        
         # On réutilise le queryset de base qui contient déjà les select_related
         # pour garder les performances optimales (pas de requêtes N+1)
+        if not inscription_id:
+            return error_response(message="inscription_id est requis", status_code=400)
         payments = self.get_queryset().filter(inscription_id=inscription_id)
         
         serializer = self.get_serializer(payments, many=True)
