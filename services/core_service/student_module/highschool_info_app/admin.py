@@ -1,6 +1,10 @@
 # Register your models here.
 from django.contrib import admin
 from django.db import models
+
+# ----------------------------
+# Highschool Resource
+# ----------------------------
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
@@ -12,14 +16,14 @@ from services.foundational_service.geo_module.zone_app.models import Zone
 from .models import Certificate, Highschool, Option, Section, TrainingCenter
 
 
-# ----------------------------
-# Highschool Resource
-# ----------------------------
 class HighschoolResource(resources.ModelResource):
+
+    # Used ONLY for export
     zone_name = fields.Field(
         column_name="zone_name",
         attribute="zone",
-        widget=ForeignKeyWidget(Zone, "zone_name"),  # assuming Zone has 'zone_name'
+        widget=ForeignKeyWidget(Zone, "zone_name"),
+        readonly=True,  # ✅ Prevent importing using zone_name
     )
 
     class Meta:

@@ -15,6 +15,5 @@ class ClassFilter(django_filters.FilterSet):
     def filter_search(self, queryset, name, value):
         return queryset.filter(
             Q(class_name__icontains=value)
-            | Q(class_code__icontains=value)
             | Q(department__department_name__icontains=value)
         )

@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from core.response_handler import error_response, success_response
+from core.response_handler import error_response, success_response, validate_serializer
 from core.views import BaseViewSet
 
 from .models import Survey
@@ -23,6 +23,70 @@ class SurveyViewSet(BaseViewSet):
     serializer_class = SurveySerializer
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def _build_data_dict(self, request):
+        """
+        DRF's request.data can be a QueryDict for multipart/form-data.
+        Convert it into a plain dict so we can safely inject nested structures
+        (e.g. `questions` as a list of objects) without Django coercing values
+        into strings.
+        """
+        if hasattr(request.data, "getlist") and hasattr(request.data, "keys"):
+            data = {}
+            for key in request.data.keys():
+                values = request.data.getlist(key)
+                data[key] = values[0] if len(values) == 1 else values
+            return data
+        return dict(request.data)
+
+    def _normalize_questions(self, data):
+        """
+        Support multipart/form-data where `questions` often arrives as a JSON string.
+        Examples:
+          - questions='[{"label":"..."}]'
+          - questions=['[{"label":"..."}]']
+        """
+        if "questions" not in data or data["questions"] in (None, ""):
+            return data, None
+
+        questions = data["questions"]
+
+        if (
+            isinstance(questions, list)
+            and len(questions) == 1
+            and isinstance(questions[0], str)
+        ):
+            questions = questions[0]
+
+        if isinstance(questions, str):
+            try:
+                questions = json.loads(questions)
+            except json.JSONDecodeError as exc:
+                return (
+                    data,
+                    error_response(
+                        message="Invalid questions JSON",
+                        errors={"questions": [str(exc)]},
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                    ),
+                )
+
+        if not isinstance(questions, list):
+            return (
+                data,
+                error_response(
+                    message="Invalid questions format",
+                    errors={"questions": ["Expected a JSON array of questions."]},
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                ),
+            )
+
+        data["questions"] = questions
+        return data, None
+
+    def _normalized_survey_payload(self, request):
+        data = self._build_data_dict(request)
+        return self._normalize_questions(data)
+
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
             return SurveyCreateUpdateSerializer
@@ -35,15 +99,55 @@ class SurveyViewSet(BaseViewSet):
 
     def create(self, request, *args, **kwargs):
         print("Creating survey with data:", request.data)
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            survey = serializer.save(created_by=request.user)
-            return success_response(
-                data=SurveySerializer(survey).data,
-                message="Survey created successfully",
-                status_code=status.HTTP_201_CREATED,
-            )
-        return error_response(message="Invalid data", errors=serializer.errors)
+        data, error = self._normalized_survey_payload(request)
+        if error:
+            return error
+
+        serializer = self.get_serializer(data=data)
+        validation_error = validate_serializer(serializer)
+        if validation_error:
+            return validation_error
+
+        survey = serializer.save(created_by=request.user)
+        return success_response(
+            data=SurveySerializer(survey).data,
+            message="Survey created successfully",
+            status_code=status.HTTP_201_CREATED,
+        )
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data, error = self._normalized_survey_payload(request)
+        if error:
+            return error
+
+        serializer = self.get_serializer(instance, data=data)
+        validation_error = validate_serializer(serializer)
+        if validation_error:
+            return validation_error
+
+        survey = serializer.save()
+        return success_response(
+            data=SurveySerializer(survey).data,
+            message="Survey updated successfully",
+        )
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        data, error = self._normalized_survey_payload(request)
+        if error:
+            return error
+
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        validation_error = validate_serializer(serializer)
+        if validation_error:
+            return validation_error
+
+        survey = serializer.save()
+        return success_response(
+            data=SurveySerializer(survey).data,
+            message="Survey updated successfully",
+        )
 
     @action(detail=True, methods=["post"], permission_classes=[AllowAny])
     def submit_response(self, request, pk=None):

@@ -6,6 +6,9 @@ from .models import Parent, Profession
 
 class ParentFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="filter_search")
+    student_id = django_filters.UUIDFilter(
+        field_name="students_parents__id", lookup_expr="exact"
+    )
 
     class Meta:
         model = Parent
