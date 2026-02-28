@@ -446,6 +446,8 @@ class PaymentSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         user_role = user.role.name
         validated_data["user"] = user
+            # Forcer le statut à 'unverified' à la création
+        validated_data["payment_status"] = "unverified"
 
         # inscription est déjà un objet après validate_inscription
         inscription = validated_data.get("inscription")
