@@ -28,6 +28,7 @@ jobs:
             # Définition de l'environnement
             USER_NAME=${{ secrets.DEV_SERVER_USER }}
             export HOME=/home/$USER_NAME
+            MSMTP_CONF="/home/gl4/.msmtprc"
             LOG_FILE="$HOME/deploy_backend_dev.log"
             DATE=$(date '+%Y-%m-%d_%H-%M-%S')
             EMAILS="ndabubahajanvier@gmail.com ferdinand.niragira2@gmail.com"
