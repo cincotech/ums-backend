@@ -1,0 +1,52 @@
+name: Deploy UMS Backend develop
+
+on:
+  push:
+    branches:
+      - develop  # Déploiement automatique sur la branche develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout le repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Déploiement via SSH
+      - name: SSH Deploy script
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEV_SERVER_IP }}
+          username: ${{ secrets.DEV_SERVER_USER }}
+          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
+          script: |
+            #!/bin/bash
+            set -e  # Stop en cas d'erreur
+            
+            # Définition de l'environnement
+            USER_NAME=${{ secrets.DEV_SERVER_USER }}
+            export HOME=/home/$USER_NAME
+            LOG_FILE="$HOME/deploy_backend_dev.log"
+            DATE=$(date '+%Y-%m-%d_%H-%M-%S')
+            EMAILS="ndabubahajanvier@gmail.com ferdinand.niragira2@gmail.com"
+
+            echo "-------------------------------------------------" | tee -a "$LOG_FILE"
+            echo "🔹 Déploiement BACKEND déclenché depuis GitHub à $DATE" | tee -a "$LOG_FILE"
+
+            # 🔹 Mail de démarrage (via msmtp pour être raccord avec ton autre script)
+            for EMAIL in $EMAILS; do
+              echo -e "Subject: Déploiement BACKEND - DÉMARRÉ\n\nLe déploiement du backend a démarré sur le serveur de development.\nDate: $DATE" | msmtp "$EMAIL"
+            done
+
+            # 🔹 Lancer le script complet de déploiement à la racine de l'user
+            if [ -f "$HOME/develop_deployement.sh" ]; then
+              bash "$HOME/develop_deployement.sh"
+            else
+              echo "❌ Script develop_deployement.sh non trouvé dans $HOME" | tee -a "$LOG_FILE"
+              for EMAIL in $EMAILS; do
+                echo -e "Subject: Déploiement BACKEND - ÉCHEC\n\nErreur : Le script /home/$USER_NAME/develop_deployement.sh est introuvable." | msmtp "$EMAIL"
+              done
+              exit 1
+            fi
