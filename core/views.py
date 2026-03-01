@@ -112,7 +112,7 @@ class BaseViewSet(viewsets.ModelViewSet):
         if validation_error:
             return validation_error
 
-        serializer.save()
+        self.perform_create(serializer)
         return success_response(
             data=serializer.data,
             message=f"{serializer.instance.__class__.__name__} created successfully",
@@ -126,7 +126,7 @@ class BaseViewSet(viewsets.ModelViewSet):
         if validation_error:
             return validation_error
 
-        serializer.save()
+        self.perform_update(serializer)
         return success_response(
             data=serializer.data,
             message=f"{instance.__class__.__name__} updated successfully",
@@ -139,7 +139,7 @@ class BaseViewSet(viewsets.ModelViewSet):
         if validation_error:
             return validation_error
 
-        serializer.save()
+        self.perform_update(serializer)
         return success_response(
             data=serializer.data,
             message=f"{instance.__class__.__name__} partially updated successfully",

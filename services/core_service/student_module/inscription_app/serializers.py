@@ -39,6 +39,8 @@ class InscriptionSerializer(serializers.ModelSerializer):
     # ---------------------------
     faculty_id = serializers.UUIDField(required=False, allow_null=True)
     payment_status = serializers.SerializerMethodField(read_only=True)
+    created_by = serializers.CharField(source="created_by.username", read_only=True)
+    modified_by = serializers.CharField(source="modified_by.username", read_only=True)
 
     class Meta:
         model = Inscription
@@ -58,6 +60,8 @@ class InscriptionSerializer(serializers.ModelSerializer):
             "year",
             "faculty_id",
             "payment_status",
+            "created_by",
+            "modified_by",
         ]
 
     def get_payment_status(self, obj):
@@ -71,11 +75,11 @@ class InscriptionSerializer(serializers.ModelSerializer):
     # ---------------------------
     def create(self, validated_data):
         from django.utils import timezone
-
         from services.core_service.academic_module.university_app.models import (
             AcademicYear,
         )
-
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
         student = validated_data.get("student")
         faculty_id = validated_data.pop("faculty_id", None)
 
@@ -124,12 +128,13 @@ class InscriptionSerializer(serializers.ModelSerializer):
                 "is_year_close": validated_data.get("is_year_close", False),
             },
         )
-
         # Update fields if already exists
         if not created:
             for key, value in validated_data.items():
                 setattr(inscription, key, value)
-            inscription.save()
+            inscription.save(user=user)
+        else:
+            inscription.save(user=user)
 
         # ---------------------------
         # Generate matricule if status is Active
