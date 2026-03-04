@@ -7,7 +7,7 @@ from django.db import transaction
 from dotenv import load_dotenv
 
 # Configuration Django
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ums.settings.development")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ums.settings.production")
 django.setup()
 
 # Chargement des variables d'environnement
