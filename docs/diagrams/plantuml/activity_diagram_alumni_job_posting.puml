@@ -1,9 +1,0 @@
-@startuml
-start
-:Alumni posts job offer;
-:Validate job details;
-:Publish job;
-:Notify alumni network;
-:Track applications;
-stop
-@enduml

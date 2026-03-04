@@ -1,9 +1,0 @@
-@startuml
-start
-:Dean manages faculty;
-:Review departments;
-:Monitor programs;
-:Check teacher workload;
-:Generate reports;
-stop
-@enduml
