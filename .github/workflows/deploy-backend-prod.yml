@@ -1,0 +1,52 @@
+name: Deploy UMS Backend Production
+
+on:
+  push:
+    branches:
+      - main  # Déploiement automatique sur la branche main (Prod)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: SSH Deploy Backend (Production)
+        uses: appleboy/ssh-action@v1
+        with:
+          # On utilise les secrets de production (PROD_*)
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          port: 2222
+          script: |
+            #!/bin/bash
+            set -e
+            
+            # Variables de production
+            USER_NAME=${{ secrets.PROD_SERVER_USER }}
+            export HOME=/home/$USER_NAME
+            LOG_FILE="$HOME/deploy_backend.log"
+            DATE=$(date '+%Y-%m-%d_%H-%M-%S')
+            EMAILS="ndabubahajanvier@gmail.com ferdinand.niragira2@gmail.com"
+
+            echo "-------------------------------------------------" | tee -a "$LOG_FILE"
+            echo "🚀 DÉPLOIEMENT BACKEND PRODUCTION déclenché à $DATE" | tee -a "$LOG_FILE"
+
+            # 🔹 Notification de démarrage
+            for EMAIL in $EMAILS; do
+              echo -e "Subject: Déploiement BACKEND PROD - DÉMARRÉ\n\nLe backend est en cours de déploiement en production.\nDate: $DATE" | msmtp "$EMAIL"
+            done
+
+            # 🔹 Lancement du script de déploiement spécifique à la prod
+            # Assure-toi que ce script existe sur ton serveur
+            SCRIPT_PATH="$HOME/deploy_backend.sh"
+
+            if [ -f "$SCRIPT_PATH" ]; then
+              bash "$SCRIPT_PATH"
+            else
+              echo "❌ Script $SCRIPT_PATH non trouvé !" | tee -a "$LOG_FILE"
+              exit 1
+            fi

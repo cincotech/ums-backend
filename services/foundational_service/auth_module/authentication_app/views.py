@@ -783,7 +783,7 @@ class UserViewSet(BaseViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role.name == "admin":
+        if user.role.name in {"admin", "super_admin"}:
             return User.objects.all()
 
         # Case 1: student_service → return student + guest
@@ -798,6 +798,18 @@ class UserViewSet(BaseViewSet):
         kwargs["context"] = self.get_serializer_context()
         return super().get_serializer(*args, **kwargs)
 
+    def _is_admin_user(self, user):
+        role = getattr(user, "role", None)
+        return bool(role and role.name in {"admin", "super_admin"})
+
+    def _require_admin(self, request):
+        if not self._is_admin_user(request.user):
+            return error_response(
+                message="Admin privileges required to manage security settings",
+                status_code=status.HTTP_403_FORBIDDEN,
+            )
+        return None
+
     @action(detail=False, methods=["get"])
     def me(self, request):
         """
@@ -810,6 +822,79 @@ class UserViewSet(BaseViewSet):
             message=" current authenticated user's data",
             data=serializer.data,
         )
+
+    @action(detail=True, methods=["post"], url_path="admin-2fa/totp")
+    def admin_setup_totp(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        try:
+            device, qr_data = user_service.setup_totp_2fa(user)
+            user.requires_2fa = True
+            user.requires_2fa_qr = True
+            user.save()
+            return success_response(
+                message="TOTP 2FA setup generated",
+                data={
+                    "email": user.email,
+                    "qr_code": qr_data,
+                    "config_url": device.config_url,
+                },
+            )
+        except Exception as e:
+            logger.error(f"Admin TOTP setup failed for {user.email}: {str(e)}")
+            return error_response(
+                message=f"Failed to setup TOTP 2FA: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"], url_path="admin-2fa/static")
+    def admin_setup_static(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        try:
+            tokens = user_service.setup_static_2fa(user)
+            user.requires_2fa = True
+            user.requires_2fa_static = True
+            user.save()
+            return success_response(
+                message="Static 2FA tokens generated",
+                data={"email": user.email, "backup_codes": tokens},
+            )
+        except Exception as e:
+            logger.error(f"Admin static 2FA setup failed for {user.email}: {str(e)}")
+            return error_response(
+                message=f"Failed to setup static 2FA: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"], url_path="admin-2fa/email")
+    def admin_setup_email(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        try:
+            user_service.setup_email_2fa(user)
+            user.requires_2fa = True
+            user.requires_2fa_email = True
+            user.save()
+            return success_response(
+                message="Email 2FA enabled",
+                data={"email": user.email},
+            )
+        except Exception as e:
+            logger.error(f"Admin email 2FA setup failed for {user.email}: {str(e)}")
+            return error_response(
+                message=f"Failed to setup email 2FA: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     @action(detail=True, methods=["post"], url_path="verify-password")
     def verify_password(self, request, pk=None):
