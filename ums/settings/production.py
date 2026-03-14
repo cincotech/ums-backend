@@ -3,6 +3,9 @@ from .base import get_env_variable
 
 DEBUG = False
 ALLOWED_HOSTS = get_env_variable("DJANGO_ALLOWED_HOSTS", "").split(",")
+# ums/settings/production.py
+CSRF_TRUSTED_ORIGINS = get_env_variable("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+
 
 DATABASES = {
     "default": {
