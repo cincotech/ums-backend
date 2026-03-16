@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     BankViewSet,
     CollectionCorrespondenceViewSet,
+    FinanceDashboardAPIView,
     FeesSheetViewSet,
     PaymentInstallementViewSet,
     PaymentPlanViewSet,
@@ -25,5 +26,10 @@ router.register(r"payments", PaymentViewSet)
 router.register(r"collection-correspondence", CollectionCorrespondenceViewSet)
 
 urlpatterns = [
+    path(
+        "overview/",
+        FinanceDashboardAPIView.as_view({"get": "overview"}),
+        name="finance-overview",
+    ),
     path("", include(router.urls)),
 ]

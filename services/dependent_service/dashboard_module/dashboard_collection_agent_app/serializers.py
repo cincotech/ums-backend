@@ -258,13 +258,16 @@ class PaymentSerializer(serializers.ModelSerializer):
     remittance_slip = serializers.ImageField(
         required=False, allow_null=True, source="remittance_slip_uri"
     )
+    remittance_slip_uri = serializers.ImageField(
+        required=False, allow_null=True, write_only=True
+    )
     paymentplan_info = serializers.SerializerMethodField()
     bank_info = serializers.SerializerMethodField()
     verified_by_info = serializers.SerializerMethodField()
     inscription_info = serializers.SerializerMethodField()
     user_info = serializers.SerializerMethodField()
     paymentplan = serializers.UUIDField(write_only=True)
-    bank = serializers.UUIDField(write_only=True)
+    bank = serializers.UUIDField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Payment
@@ -285,6 +288,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             "user_info",
             "description",
             "remittance_slip",
+            "remittance_slip_uri",
             "payment_status",
             "verified_by",
             "verified_by_info",
@@ -417,12 +421,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Banque non trouvée.")
 
     def to_internal_value(self, data):
-        # Debug: afficher les données reçues
-        print(f"DEBUG PaymentSerializer - données reçues: {data}")
-        print(
-            f"DEBUG PaymentSerializer - clés: {list(data.keys()) if hasattr(data, 'keys') else 'N/A'}"
-        )
-
         # Ne pas modifier les données du fichier
         if "inscription" in data and (
             data["inscription"] == "" or data["inscription"] == "<uuid-inscription>"
@@ -432,7 +430,16 @@ class PaymentSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def validate(self, data):
-        # Validation minimale - laisser _handle_surplus gérer la redistribution
+        # Validation conditionnelle du champ banque selon la méthode de paiement
+        payment_method = data.get("payment_method")
+        bank = data.get("bank")
+
+        bank_required_methods = {"bank_deposit", "bank_transfert", "bank_check"}
+        if payment_method in bank_required_methods and not bank:
+            raise serializers.ValidationError(
+                {"bank": "La banque est obligatoire pour ce mode de paiement."}
+            )
+
         return data
 
     def create(self, validated_data):

@@ -117,6 +117,30 @@ class IsStudentOrFinanceService(RolePermission):
 
 
 # -----------------------------
+# Finance-focused Permissions
+# -----------------------------
+class IsStudentOrFinance(RolePermission):
+    allowed_roles = ["student", "guest", "finance_service", "student_service"]
+
+
+# -----------------------------
+# Finance + Direction Permissions
+# -----------------------------
+class IsFinanceOrDirection(RolePermission):
+    allowed_roles = [
+        "finance_service",
+        "super_admin",
+        "admin",
+        "rector",
+        "dean",
+        "director_academic",
+        "director_quality_assurance",
+        "rector_office",
+        "academic_affairs",
+    ]
+
+
+# -----------------------------
 # Combined Role Permissions
 # -----------------------------
 class IsSuperAdminOrRector(RolePermission):

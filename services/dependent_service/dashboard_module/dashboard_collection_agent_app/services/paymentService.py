@@ -12,6 +12,18 @@ logger = logging.getLogger(__name__)
 class PaymentService:
     """Service métier pour gérer la création, vérification et redistribution des paiements."""
 
+    @staticmethod
+    def _get_active_inscription(student):
+        """Récupère l'inscription active/pending la plus récente (fallback si aucune)."""
+        active = (
+            student.inscriptions.filter(regist_status__in=["Active", "Pending"])
+            .order_by("-date_inscription")
+            .first()
+        )
+        if active:
+            return active
+        return student.inscriptions.order_by("-date_inscription").first()
+
     @classmethod
     def create_payment(
         cls,
@@ -235,6 +247,11 @@ class PaymentService:
         """Redistribue l'argent sur les plans précédents impayés"""
         logger.info("  🔍 Recherche des plans précédents impayés...")
         remaining_amount = amount
+        student_inscription = cls._get_active_inscription(student)
+        if not student_inscription:
+            raise ValueError(
+                "Aucune inscription active ou récente trouvée pour l'étudiant."
+            )
         previous_installments = PaymentInstallement.objects.filter(
             student=student,
             payment_plan__start_date__lt=target_plan.start_date,
@@ -262,7 +279,7 @@ class PaymentService:
                 payment_method=payment_method,
                 bank=bank,
                 transaction_code=transaction_code,
-                inscription=student.inscriptions.first(),
+                inscription=student_inscription,
                 user=student.user,
                 description=f"Redistribution automatique sur plan {installment.payment_plan.description}",
                 payment_status="verified",
@@ -288,13 +305,19 @@ class PaymentService:
             return
 
         with transaction.atomic():
+            student_inscription = cls._get_active_inscription(student)
+            if not student_inscription:
+                raise ValueError(
+                    "Aucune inscription active ou récente trouvée pour l'étudiant."
+                )
+
             payment = Payment(
                 paymentplan=target_plan,
                 amount_paid=amount,
                 payment_method=payment_method,
                 bank=bank,
                 transaction_code=transaction_code,
-                inscription=student.inscriptions.first(),
+                inscription=student_inscription,
                 user=student.user,
                 description=f"Paiement principal sur plan {target_plan.description}",
                 payment_status="verified",
@@ -362,7 +385,11 @@ class PaymentService:
         }
 
         # Récupérer l'inscription une seule fois
-        student_inscription = student.inscriptions.first()
+        student_inscription = cls._get_active_inscription(student)
+        if not student_inscription:
+            raise ValueError(
+                "Aucune inscription active ou récente trouvée pour l'étudiant."
+            )
 
         try:
             iteration = 0

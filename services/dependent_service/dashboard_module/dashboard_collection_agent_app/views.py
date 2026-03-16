@@ -1,12 +1,16 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import parsers
+from rest_framework import parsers, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import IsFinanceService, IsStudent, IsStudentOrFinanceService
+from core.permissions import (
+    IsFinanceOrDirection,
+    IsFinanceService,
+    IsStudentOrFinance,
+)
 from core.views import BaseViewSet
 
 from .filters import (
@@ -42,6 +46,7 @@ from .serializers import (
     PaymentSerializer,
     WordingSerializer,
 )
+from .finance_dashboard_service import FinanceDashboardService
 
 User = get_user_model()
 
@@ -133,6 +138,15 @@ class FeesSheetViewSet(BaseViewSet):
                 queryset = queryset.filter(base_amount=int(base_amount))
             except ValueError:
                 pass  # Ignorer si pas un nombre valide
+
+        # Support d'alias frontend
+        department_fk = self.request.query_params.get("department_fk")
+        if department_fk:
+            queryset = queryset.filter(department=department_fk)
+
+        faculty_fk = self.request.query_params.get("faculty_fk")
+        if faculty_fk:
+            queryset = queryset.filter(faculty=faculty_fk)
 
         return queryset
 
@@ -246,7 +260,7 @@ class PaymentInstallementViewSet(BaseViewSet):
         .all()
     )
     serializer_class = PaymentInstallementSerializer
-    permission_classes = [IsStudentOrFinanceService]
+    permission_classes = [IsStudentOrFinance]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = PaymentInstallementFilter
     filterset_fields = [
@@ -272,6 +286,19 @@ class PaymentInstallementViewSet(BaseViewSet):
     ]
     ordering_fields = ["due_date", "amount"]
 
+    def get_permissions(self):
+        # Respecter les permissions d'actions personnalisées si définies
+        action_method = getattr(self, self.action, None)
+        if action_method and hasattr(action_method, "permission_classes"):
+            return [perm() for perm in action_method.permission_classes]
+
+        if self.action in ["list", "retrieve"]:
+            permission_classes = [IsStudentOrFinance]
+        else:
+            permission_classes = [IsFinanceService]
+
+        return [perm() for perm in permission_classes]
+
     def get_queryset(self):
         """Filtre les échéanciers selon le rôle de l'utilisateur"""
         user = self.request.user
@@ -286,9 +313,11 @@ class PaymentInstallementViewSet(BaseViewSet):
 
         if user.role.name == "finance_service":
             queryset = self.queryset
-        elif user.role.name == "student":
+        elif user.role.name in ["student", "guest"]:
             # Étudiant voit seulement ses échéanciers
             queryset = self.queryset.filter(student__user=user)
+        elif user.role.name == "student_service":
+            queryset = self.queryset
         else:
             from rest_framework.exceptions import PermissionDenied
 
@@ -297,8 +326,18 @@ class PaymentInstallementViewSet(BaseViewSet):
                 "Seuls les étudiants et le service financier peuvent accéder à cette ressource."
             )
 
+        # Filtrage par année académique
+        academic_year_id = self.request.query_params.get("academic_year_id")
+        if academic_year_id:
+            queryset = queryset.filter(
+                student__inscriptions__academic_year=academic_year_id,
+                student__inscriptions__regist_status__in=["Active", "Pending"],
+            )
+
         # Filtrage personnalisé par classe (chaque classe appartient à un département)
-        class_id = self.request.query_params.get("class_id")
+        class_id = self.request.query_params.get("class_id") or self.request.query_params.get(
+            "class_fk"
+        )
         if class_id:
             queryset = queryset.filter(
                 student__inscriptions__class_fk=class_id,
@@ -306,7 +345,9 @@ class PaymentInstallementViewSet(BaseViewSet):
             )
 
         # Filtrage par département
-        department_id = self.request.query_params.get("department_id")
+        department_id = self.request.query_params.get(
+            "department_id"
+        ) or self.request.query_params.get("department_fk")
         if department_id:
             queryset = queryset.filter(
                 student__inscriptions__class_fk__department=department_id,
@@ -314,7 +355,9 @@ class PaymentInstallementViewSet(BaseViewSet):
             )
 
         # Filtrage par faculté
-        faculty_id = self.request.query_params.get("faculty_id")
+        faculty_id = self.request.query_params.get("faculty_id") or self.request.query_params.get(
+            "faculty_fk"
+        )
         if faculty_id:
             queryset = queryset.filter(
                 student__inscriptions__class_fk__department__faculty=faculty_id,
@@ -557,7 +600,7 @@ class PaymentPlanViewSet(BaseViewSet):
         "feessheet__academic_year",
     ).all()
     serializer_class = PaymentPlanSerializer
-    permission_classes = [IsStudentOrFinanceService]
+    permission_classes = [IsStudentOrFinance]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = PaymentPlanFilter
     filterset_fields = ["feessheet", "status", "created_by"]
@@ -569,6 +612,19 @@ class PaymentPlanViewSet(BaseViewSet):
     ]
     ordering_fields = ["start_date", "total_amount"]
 
+    def get_permissions(self):
+        # Respecter les permissions d'actions personnalisées si définies
+        action_method = getattr(self, self.action, None)
+        if action_method and hasattr(action_method, "permission_classes"):
+            return [perm() for perm in action_method.permission_classes]
+
+        if self.action in ["list", "retrieve"]:
+            permission_classes = [IsStudentOrFinance]
+        else:
+            permission_classes = [IsFinanceService]
+
+        return [perm() for perm in permission_classes]
+
     def get_queryset(self):
         """Filtre les plans de paiement selon le rôle de l'utilisateur"""
         user = self.request.user
@@ -579,7 +635,33 @@ class PaymentPlanViewSet(BaseViewSet):
             raise PermissionDenied("Utilisateur sans rôle défini.")
 
         # Utiliser la méthode du modèle pour filtrer selon le rôle
-        return PaymentPlan.get_plans_for_user(user)
+        queryset = PaymentPlan.get_plans_for_user(user)
+
+        # Filtrage optionnel par année académique
+        academic_year_id = self.request.query_params.get("academic_year_id")
+        if academic_year_id:
+            queryset = queryset.filter(feessheet__academic_year=academic_year_id)
+
+        # Support des alias frontend
+        class_id = self.request.query_params.get("class_id") or self.request.query_params.get(
+            "class_fk"
+        )
+        if class_id:
+            queryset = queryset.filter(feessheet__class_fk=class_id)
+
+        department_id = self.request.query_params.get(
+            "department_id"
+        ) or self.request.query_params.get("department_fk")
+        if department_id:
+            queryset = queryset.filter(feessheet__department=department_id)
+
+        faculty_id = self.request.query_params.get("faculty_id") or self.request.query_params.get(
+            "faculty_fk"
+        )
+        if faculty_id:
+            queryset = queryset.filter(feessheet__faculty=faculty_id)
+
+        return queryset
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -601,11 +683,32 @@ class PaymentPlanViewSet(BaseViewSet):
 class PaymentPromiseViewSet(BaseViewSet):
     queryset = PaymentPromise.objects.all()
     serializer_class = PaymentPromiseSerializer
-    permission_classes = [IsStudent]
+    permission_classes = [IsStudentOrFinance]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = PaymentPromiseFilter
     filterset_fields = ["student", "status", "promised_date"]
     ordering_fields = ["promised_date", "promised_amount"]
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            permission_classes = [IsStudentOrFinance]
+        else:
+            permission_classes = [IsFinanceService]
+
+        return [perm() for perm in permission_classes]
+
+    def get_queryset(self):
+        """Limiter les promesses pour les étudiants à leurs propres données."""
+        user = self.request.user
+
+        if user.role.name in ["student", "guest"]:
+            return self.queryset.filter(student__user=user)
+        if user.role.name in ["finance_service", "student_service"]:
+            return self.queryset
+
+        from rest_framework.exceptions import PermissionDenied
+
+        raise PermissionDenied("Accès refusé à cette ressource.")
 
 
 class PaymentViewSet(BaseViewSet):
@@ -647,13 +750,15 @@ class PaymentViewSet(BaseViewSet):
     def get_permissions(self):
         if self.action == "create":
             # Création : tous les utilisateurs authentifiés
-            return [IsAuthenticated()]
-        elif self.action in ["update", "partial_update"]:
-            # Modification : seulement finance_service
-            return [IsFinanceService()]
+            permission_classes = [IsAuthenticated]
+        elif self.action in ["update", "partial_update", "destroy"]:
+            # Modification/Suppression : seulement finance_service
+            permission_classes = [IsFinanceService]
         else:
-            # Lecture : tous les utilisateurs authentifiés
-            return [IsAuthenticated()]
+            # Lecture : étudiants (leurs données) + finance
+            permission_classes = [IsStudentOrFinance]
+
+        return [perm() for perm in permission_classes]
 
     def get_queryset(self):
         """Filtre les paiements selon le rôle de l'utilisateur avec filtres personnalisés"""
@@ -671,28 +776,38 @@ class PaymentViewSet(BaseViewSet):
         elif user.role.name == "student_service":
             queryset = base_queryset
         else:
-            queryset = base_queryset
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied(
+                f"Accès refusé. Votre rôle '{user.role.name}' n'est pas autorisé à accéder aux paiements."
+            )
 
         # Filtres personnalisés supplémentaires
         student_id = self.request.query_params.get("student_id")
         if student_id:
             queryset = queryset.filter(inscription__student__id=student_id)
 
-        class_id = self.request.query_params.get("class_id")
+        class_id = self.request.query_params.get("class_id") or self.request.query_params.get(
+            "class_fk"
+        )
         if class_id:
             queryset = queryset.filter(
                 inscription__class_fk__id=class_id,
                 inscription__regist_status__in=["Active", "Pending"],
             )
 
-        department_id = self.request.query_params.get("department_id")
+        department_id = self.request.query_params.get(
+            "department_id"
+        ) or self.request.query_params.get("department_fk")
         if department_id:
             queryset = queryset.filter(
                 inscription__class_fk__department__id=department_id,
                 inscription__regist_status__in=["Active", "Pending"],
             )
 
-        faculty_id = self.request.query_params.get("faculty_id")
+        faculty_id = self.request.query_params.get("faculty_id") or self.request.query_params.get(
+            "faculty_fk"
+        )
         if faculty_id:
             queryset = queryset.filter(
                 inscription__class_fk__department__faculty__id=faculty_id,
@@ -833,3 +948,38 @@ class CollectionCorrespondenceViewSet(BaseViewSet):
     filterset_fields = ["student", "correspondence_type"]
     search_fields = ["subject", "content"]
     ordering_fields = ["sent_at"]
+
+
+class FinanceDashboardAPIView(viewsets.ViewSet):
+    """Overview KPI for finance + direction dashboard."""
+
+    permission_classes = [IsFinanceOrDirection]
+
+    @action(detail=False, methods=["get"])
+    def overview(self, request):
+        from core.response_handler import success_response
+
+        university = getattr(request.user, "university", None)
+        if not university:
+            try:
+                university = request.user.university_admin.university
+            except Exception:
+                university = None
+        if not university:
+            return success_response(
+                data=FinanceDashboardService._empty_payload(),
+                message="University not found for user",
+            )
+
+        academic_year_id = request.query_params.get("academic_year_id")
+        period = request.query_params.get("period")
+        date_from = request.query_params.get("date_from")
+        date_to = request.query_params.get("date_to")
+        data = FinanceDashboardService.get_overview(
+            university=university,
+            academic_year_id=academic_year_id,
+            period=period,
+            date_from=date_from,
+            date_to=date_to,
+        )
+        return success_response(data=data, message="Finance overview retrieved successfully")

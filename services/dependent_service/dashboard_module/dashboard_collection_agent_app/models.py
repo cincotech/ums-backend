@@ -198,6 +198,12 @@ class PaymentPlan(models.Model):
             "feessheet__faculty",
         ).filter(status="active")
 
+        # Filtrer par année académique de l'inscription active
+        if active_inscription.academic_year:
+            base_queryset = base_queryset.filter(
+                feessheet__academic_year=active_inscription.academic_year
+            )
+
         # 1. D'abord chercher les plans pour SA CLASSE
         class_plans = base_queryset.filter(feessheet__class_fk=student_class)
         if class_plans.exists():
