@@ -36,6 +36,9 @@ from .serializers import (
 )
 from .services import UserService
 from .utils import send_otp_email, send_register_otp
+import secrets
+import string
+
 
 logger = logging.getLogger(__name__)
 
@@ -771,15 +774,41 @@ class TokenRefreshView(APIView):
 
 # ViewSet for managing user data
 class UserViewSet(BaseViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser, JSONParser)
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = UserFilter
-    search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
-    ordering_fields = ["email", "first_name", "last_name", "created_at"]
-    ordering = ["-created_at"]
+    @action(detail=True, methods=["post"], url_path="admin-reset-password")
+    def admin_reset_password(self, request, pk=None):
+        """
+        Permet à un admin de réinitialiser le mot de passe d'un utilisateur et de recevoir le nouveau mot de passe généré.
+        """
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+      
+        user = self.get_object()
+        # Générer un mot de passe sécurisé de 12 caractères
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+        new_password = ''.join(secrets.choice(alphabet) for _ in range(12))
+        user.set_password(new_password)
+        user.save()
+        log_security_event(
+            request,
+            "password_reset",
+            f"Admin reset password for user: {user.email}",
+            severity="info",
+        )
+        return success_response(
+            message="Mot de passe réinitialisé avec succès.",
+            data={"email": user.email, "new_password": new_password},
+        )
+        queryset = User.objects.all()
+        serializer_class = UserSerializer
+        permission_classes = [IsAuthenticated]
+        parser_classes = (MultiPartParser, FormParser, JSONParser)
+        filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+        filterset_class = UserFilter
+        search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
+        ordering_fields = ["email", "first_name", "last_name", "created_at"]
+        ordering = ["-created_at"]
 
     def get_queryset(self):
         user = self.request.user
