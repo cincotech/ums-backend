@@ -25,6 +25,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False, min_length=8)
     role = RoleSerializer(read_only=True)
     role_id = serializers.PrimaryKeyRelatedField(
         queryset=Role.objects.all(), source="role", write_only=True, required=False
@@ -63,6 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
             "totp_secret_key",
             "profile_picture",
             "spoken_languages",
+            "password",
             "role_id",
             "residence_ids",
         ]
@@ -97,6 +99,9 @@ class UserSerializer(serializers.ModelSerializer):
         return fields
 
     def validate(self, attrs):
+        if not self.instance and not attrs.get("password"):
+            raise serializers.ValidationError({"password": "This field is required."})
+
         # Block non-admins from attempting to update security fields
         if not self._is_admin() and self.instance:
             attempted = self.SECURITY_FIELDS.intersection(self.initial_data.keys())
@@ -183,18 +188,20 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         residence_data = validated_data.pop("residence", [])
+        password = validated_data.pop("password")
+        role = validated_data.pop("role", None)
 
-        user = User.objects.create(**validated_data)
+        user = User.objects.create_user(password=password, **validated_data)
 
-        # Set the many-to-many field
         if residence_data:
             user.residence.set(residence_data)
 
-        # Assign default role
-        guest_role, _ = Role.objects.get_or_create(name="guest")
-        user.role = guest_role
+        if role:
+            user.role = role
+        else:
+            guest_role, _ = Role.objects.get_or_create(name="guest")
+            user.role = guest_role
 
-        # Assign university
         upg, _ = University.objects.get_or_create(
             university_name="Université Polytechnique de Gitega", university_abrev="UPG"
         )
@@ -295,3 +302,9 @@ class LoginSerializer(serializers.Serializer):
         if not value.strip():
             raise serializers.ValidationError("Password is required.")
         return value
+
+
+
+
+
+

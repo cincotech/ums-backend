@@ -774,6 +774,16 @@ class TokenRefreshView(APIView):
 
 # ViewSet for managing user data
 class UserViewSet(BaseViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = UserFilter
+    search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
+    ordering_fields = ["email", "first_name", "last_name", "created_at"]
+    ordering = ["-created_at"]
+
     @action(detail=True, methods=["post"], url_path="admin-reset-password")
     def admin_reset_password(self, request, pk=None):
         """
@@ -800,15 +810,7 @@ class UserViewSet(BaseViewSet):
             message="Mot de passe réinitialisé avec succès.",
             data={"email": user.email, "new_password": new_password},
         )
-        queryset = User.objects.all()
-        serializer_class = UserSerializer
-        permission_classes = [IsAuthenticated]
-        parser_classes = (MultiPartParser, FormParser, JSONParser)
-        filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-        filterset_class = UserFilter
-        search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
-        ordering_fields = ["email", "first_name", "last_name", "created_at"]
-        ordering = ["-created_at"]
+
 
     def get_queryset(self):
         user = self.request.user
@@ -998,3 +1000,4 @@ class LogoutAPIView(APIView):
 
         except Exception:
             return error_response(message="Something went wrong")
+
