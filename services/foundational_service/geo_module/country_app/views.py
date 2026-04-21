@@ -77,7 +77,7 @@ class CountryDetailAPIView(APIView):
                 {"detail": "Country not found"}, status=status.HTTP_404_NOT_FOUND
             )
         serializer = CountrySerializer(country, data=request.data)
-        error = validate_serializer()
+        error = validate_serializer(serializer)
         if error:
             return error
         if serializer.is_valid():

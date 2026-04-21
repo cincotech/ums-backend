@@ -258,13 +258,16 @@ class PaymentSerializer(serializers.ModelSerializer):
     remittance_slip = serializers.ImageField(
         required=False, allow_null=True, source="remittance_slip_uri"
     )
+    remittance_slip_uri = serializers.ImageField(
+        required=False, allow_null=True, write_only=True
+    )
     paymentplan_info = serializers.SerializerMethodField()
     bank_info = serializers.SerializerMethodField()
     verified_by_info = serializers.SerializerMethodField()
     inscription_info = serializers.SerializerMethodField()
     user_info = serializers.SerializerMethodField()
     paymentplan = serializers.UUIDField(write_only=True)
-    bank = serializers.UUIDField(write_only=True)
+    bank = serializers.UUIDField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Payment
@@ -285,6 +288,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             "user_info",
             "description",
             "remittance_slip",
+            "remittance_slip_uri",
             "payment_status",
             "verified_by",
             "verified_by_info",
@@ -417,12 +421,6 @@ class PaymentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Banque non trouvée.")
 
     def to_internal_value(self, data):
-        # Debug: afficher les données reçues
-        print(f"DEBUG PaymentSerializer - données reçues: {data}")
-        print(
-            f"DEBUG PaymentSerializer - clés: {list(data.keys()) if hasattr(data, 'keys') else 'N/A'}"
-        )
-
         # Ne pas modifier les données du fichier
         if "inscription" in data and (
             data["inscription"] == "" or data["inscription"] == "<uuid-inscription>"
@@ -432,55 +430,15 @@ class PaymentSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def validate(self, data):
-        user = self.context["request"].user
-        user_role = user.role.name
+        # Validation conditionnelle du champ banque selon la méthode de paiement
+        payment_method = data.get("payment_method")
+        bank = data.get("bank")
 
-        # Vérifier que les plans précédents sont payés (pour tous les rôles)
-        paymentplan = data.get("paymentplan")
-        inscription = data.get("inscription")
-
-        if paymentplan:
-            from services.core_service.student_module.inscription_app.models import (
-                Inscription,
+        bank_required_methods = {"bank_deposit", "bank_transfert", "bank_check"}
+        if payment_method in bank_required_methods and not bank:
+            raise serializers.ValidationError(
+                {"bank": "La banque est obligatoire pour ce mode de paiement."}
             )
-            from services.core_service.student_module.student_profile_app.models import (
-                Student,
-            )
-
-            student = None
-
-            # Récupérer l'étudiant selon le rôle
-            if user_role in ["student", "guest"]:
-                try:
-                    student = Student.objects.get(user=user)
-                except Student.DoesNotExist:
-                    raise serializers.ValidationError("Profil étudiant non trouvé.")
-            elif user_role == "finance_service" and inscription:
-                try:
-                    # inscription est déjà un objet Inscription après validate_inscription
-                    if hasattr(inscription, "student"):
-                        student = inscription.student
-                    else:
-                        # Si c'est encore un UUID, le convertir
-                        inscription_obj = Inscription.objects.select_related(
-                            "student"
-                        ).get(id=inscription)
-                        student = inscription_obj.student
-                except (Inscription.DoesNotExist, AttributeError):
-                    raise serializers.ValidationError("Inscription non trouvée.")
-
-            # Vérifier les plans précédents pour cet étudiant
-            if student:
-                previous_unpaid = PaymentInstallement.objects.filter(
-                    student=student,
-                    payment_plan__start_date__lt=paymentplan.start_date,
-                    status__in=["pending", "overdue"],
-                ).exists()
-
-                if previous_unpaid:
-                    raise serializers.ValidationError(
-                        f"Impossible de créer ce paiement. L'étudiant {student.user.get_full_name()} ({student.matricule}) a encore des paiements non terminés sur des plans précédents."
-                    )
 
         return data
 
@@ -495,6 +453,8 @@ class PaymentSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         user_role = user.role.name
         validated_data["user"] = user
+            # Forcer le statut à 'unverified' à la création
+        validated_data["payment_status"] = "unverified"
 
         # inscription est déjà un objet après validate_inscription
         inscription = validated_data.get("inscription")
@@ -544,7 +504,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
-        # Sauvegarder en passant l'utilisateur actuel
+        # Le modèle Payment appellera automatiquement PaymentService si nécessaire
         instance.save(_current_user=user)
         return instance
 

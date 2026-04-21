@@ -1,7 +1,6 @@
 import uuid
 
 from django.db import models
-from django.db.models import Q, Sum
 
 from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.department_app.models import Department
@@ -199,6 +198,12 @@ class PaymentPlan(models.Model):
             "feessheet__faculty",
         ).filter(status="active")
 
+        # Filtrer par année académique de l'inscription active
+        if active_inscription.academic_year:
+            base_queryset = base_queryset.filter(
+                feessheet__academic_year=active_inscription.academic_year
+            )
+
         # 1. D'abord chercher les plans pour SA CLASSE
         class_plans = base_queryset.filter(feessheet__class_fk=student_class)
         if class_plans.exists():
@@ -220,6 +225,20 @@ class PaymentPlan(models.Model):
 
         # 4. Aucun plan trouvé
         return cls.objects.none()
+
+    @classmethod
+    def get_plans_for_user(cls, user):
+        """Retourne les plans selon le rôle de l'utilisateur"""
+        if user.role.name in ["student", "guest"]:
+            # Étudiant voit seulement les plans de sa classe/département/faculté
+            try:
+                student = Student.objects.get(user=user)
+                return cls.get_plans_for_student(student)
+            except Student.DoesNotExist:
+                return cls.objects.none()
+        else:
+            # Tous les autres rôles (finance, admin, etc.) voient tous les plans
+            return cls.objects.all()
 
     def __str__(self):
         base_str = ""
@@ -266,9 +285,22 @@ class PaymentInstallement(models.Model):
         db_table = "payment_installments"
 
     def save(self, *args, **kwargs):
+        import logging
+
         from django.utils import timezone
 
+        logger = logging.getLogger(__name__)
         today = timezone.now().date()
+
+        # Détecter si le montant a changé
+        is_new = self.pk is None
+        old_amount = None
+        if not is_new:
+            try:
+                old_inst = PaymentInstallement.objects.only("amount").get(pk=self.pk)
+                old_amount = old_inst.amount
+            except PaymentInstallement.DoesNotExist:
+                pass
 
         # Mettre à jour le statut automatiquement
         if self.paid_amount >= self.amount:
@@ -276,15 +308,66 @@ class PaymentInstallement(models.Model):
             if not self.paid_date:
                 self.paid_date = today
         elif self.paid_amount < self.amount:
-            # Si le montant n'est pas totalisé, réinitialiser la date de paiement
             self.paid_date = None
-            # Vérifier si en retard
             if self.due_date < today:
                 self.status = "overdue"
             else:
                 self.status = "pending"
 
         super().save(*args, **kwargs)
+
+        # Si le montant a changé, recalculer via PaymentService
+        if old_amount is not None and old_amount != self.amount:
+            logger.info(
+                "\n🔔 Modèle PaymentInstallement - Changement de montant détecté"
+            )
+            logger.info(f"   Ancien: {old_amount} → Nouveau: {self.amount}")
+            logger.info("📞 Appel de PaymentService pour recalculer les surplus")
+
+            from django.db.models import Sum
+
+            from .services import PaymentService
+
+            # Recalculer le total vérifié pour ce plan
+            total_verified = (
+                Payment.objects.filter(
+                    paymentplan=self.payment_plan,
+                    payment_status="verified",
+                    inscription__student=self.student,
+                ).aggregate(total=Sum("amount_paid"))["total"]
+                or 0
+            )
+
+            # Ajuster paid_amount si nécessaire
+            self.paid_amount = min(total_verified, self.amount)
+            PaymentInstallement.objects.filter(pk=self.pk).update(
+                paid_amount=self.paid_amount
+            )
+
+            # Gérer le surplus si nécessaire
+            surplus = max(total_verified - self.amount, 0)
+            if surplus > 0:
+                logger.info(f"💸 Surplus détecté après modification: {surplus}")
+                # Récupérer le dernier paiement pour obtenir les infos nécessaires
+                last_payment = (
+                    Payment.objects.filter(
+                        paymentplan=self.payment_plan,
+                        payment_status="verified",
+                        inscription__student=self.student,
+                    )
+                    .order_by("-verified_at")
+                    .first()
+                )
+
+                if last_payment:
+                    PaymentService._handle_surplus(
+                        self.student,
+                        self.payment_plan,
+                        surplus,
+                        last_payment.payment_method,
+                        last_payment.bank,
+                        last_payment.transaction_code,
+                    )
 
 
 class Payment(models.Model):
@@ -355,17 +438,11 @@ class Payment(models.Model):
 
     @classmethod
     def create_payment(cls, created_by_user, **payment_data):
-        """Crée un paiement - finance_service, student ou student_service peuvent créer"""
-        if created_by_user.role.name not in [
-            "finance_service",
-            "student",
-            "student_service",
-        ]:
-            raise ValueError(
-                "Seuls le service financier, les étudiants et le service aux étudiants peuvent créer les paiements."
-            )
-
+        """Crée un paiement - tout le monde peut créer, statut unverified par défaut"""
         payment_data["user"] = created_by_user
+        payment_data["payment_status"] = (
+            "unverified"  # Toujours unverified à la création
+        )
         return cls.objects.create(**payment_data)
 
     def verify(self, verified_by_user):
@@ -381,348 +458,234 @@ class Payment(models.Model):
         self.save()
 
     def save(self, *args, **kwargs):
+        import logging
+
         from django.utils import timezone
 
-        # Flag pour éviter la récursion lors de la création de paiements de surplus
+        logger = logging.getLogger(__name__)
+
         skip_surplus = kwargs.pop("_skip_surplus_handling", False)
-        # Récupérer l'utilisateur qui fait la modification (passé depuis le serializer/view)
         current_user = kwargs.pop("_current_user", None)
 
-        # Vérifier si l'étudiant peut créer un nouveau paiement
-        if not self.pk and not skip_surplus:  # Seulement pour les nouveaux paiements
-            if self.inscription:
-                student = self.inscription.student
-
-                # Vérifier s'il y a des PaymentInstallement non payés pour d'AUTRES plans (antérieurs)
-                other_unpaid_installments = (
-                    PaymentInstallement.objects.filter(
-                        student=student,
-                        status__in=["pending", "overdue"],
-                        payment_plan__start_date__lt=self.paymentplan.start_date,  # Plans antérieurs seulement
-                    )
-                    .exclude(payment_plan=self.paymentplan)  # Exclure le plan actuel
-                    .exists()
-                )
-
-                if other_unpaid_installments:
-                    raise ValueError(
-                        f"Impossible de créer ce paiement. L'étudiant {student.user.get_full_name()} ({student.matricule}) doit d'abord terminer les plans de paiement précédents."
-                    )
-
-        # Récupérer l'ancien statut avant la sauvegarde
-        old_amount = 0
+        is_new = self.pk is None
         old_status = None
-        if self.pk:
+        old_amount = None
+        old_paymentplan = None
+
+        if not is_new:
             try:
-                old_payment = Payment.objects.only("amount_paid", "payment_status").get(
-                    pk=self.pk
-                )
-                old_amount = (
-                    old_payment.amount_paid
-                    if old_payment.payment_status == "verified"
-                    else 0
-                )
+                old_payment = Payment.objects.only(
+                    "payment_status", "amount_paid", "paymentplan"
+                ).get(pk=self.pk)
                 old_status = old_payment.payment_status
+                old_amount = old_payment.amount_paid
+                old_paymentplan = old_payment.paymentplan
+
+                # Vérifier si le statut a changé et que ce n'est pas le service financier
+                if old_status != self.payment_status and current_user:
+                    if current_user.role.name != "finance_service":
+                        raise ValueError(
+                            "Seul le service financier peut modifier le statut des paiements."
+                        )
             except Payment.DoesNotExist:
                 pass
 
-        # Remplir automatiquement verified_by et verified_at si le statut passe à "verified"
-        if self.payment_status == "verified" and old_status != "verified":
-            if not self.verified_by and current_user:
-                self.verified_by = current_user
-            if not self.verified_at:
-                self.verified_at = timezone.now()
+        if self.payment_status == "verified" and not self.verified_by and current_user:
+            self.verified_by = current_user
+        if self.payment_status == "verified" and not self.verified_at:
+            self.verified_at = timezone.now()
 
         super().save(*args, **kwargs)
 
-        # Mettre à jour le PaymentInstallement si le statut est vérifié (sauf pour les paiements de surplus)
-        if not skip_surplus and (
-            self.payment_status == "verified" or old_status == "verified"
-        ):
-            self._update_payment_installment(old_amount)
+        # Appeler PaymentService après la sauvegarde si nécessaire
+        if not skip_surplus:
+            from django.db.models import Sum
 
-    def _update_payment_installment(self, old_amount=0):
-        """Met à jour le PaymentInstallement correspondant et gère le surplus automatiquement"""
-        from django.db import transaction
+            from .services import PaymentService
 
-        student = self.inscription.student if self.inscription else None
-        if not student:
-            return
+            student = self.inscription.student if self.inscription else None
+            if not student:
+                return
 
-        with transaction.atomic():
-            # Chercher ou créer PaymentInstallement pour ce plan et cet étudiant
-            installment, created = PaymentInstallement.objects.get_or_create(
-                payment_plan=self.paymentplan,
-                student=student,
-                defaults={
-                    "amount": self.paymentplan.total_amount,
-                    "due_date": self.paymentplan.end_date,
-                    "created_by": self.user,
-                },
-            )
+            # 1. Changement de statut vers "verified"
+            if old_status != "verified" and self.payment_status == "verified":
+                logger.info(f"\n🔔 Payment - Vérification du paiement {self.id}")
+                logger.info("📞 Appel de PaymentService pour gérer les surplus")
 
-            # Recalculer le montant total payé pour ce plan et cet étudiant
-            total_verified_payments = (
-                Payment.objects.filter(
-                    paymentplan=self.paymentplan,
-                    payment_status="verified",
-                    inscription__student=student,
-                ).aggregate(total=Sum("amount_paid"))["total"]
-                or 0
-            )
+                installment, _ = PaymentInstallement.objects.get_or_create(
+                    student=student,
+                    payment_plan=self.paymentplan,
+                    defaults={
+                        "amount": self.paymentplan.total_amount,
+                        "due_date": self.paymentplan.end_date,
+                        "created_by": self.user,
+                    },
+                )
 
-            installment.paid_amount = total_verified_payments
-            installment.save()
+                total_verified = (
+                    Payment.objects.filter(
+                        paymentplan=self.paymentplan,
+                        payment_status="verified",
+                        inscription__student=student,
+                    ).aggregate(total=Sum("amount_paid"))["total"]
+                    or 0
+                )
 
-            # Gérer le surplus automatiquement si le plan est totalisé
-            if total_verified_payments > installment.amount:
-                surplus = total_verified_payments - installment.amount
-                self._handle_payment_surplus(student, surplus)
-            else:
-                # Si plus de surplus, supprimer le paiement de surplus créé précédemment
-                self._remove_surplus_payment(student)
+                installment.paid_amount = min(total_verified, installment.amount)
+                installment.save()
 
-    def _remove_surplus_payment(self, student):
-        """Supprime le paiement de surplus si le paiement original n'est plus vérifié"""
-        import logging
-
-        from django.db import transaction
-
-        logger = logging.getLogger(__name__)
-
-        # Chercher le paiement de surplus créé pour ce paiement
-        surplus_description = (
-            f"Surplus transféré du plan {self.paymentplan.id} (Paiement #{self.id})"
-        )
-        surplus_payments = Payment.objects.filter(
-            inscription=self.inscription,
-            description=surplus_description,
-            payment_status="verified",
-        )
-
-        if surplus_payments.exists():
-            with transaction.atomic():
-                for surplus_payment in surplus_payments:
-                    next_plan = surplus_payment.paymentplan
-                    logger.info(
-                        f"Suppression du paiement de surplus: {surplus_payment.id}"
+                surplus = max(total_verified - installment.amount, 0)
+                if surplus > 0:
+                    logger.info(f"💸 Surplus détecté: {surplus}")
+                    PaymentService._handle_surplus(
+                        student,
+                        self.paymentplan,
+                        surplus,
+                        self.payment_method,
+                        self.bank,
+                        self.transaction_code,
                     )
 
-                    # Supprimer le paiement de surplus
-                    surplus_payment.delete()
+            # 2. Changement de statut de "verified" vers "unverified/rejected"
+            elif old_status == "verified" and self.payment_status in [
+                "unverified",
+                "rejected",
+            ]:
+                logger.info(f"\n❌ Payment - Rejet du paiement {self.id}")
+                logger.info("📞 Recalcul de tous les installments")
 
-                    # Recalculer le PaymentInstallement du plan suivant
-                    try:
-                        next_installment = PaymentInstallement.objects.get(
-                            payment_plan=next_plan, student=student
-                        )
-
-                        # Recalculer le total vérifié pour le plan suivant
-                        total_verified = (
-                            Payment.objects.filter(
-                                paymentplan=next_plan,
-                                payment_status="verified",
-                                inscription__student=student,
-                            ).aggregate(total=Sum("amount_paid"))["total"]
-                            or 0
-                        )
-                        next_installment.paid_amount = total_verified
-                        next_installment.save()
-                        logger.info(
-                            f"PaymentInstallement du plan suivant recalculé: paid_amount={total_verified}"
-                        )
-                    except PaymentInstallement.DoesNotExist:
-                        pass
-
-    def _handle_payment_surplus(self, student, surplus_amount):
-        """Gère automatiquement le surplus de paiement vers le plan suivant"""
-        import logging
-
-        from django.db import transaction
-
-        logger = logging.getLogger(__name__)
-        logger.info(
-            f"Détection surplus de {surplus_amount} pour l'étudiant {student.matricule}"
-        )
-
-        next_plan = self._find_next_payment_plan(student)
-
-        if not next_plan:
-            logger.warning(
-                f"Aucun plan suivant trouvé pour transférer le surplus de {surplus_amount}"
-            )
-            return  # Pas de plan suivant, le surplus reste sur le plan actuel
-
-        logger.info(f"Plan suivant trouvé: {next_plan.id} - {next_plan.description}")
-
-        with transaction.atomic():
-            # Créer ou récupérer l'échéancier du plan suivant
-            next_installment, created = PaymentInstallement.objects.get_or_create(
-                payment_plan=next_plan,
-                student=student,
-                defaults={
-                    "amount": next_plan.total_amount,
-                    "due_date": next_plan.end_date,
-                    "created_by": self.user,
-                },
-            )
-
-            # Vérifier si un paiement de surplus existe déjà pour éviter les doublons
-            surplus_description = (
-                f"Surplus transféré du plan {self.paymentplan.id} (Paiement #{self.id})"
-            )
-            existing_surplus = Payment.objects.filter(
-                paymentplan=next_plan,
-                inscription=self.inscription,
-                description=surplus_description,
-                payment_status="verified",
-            ).first()
-
-            if existing_surplus:
-                logger.info(f"Mise à jour du surplus existant: {existing_surplus.id}")
-                # Mettre à jour le montant du surplus existant
-                existing_surplus.amount_paid = surplus_amount
-                existing_surplus.save(
-                    update_fields=["amount_paid"], _skip_surplus_handling=True
-                )
-            else:
-                logger.info(
-                    f"Création d'un nouveau paiement de surplus de {surplus_amount}"
-                )
-                # Créer un nouveau paiement de traçabilité pour le surplus
-                surplus_payment = Payment(
-                    paymentplan=next_plan,
-                    amount_paid=surplus_amount,
-                    payment_date=self.payment_date,
-                    reception_date=self.reception_date,
-                    payment_method="other",
-                    bank=self.bank,
-                    inscription=self.inscription,
-                    user=self.user,
-                    description=surplus_description,
-                    payment_status="verified",
-                    verified_by=self.verified_by,
-                    verified_at=self.verified_at,
-                )
-                surplus_payment.save(
-                    _skip_surplus_handling=True
-                )  # Flag pour éviter la récursion
-                logger.info(f"Paiement de surplus créé: {surplus_payment.id}")
-
-            # Recalculer le paid_amount du plan suivant
-            total_verified = (
-                Payment.objects.filter(
-                    paymentplan=next_plan,
-                    payment_status="verified",
+                auto_payments = Payment.objects.filter(
                     inscription__student=student,
-                ).aggregate(total=Sum("amount_paid"))["total"]
-                or 0
-            )
-            next_installment.paid_amount = total_verified
-            next_installment.save()
-            logger.info(f"PaymentInstallement mis à jour: paid_amount={total_verified}")
-
-    def _find_next_payment_plan(self, student):
-        """Trouve le plan de paiement suivant chronologiquement pour un étudiant"""
-        # Récupérer l'inscription active de l'étudiant
-        active_inscription = (
-            student.inscriptions.select_related("class_fk__department__faculty")
-            .filter(regist_status__in=["Active", "Pending"])
-            .order_by("-date_inscription")
-            .first()
-        )
-
-        if not active_inscription or not active_inscription.class_fk:
-            return None
-
-        student_class = active_inscription.class_fk
-        student_department = student_class.department
-        student_faculty = student_department.faculty if student_department else None
-
-        # Chercher le plan suivant en priorité hiérarchique:
-        # 1. Même classe
-        # 2. Même département
-        # 3. Même faculté
-        # 4. N'importe quel plan actif (pour gérer les cas où les plans sont à un niveau différent)
-
-        # Essayer d'abord avec la hiérarchie stricte
-        next_plan = (
-            PaymentPlan.objects.filter(
-                Q(feessheet__class_fk=student_class)
-                | Q(feessheet__department=student_department)
-                | Q(feessheet__faculty=student_faculty),
-                start_date__gt=self.paymentplan.start_date,
-                status="active",
-            )
-            .order_by("start_date")
-            .first()
-        )
-
-        # Si aucun plan trouvé avec la hiérarchie, chercher n'importe quel plan actif suivant
-        if not next_plan:
-            next_plan = (
-                PaymentPlan.objects.filter(
-                    start_date__gt=self.paymentplan.start_date, status="active"
-                )
-                .order_by("start_date")
-                .first()
-            )
-
-        return next_plan
-
-    def can_pay_plan(self, student, target_plan):
-        """Vérifie si l'étudiant peut payer ce plan (plans précédents payés)"""
-        previous_unpaid = PaymentInstallement.objects.filter(
-            student=student,
-            payment_plan__start_date__lt=target_plan.start_date,
-            status__in=["pending", "overdue"],
-        ).exists()
-
-        return not previous_unpaid
-
-    @staticmethod
-    def get_plan_balance(payment_plan, student):
-        """Retourne le solde d'un plan (négatif = surplus, positif = reste à payer)"""
-        try:
-            installment = PaymentInstallement.objects.get(
-                payment_plan=payment_plan, student=student
-            )
-            return installment.amount - installment.paid_amount
-        except PaymentInstallement.DoesNotExist:
-            return payment_plan.total_amount
-
-    @staticmethod
-    def get_effective_payment_for_plan(payment_plan, student):
-        """Retourne le montant effectif alloué à un plan (sans le surplus transféré)"""
-        try:
-            installment = PaymentInstallement.objects.get(
-                payment_plan=payment_plan, student=student
-            )
-            # Le montant effectif est le minimum entre le montant payé et le montant requis
-            return min(installment.paid_amount, installment.amount)
-        except PaymentInstallement.DoesNotExist:
-            return 0
-
-    def delete(self, *args, **kwargs):
-        """Met à jour le PaymentInstallement après suppression du paiement"""
-        super().delete(*args, **kwargs)
-        # Recalculer les montants pour tous les PaymentInstallement affectés
-        self._recalculate_installments_for_plan()
-
-    def _recalculate_installments_for_plan(self):
-        """Recalcule tous les PaymentInstallement pour ce plan de paiement"""
-        installments = PaymentInstallement.objects.filter(payment_plan=self.paymentplan)
-        for installment in installments:
-            total_verified = (
-                Payment.objects.filter(
-                    paymentplan=self.paymentplan,
                     payment_status="verified",
-                    inscription__student=installment.student,
-                ).aggregate(total=Sum("amount_paid"))["total"]
-                or 0
-            )
-            installment.paid_amount = total_verified
-            installment.save()
+                    description__icontains="Surplus",
+                ) | Payment.objects.filter(
+                    inscription__student=student,
+                    payment_status="verified",
+                    description__icontains="Redistribution",
+                )
+
+                count = auto_payments.count()
+                if count > 0:
+                    logger.info(f"🗑️ Suppression de {count} paiements automatiques")
+                    auto_payments.delete()
+
+                logger.info("📊 Recalcul des installments...")
+                for inst in PaymentInstallement.objects.filter(
+                    student=student
+                ).order_by("payment_plan__start_date"):
+                    total_verified = (
+                        Payment.objects.filter(
+                            paymentplan=inst.payment_plan,
+                            payment_status="verified",
+                            inscription__student=student,
+                        ).aggregate(total=Sum("amount_paid"))["total"]
+                        or 0
+                    )
+                    inst.paid_amount = total_verified
+                    inst.save()
+                    logger.info(
+                        f"  - {inst.payment_plan.description}: {total_verified}"
+                    )
+
+            # 3. Modification du montant (paiement vérifié)
+            elif (
+                self.payment_status == "verified"
+                and old_amount is not None
+                and old_amount != self.amount_paid
+            ):
+                logger.info("\n🔔 Payment - Changement de montant détecté")
+                logger.info(f"   Ancien: {old_amount} → Nouveau: {self.amount_paid}")
+                logger.info("📞 Recalcul des installments et surplus")
+
+                installment = PaymentInstallement.objects.filter(
+                    student=student, payment_plan=self.paymentplan
+                ).first()
+
+                if installment:
+                    total_verified = (
+                        Payment.objects.filter(
+                            paymentplan=self.paymentplan,
+                            payment_status="verified",
+                            inscription__student=student,
+                        ).aggregate(total=Sum("amount_paid"))["total"]
+                        or 0
+                    )
+
+                    installment.paid_amount = min(total_verified, installment.amount)
+                    installment.save()
+
+                    surplus = max(total_verified - installment.amount, 0)
+                    if surplus > 0:
+                        logger.info(f"💸 Surplus détecté: {surplus}")
+                        PaymentService._handle_surplus(
+                            student,
+                            self.paymentplan,
+                            surplus,
+                            self.payment_method,
+                            self.bank,
+                            self.transaction_code,
+                        )
+
+            # 4. Changement de plan de paiement (paiement vérifié)
+            elif (
+                self.payment_status == "verified"
+                and old_paymentplan is not None
+                and old_paymentplan != self.paymentplan
+            ):
+                logger.info("\n🔔 Payment - Changement de plan détecté")
+                logger.info(
+                    f"   Ancien: {old_paymentplan.description} → Nouveau: {self.paymentplan.description}"
+                )
+                logger.info("📞 Recalcul des deux plans")
+
+                # Recalculer l'ancien plan
+                old_inst = PaymentInstallement.objects.filter(
+                    student=student, payment_plan=old_paymentplan
+                ).first()
+                if old_inst:
+                    old_total = (
+                        Payment.objects.filter(
+                            paymentplan=old_paymentplan,
+                            payment_status="verified",
+                            inscription__student=student,
+                        ).aggregate(total=Sum("amount_paid"))["total"]
+                        or 0
+                    )
+                    old_inst.paid_amount = old_total
+                    old_inst.save()
+
+                # Recalculer le nouveau plan
+                new_inst, _ = PaymentInstallement.objects.get_or_create(
+                    student=student,
+                    payment_plan=self.paymentplan,
+                    defaults={
+                        "amount": self.paymentplan.total_amount,
+                        "due_date": self.paymentplan.end_date,
+                        "created_by": self.user,
+                    },
+                )
+                new_total = (
+                    Payment.objects.filter(
+                        paymentplan=self.paymentplan,
+                        payment_status="verified",
+                        inscription__student=student,
+                    ).aggregate(total=Sum("amount_paid"))["total"]
+                    or 0
+                )
+                new_inst.paid_amount = min(new_total, new_inst.amount)
+                new_inst.save()
+
+                surplus = max(new_total - new_inst.amount, 0)
+                if surplus > 0:
+                    logger.info(f"💸 Surplus détecté: {surplus}")
+                    PaymentService._handle_surplus(
+                        student,
+                        self.paymentplan,
+                        surplus,
+                        self.payment_method,
+                        self.bank,
+                        self.transaction_code,
+                    )
 
 
 class PaymentReminder(models.Model):

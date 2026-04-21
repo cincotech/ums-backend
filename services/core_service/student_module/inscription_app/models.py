@@ -46,6 +46,20 @@ class Inscription(models.Model):
     )
     withdrawal_date = models.DateField(null=True, blank=True)
     is_year_close = models.BooleanField(default=False)
+    created_by = models.ForeignKey(
+        'user_app.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='inscription_created'
+    )
+    modified_by = models.ForeignKey(
+        'user_app.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='inscription_modified'
+    )
 
     class Meta:
         db_table = "inscriptions"
@@ -331,12 +345,13 @@ class Inscription(models.Model):
             )
 
     def save(self, *args, **kwargs):
-        # Validate first
+        # On attend un argument 'user' pour renseigner created_by et modified_by
+        user = kwargs.pop('user', None)
         self.clean()
         if self._state.adding and self.class_group is None:
             self.class_group = self.get_or_create_default_group()
 
-        # Generate new matricule if it starts with X
+        # Générer le matricule si besoin
         try:
             type_code = self.class_fk.department.faculty.types.code
         except AttributeError:
@@ -352,5 +367,11 @@ class Inscription(models.Model):
                 f"{type_code}{year}/{str(existing_count + 1).zfill(5)}"
             )
             self.student.save()
+
+        # Mise à jour des champs utilisateur
+        if user:
+            if self._state.adding:
+                self.created_by = user
+            self.modified_by = user
 
         super().save(*args, **kwargs)

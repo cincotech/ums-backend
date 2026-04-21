@@ -70,10 +70,11 @@ class PaymentInstallementFilter(django_filters.FilterSet):
     class_id = django_filters.UUIDFilter(method="filter_by_class")
     department_id = django_filters.UUIDFilter(method="filter_by_department")
     faculty_id = django_filters.UUIDFilter(method="filter_by_faculty")
+    academic_year_id = django_filters.UUIDFilter(method="filter_by_academic_year")
 
     class Meta:
         model = PaymentInstallement
-        fields = ["payment_plan", "student", "status"]
+        fields = ["payment_plan", "student", "status", "academic_year_id"]
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(
@@ -95,6 +96,12 @@ class PaymentInstallementFilter(django_filters.FilterSet):
     def filter_by_faculty(self, queryset, name, value):
         return queryset.filter(
             student__inscriptions__class_fk__department__faculty=value,
+            student__inscriptions__regist_status__in=["Active", "Pending"],
+        ).distinct()
+
+    def filter_by_academic_year(self, queryset, name, value):
+        return queryset.filter(
+            student__inscriptions__academic_year=value,
             student__inscriptions__regist_status__in=["Active", "Pending"],
         ).distinct()
 
@@ -125,10 +132,11 @@ class PaymentPlanFilter(django_filters.FilterSet):
     class_id = django_filters.UUIDFilter(method="filter_by_class")
     department_id = django_filters.UUIDFilter(method="filter_by_department")
     faculty_id = django_filters.UUIDFilter(method="filter_by_faculty")
+    academic_year_id = django_filters.UUIDFilter(field_name="feessheet__academic_year")
 
     class Meta:
         model = PaymentPlan
-        fields = ["feessheet", "status", "created_by"]
+        fields = ["feessheet", "status", "created_by", "academic_year_id"]
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(
@@ -173,6 +181,7 @@ class PaymentFilter(django_filters.FilterSet):
     inscription = django_filters.UUIDFilter(field_name="inscription")
     bank = django_filters.UUIDFilter(field_name="bank")
     user = django_filters.UUIDFilter(field_name="user")
+    academic_year_id = django_filters.UUIDFilter(field_name="inscription__academic_year")
 
     class Meta:
         model = Payment
@@ -183,6 +192,7 @@ class PaymentFilter(django_filters.FilterSet):
             "inscription",
             "bank",
             "user",
+            "academic_year_id",
         ]
 
     def filter_search(self, queryset, name, value):

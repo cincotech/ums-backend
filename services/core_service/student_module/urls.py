@@ -15,6 +15,9 @@ from services.core_service.student_module.highschool_info_app.views import (
 from services.core_service.student_module.inscription_app.views import (
     InscriptionViewSet,
 )
+from services.core_service.student_module.inscription_draft.views import (
+    InscriptionDraftViewSet,
+)
 from services.core_service.student_module.parent_app.views import (
     ParentViewSet,
     ProfessionViewSet,
@@ -45,8 +48,8 @@ router.register(r"student-file", StudentFileViewSet, basename="studentfile")
 router.register(
     r"student-graduate-info", StudentGraduateInfoViewSet, basename="studentgraduateinfo"
 )
-
 router.register(r"inscriptions", InscriptionViewSet, basename="inscription")
+router.register(r"inscription-drafts", InscriptionDraftViewSet, basename="inscription-draft")
 
 router.register(r"student-cards", StudentCardViewSet, basename="student-card")
 router.register(

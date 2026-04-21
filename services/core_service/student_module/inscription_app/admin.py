@@ -77,6 +77,8 @@ class InscriptionAdmin(ImportExportModelAdmin, ModelAdmin):
         "date_inscription",
         "regist_status",
         "is_year_close",
+        "created_by",
+        "modified_by",
     )
     search_fields = (
         "student__user__email",
@@ -103,6 +105,8 @@ class InscriptionAdmin(ImportExportModelAdmin, ModelAdmin):
                     "regist_status",
                     "withdrawal_date",
                     "is_year_close",
+                    "created_by",
+                    "modified_by",
                 )
             },
         ),
