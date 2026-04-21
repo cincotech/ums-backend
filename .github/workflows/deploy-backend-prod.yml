@@ -19,7 +19,7 @@ jobs:
           # On utilise les secrets de production (PROD_*)
           host: ${{ secrets.PROD_SERVER_IP }}
           username: ${{ secrets.PROD_SERVER_USER }}
-          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          key: ${{ secrets.PROD_SSH_KEY }}
           port: 2222
           script: |
             #!/bin/bash
