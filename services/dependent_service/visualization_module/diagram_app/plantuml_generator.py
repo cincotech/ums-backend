@@ -53,15 +53,21 @@ class PlantUMLGenerator:
                 continue
 
             for field in model._meta.get_fields():
-                if field.many_to_one:
+                if getattr(field, "many_to_one", False) and hasattr(
+                    field, "related_model"
+                ):
                     content.append(
                         f"{model.__name__} --> {field.related_model.__name__}"
                     )
-                elif field.many_to_many:
+                elif getattr(field, "many_to_many", False) and hasattr(
+                    field, "related_model"
+                ):
                     content.append(
                         f"{model.__name__} --* {field.related_model.__name__}"
                     )
-                elif field.one_to_one:
+                elif getattr(field, "one_to_one", False) and hasattr(
+                    field, "related_model"
+                ):
                     content.append(
                         f"{model.__name__} -- {field.related_model.__name__}"
                     )
