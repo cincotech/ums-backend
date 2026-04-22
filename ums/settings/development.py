@@ -5,7 +5,11 @@ ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",  # noqa F405
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "ums",  # Remplacez par le nom de votre base si différent
+        "USER": "root",
+        "PASSWORD": "pwd",
+        "HOST": "localhost",
+        "PORT": "3306",
     }
 }

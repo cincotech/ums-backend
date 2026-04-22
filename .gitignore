@@ -123,3 +123,5 @@ __pycache__/
 .env
 venv/
 docs/
+sync_prod_to_local.sh
+backup_prod.sql
