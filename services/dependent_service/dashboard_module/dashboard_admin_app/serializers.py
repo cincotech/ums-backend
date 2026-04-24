@@ -237,8 +237,9 @@ class UserListSerializer(serializers.ModelSerializer):
             "is_active",
             "profile",
             "created_at",
+            "last_login",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = ["id", "created_at", "last_login"]
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -260,11 +261,15 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "role_name",
             "profile",
             "email_verified",
+            "requires_2fa",
+            "requires_2fa_qr",
+            "requires_2fa_email",
+            "requires_2fa_static",
             "created_at",
             "last_login",
             "profile_picture",
         ]
-        read_only_fields = ["id", "created_at", "last_login", "email_verified"]
+        read_only_fields = ["id", "created_at", "last_login", "requires_2fa", "requires_2fa_qr", "requires_2fa_email", "requires_2fa_static"]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

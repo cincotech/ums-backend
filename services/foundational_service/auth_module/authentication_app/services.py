@@ -24,10 +24,14 @@ class UserService:
         Returns:
             EmailDevice: The created email 2FA device.
         """
-        device, _ = EmailDevice.objects.get_or_create(
+        # Use only `user` as lookup key to avoid duplicates on MySQL
+        # (get_or_create with multiple fields creates duplicates when any field differs)
+        device, _ = EmailDevice.objects.update_or_create(
             user=user,
-            name=f"{user.email}_email_2fa",
-            email=user.email,
+            defaults={
+                "name": f"{user.email}_email_2fa",
+                "email": user.email,
+            },
         )
         logger.info(f"Email 2FA device created for user: {user.email}")
         return device
@@ -44,7 +48,9 @@ class UserService:
             EmailDevice.DoesNotExist: If no email 2FA device exists.
         """
         try:
-            device = EmailDevice.objects.get(user=user, email=user.email)
+            device = EmailDevice.objects.filter(user=user).first()
+            if device is None:
+                raise EmailDevice.DoesNotExist("Email 2FA device not found")
             if device.verify_token(otp_token):
                 device.confirmed = True
                 device.save()
@@ -75,7 +81,9 @@ class UserService:
             EmailDevice.DoesNotExist: If no email 2FA device exists.
         """
         try:
-            device = EmailDevice.objects.get(user=user, email=user.email)
+            device = EmailDevice.objects.filter(user=user).first()
+            if device is None:
+                raise EmailDevice.DoesNotExist("Email 2FA device not found")
             if not otp_token:
                 device.generate_challenge()
                 logger.info(
@@ -285,7 +293,9 @@ class UserService:
             EmailDevice.DoesNotExist: If no email device exists.
         """
         try:
-            device = EmailDevice.objects.get(user=user, email=user.email)
+            device = EmailDevice.objects.filter(user=user).first()
+            if device is None:
+                raise EmailDevice.DoesNotExist("Email 2FA device not found")
             if device.verify_token(otp_token):
                 device.confirmed = False
                 device.save()

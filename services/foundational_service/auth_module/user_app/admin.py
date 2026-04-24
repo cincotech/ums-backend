@@ -1,5 +1,6 @@
 # Register your models here.
 from django.contrib import admin
+from django.db import transaction
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
@@ -7,6 +8,7 @@ from unfold.admin import ModelAdmin
 
 from services.foundational_service.geo_module.colline_app.models import Colline
 from services.foundational_service.geo_module.country_app.models import Country
+from services.foundational_service.auth_module.authentication_app.services import UserService
 
 from .models import Role, User
 
@@ -105,3 +107,59 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
     )
 
     filter_horizontal = ("residence",)
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            super().save_model(request, obj, form, change)
+            return
+
+        old = User.objects.get(pk=obj.pk)
+        service = UserService()
+
+        with transaction.atomic():
+            # Sync EmailDevice when requires_2fa_email changes
+            if old.requires_2fa_email != obj.requires_2fa_email:
+                if obj.requires_2fa_email:
+                    service.setup_email_2fa(obj)
+                else:
+                    from django_otp.plugins.otp_email.models import EmailDevice
+                    EmailDevice.objects.filter(user=obj).delete()
+
+            # Sync TOTPDevice when requires_2fa_qr changes
+            if old.requires_2fa_qr != obj.requires_2fa_qr:
+                if obj.requires_2fa_qr:
+                    service.setup_totp_2fa(obj)
+                else:
+                    from django_otp.plugins.otp_totp.models import TOTPDevice
+                    TOTPDevice.objects.filter(user=obj).delete()
+                    obj.totp_secret_key = None
+
+            # Sync StaticDevice when requires_2fa_static changes
+            if old.requires_2fa_static != obj.requires_2fa_static:
+                if obj.requires_2fa_static:
+                    service.setup_static_2fa(obj)
+                else:
+                    from django_otp.plugins.otp_static.models import StaticDevice
+                    StaticDevice.objects.filter(user=obj).delete()
+
+            # If master 2FA disabled, clean everything
+            if old.requires_2fa and not obj.requires_2fa:
+                from django_otp.plugins.otp_email.models import EmailDevice
+                from django_otp.plugins.otp_totp.models import TOTPDevice
+                from django_otp.plugins.otp_static.models import StaticDevice
+                EmailDevice.objects.filter(user=obj).delete()
+                TOTPDevice.objects.filter(user=obj).delete()
+                StaticDevice.objects.filter(user=obj).delete()
+                obj.requires_2fa_email = False
+                obj.requires_2fa_qr = False
+                obj.requires_2fa_static = False
+                obj.totp_secret_key = None
+
+            # Ensure requires_2fa is consistent with sub-flags
+            obj.requires_2fa = obj.requires_2fa_email or obj.requires_2fa_qr or obj.requires_2fa_static
+
+            # Ensure spoken_languages is never None (MySQL JSONField strict mode)
+            if obj.spoken_languages is None:
+                obj.spoken_languages = []
+
+            super().save_model(request, obj, form, change)

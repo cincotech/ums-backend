@@ -18,6 +18,9 @@ from core.views import BaseViewSet
 from services.dependent_service.dashboard_module.dashboard_super_admin_app.models import (
     AuditLog,
 )
+from services.foundational_service.auth_module.authentication_app.services import (
+    UserService,
+)
 
 from .filters import (
     AuditLogFilter,
@@ -56,6 +59,7 @@ from .services import (
 )
 
 User = get_user_model()
+user_service = UserService()
 
 
 # ============== Dashboard Overview API ==============
@@ -652,6 +656,152 @@ class UserViewSet(BaseViewSet):
         except User.DoesNotExist:
             return error_response(
                 message="User not found", status_code=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return error_response(
+                message=f"Error: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"], url_path="verify-email")
+    def verify_email(self, request, pk=None):
+        """Mark a user's email as verified (admin action)"""
+        try:
+            user = self.get_object()
+            verified = request.data.get("email_verified", True)
+            user.email_verified = bool(verified)
+            user.save(update_fields=["email_verified"])
+            log_user_action(
+                request,
+                "update",
+                f"{'Verified' if verified else 'Unverified'} email for user: {user.email}",
+                "User",
+                str(user.id),
+            )
+            return success_response(
+                message=f"Email {'verified' if verified else 'unverified'} successfully",
+                data={"email": user.email, "email_verified": user.email_verified},
+            )
+        except Exception as e:
+            return error_response(
+                message=f"Error: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"], url_path="setup-email-2fa")
+    def setup_email_2fa(self, request, pk=None):
+        """Enable email-based 2FA for a user (admin action)"""
+        try:
+            user = self.get_object()
+            user_service.setup_email_2fa(user)
+            user.requires_2fa = True
+            user.requires_2fa_email = True
+            user.save(update_fields=["requires_2fa", "requires_2fa_email"])
+            log_user_action(
+                request,
+                "update",
+                f"Enabled email 2FA for user: {user.email}",
+                "User",
+                str(user.id),
+            )
+            return success_response(
+                message="Email 2FA enabled successfully",
+                data={"email": user.email, "requires_2fa_email": True},
+            )
+        except Exception as e:
+            return error_response(
+                message=f"Error: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"], url_path="setup-totp-2fa")
+    def setup_totp_2fa(self, request, pk=None):
+        """Enable TOTP-based 2FA for a user (admin action)"""
+        try:
+            user = self.get_object()
+            device, qr_data = user_service.setup_totp_2fa(user)
+            user.requires_2fa = True
+            user.requires_2fa_qr = True
+            user.save(update_fields=["requires_2fa", "requires_2fa_qr"])
+            log_user_action(
+                request,
+                "update",
+                f"Enabled TOTP 2FA for user: {user.email}",
+                "User",
+                str(user.id),
+            )
+            return success_response(
+                message="TOTP 2FA enabled successfully",
+                data={
+                    "email": user.email,
+                    "requires_2fa_qr": True,
+                    "qr_code": qr_data,
+                    "config_url": device.config_url,
+                },
+            )
+        except Exception as e:
+            return error_response(
+                message=f"Error: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"], url_path="setup-static-2fa")
+    def setup_static_2fa(self, request, pk=None):
+        """Enable static token 2FA for a user (admin action)"""
+        try:
+            user = self.get_object()
+            tokens = user_service.setup_static_2fa(user)
+            user.requires_2fa = True
+            user.requires_2fa_static = True
+            user.save(update_fields=["requires_2fa", "requires_2fa_static"])
+            log_user_action(
+                request,
+                "update",
+                f"Enabled static 2FA for user: {user.email}",
+                "User",
+                str(user.id),
+            )
+            return success_response(
+                message="Static 2FA enabled successfully",
+                data={"email": user.email, "backup_codes": tokens},
+            )
+        except Exception as e:
+            return error_response(
+                message=f"Error: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"], url_path="disable-2fa")
+    def disable_2fa(self, request, pk=None):
+        """Disable all 2FA methods for a user (admin action)"""
+        try:
+            from django_otp.plugins.otp_email.models import EmailDevice
+            from django_otp.plugins.otp_static.models import StaticDevice
+            from django_otp.plugins.otp_totp.models import TOTPDevice
+
+            user = self.get_object()
+            EmailDevice.objects.filter(user=user).delete()
+            TOTPDevice.objects.filter(user=user).delete()
+            StaticDevice.objects.filter(user=user).delete()
+            user.requires_2fa = False
+            user.requires_2fa_email = False
+            user.requires_2fa_qr = False
+            user.requires_2fa_static = False
+            user.totp_secret_key = None
+            user.save(update_fields=[
+                "requires_2fa", "requires_2fa_email", "requires_2fa_qr",
+                "requires_2fa_static", "totp_secret_key",
+            ])
+            log_user_action(
+                request,
+                "update",
+                f"Disabled all 2FA for user: {user.email}",
+                "User",
+                str(user.id),
+            )
+            return success_response(
+                message="All 2FA disabled successfully",
+                data={"email": user.email},
             )
         except Exception as e:
             return error_response(

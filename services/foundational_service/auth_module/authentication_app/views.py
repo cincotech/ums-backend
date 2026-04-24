@@ -2,6 +2,7 @@
 import logging
 
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import update_last_login
 from django_filters.rest_framework import DjangoFilterBackend
 from django_otp.plugins.otp_email.models import EmailDevice
 from rest_framework import permissions, status
@@ -331,6 +332,7 @@ class LoginView(APIView):
             )
 
         refresh = RefreshToken.for_user(user)
+        update_last_login(None, user)
         logger.info(f"Login successful for {email}")
         log_login(request, user, success=True)
         return success_response(
@@ -621,6 +623,7 @@ class Email2FALoginView(APIView):
             user = User.objects.get(email=email)
             if user_service.verify_email_2fa(user, otp_token):
                 refresh = RefreshToken.for_user(user)
+                update_last_login(None, user)
                 logger.info(f"Email 2FA login successful for {email}")
                 return success_response(
                     message="Email 2FA verified successfully now you have to login",
@@ -671,6 +674,7 @@ class TOTP2FALoginView(APIView):
             user = User.objects.get(email=email)
             if user_service.verify_totp_2fa(user, otp_token):
                 refresh = RefreshToken.for_user(user)
+                update_last_login(None, user)
                 logger.info(f"TOTP 2FA login successful for {email}")
                 return success_response(
                     message="TOTP 2FA verified and login successfully",
@@ -721,6 +725,7 @@ class Static2FALoginView(APIView):
             user = User.objects.get(email=email)
             if user_service.verify_static_2fa(user, otp_token):
                 refresh = RefreshToken.for_user(user)
+                update_last_login(None, user)
                 logger.info(f"Static 2FA login successful for {email}")
                 return success_response(
                     message="Static 2FA verified and login successfully",
@@ -926,6 +931,92 @@ class UserViewSet(BaseViewSet):
                 message=f"Failed to setup email 2FA: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+    @action(detail=True, methods=["post"], url_path="admin-2fa/totp/disable")
+    def admin_disable_totp(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+        TOTPDevice.objects.filter(user=user).delete()
+        user.requires_2fa_qr = False
+        user.totp_secret_key = None
+        user.requires_2fa = user.requires_2fa_email or user.requires_2fa_static
+        user.save()
+        return success_response(message="TOTP 2FA disabled", data={"email": user.email})
+
+    @action(detail=True, methods=["post"], url_path="admin-2fa/email/disable")
+    def admin_disable_email(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        from django_otp.plugins.otp_email.models import EmailDevice
+        EmailDevice.objects.filter(user=user).delete()
+        user.requires_2fa_email = False
+        user.requires_2fa = user.requires_2fa_qr or user.requires_2fa_static
+        user.save()
+        return success_response(message="Email 2FA disabled", data={"email": user.email})
+
+    @action(detail=True, methods=["post"], url_path="admin-2fa/static/disable")
+    def admin_disable_static(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        from django_otp.plugins.otp_static.models import StaticDevice
+        StaticDevice.objects.filter(user=user).delete()
+        user.requires_2fa_static = False
+        user.requires_2fa = user.requires_2fa_email or user.requires_2fa_qr
+        user.save()
+        return success_response(message="Static 2FA disabled", data={"email": user.email})
+
+    @action(detail=True, methods=["post"], url_path="admin-2fa/disable-all")
+    def admin_disable_all_2fa(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        from django_otp.plugins.otp_email.models import EmailDevice
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+        from django_otp.plugins.otp_static.models import StaticDevice
+        EmailDevice.objects.filter(user=user).delete()
+        TOTPDevice.objects.filter(user=user).delete()
+        StaticDevice.objects.filter(user=user).delete()
+        user.requires_2fa = False
+        user.requires_2fa_email = False
+        user.requires_2fa_qr = False
+        user.requires_2fa_static = False
+        user.totp_secret_key = None
+        user.save()
+        return success_response(message="All 2FA disabled", data={"email": user.email})
+
+    @action(detail=True, methods=["post"], url_path="admin-verify-email")
+    def admin_verify_email(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        user.email_verified = True
+        user.save()
+        return success_response(message="Email verified", data={"email": user.email})
+
+    @action(detail=True, methods=["post"], url_path="admin-unverify-email")
+    def admin_unverify_email(self, request, pk=None):
+        permission_error = self._require_admin(request)
+        if permission_error:
+            return permission_error
+
+        user = self.get_object()
+        user.email_verified = False
+        user.save()
+        return success_response(message="Email unverified", data={"email": user.email})
 
     @action(detail=True, methods=["post"], url_path="verify-password")
     def verify_password(self, request, pk=None):

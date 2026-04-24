@@ -67,8 +67,9 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
             "role_id",
             "residence_ids",
+            "last_login",
         ]
-        read_only_fields = ["totp_secret_key"]
+        read_only_fields = ["totp_secret_key", "last_login"]
 
     SECURITY_FIELDS = {
         "email_verified",
@@ -134,6 +135,9 @@ class UserSerializer(serializers.ModelSerializer):
         # Email verification flag
         if "email_verified" in security_updates:
             instance.email_verified = bool(security_updates["email_verified"])
+            if not any(k in security_updates for k in ("requires_2fa", "requires_2fa_email", "requires_2fa_qr", "requires_2fa_static")):
+                instance.save()
+                return instance
 
         # Master 2FA disable (admin only)
         if security_updates.get("requires_2fa") is False:
