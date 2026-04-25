@@ -39,8 +39,8 @@ class InscriptionSerializer(serializers.ModelSerializer):
     # ---------------------------
     faculty_id = serializers.UUIDField(required=False, allow_null=True)
     payment_status = serializers.SerializerMethodField(read_only=True)
-    created_by = serializers.CharField(source="created_by.username", read_only=True)
-    modified_by = serializers.CharField(source="modified_by.username", read_only=True)
+    created_by = serializers.SerializerMethodField(read_only=True)
+    modified_by = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Inscription
@@ -62,7 +62,18 @@ class InscriptionSerializer(serializers.ModelSerializer):
             "payment_status",
             "created_by",
             "modified_by",
+            "modified_at",
         ]
+
+    def get_created_by(self, obj):
+        if obj.created_by:
+            return {"id": str(obj.created_by.id), "email": obj.created_by.email}
+        return None
+
+    def get_modified_by(self, obj):
+        if obj.modified_by:
+            return {"id": str(obj.modified_by.id), "email": obj.modified_by.email}
+        return None
 
     def get_payment_status(self, obj):
         return obj.payments_inscription.filter(
@@ -117,23 +128,27 @@ class InscriptionSerializer(serializers.ModelSerializer):
                     class_fk = default_class
 
         # Create or get inscription
-        inscription, created = Inscription.objects.get_or_create(
+        existing = Inscription.objects.filter(
             student=student,
             academic_year=validated_data.get("academic_year"),
             class_fk=class_fk,
-            defaults={
-                "date_inscription": validated_data.get("date_inscription"),
-                "regist_status": validated_data.get("regist_status", "Pending"),
-                "withdrawal_date": validated_data.get("withdrawal_date"),
-                "is_year_close": validated_data.get("is_year_close", False),
-            },
-        )
-        # Update fields if already exists
-        if not created:
+        ).first()
+
+        if existing:
             for key, value in validated_data.items():
-                setattr(inscription, key, value)
-            inscription.save(user=user)
+                setattr(existing, key, value)
+            existing.save(user=user)
+            inscription = existing
         else:
+            inscription = Inscription(
+                student=student,
+                academic_year=validated_data.get("academic_year"),
+                class_fk=class_fk,
+                date_inscription=validated_data.get("date_inscription"),
+                regist_status=validated_data.get("regist_status", "Pending"),
+                withdrawal_date=validated_data.get("withdrawal_date"),
+                is_year_close=validated_data.get("is_year_close", False),
+            )
             inscription.save(user=user)
 
         # ---------------------------
@@ -143,3 +158,16 @@ class InscriptionSerializer(serializers.ModelSerializer):
             inscription.generate_matricule()
 
         return inscription
+
+    # ---------------------------
+    # UPDATE METHOD
+    # ---------------------------
+    def update(self, instance, validated_data):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        validated_data.pop('faculty_id', None)
+        validated_data.pop('class_fk_id', None)
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save(user=user)
+        return instance

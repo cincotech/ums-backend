@@ -60,6 +60,7 @@ class Inscription(models.Model):
         blank=True,
         related_name='inscription_modified'
     )
+    modified_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "inscriptions"
@@ -373,5 +374,6 @@ class Inscription(models.Model):
             if self._state.adding:
                 self.created_by = user
             self.modified_by = user
+            self.modified_at = timezone.now()
 
         super().save(*args, **kwargs)
