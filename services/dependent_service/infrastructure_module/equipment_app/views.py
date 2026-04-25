@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import IsGeneralService, IsSuperAdminOrGeneralService
+from core.permissions import IsSuperAdminOrGeneralService
 from core.response_handler import success_response, validate_serializer
 from core.views import BaseViewSet
 
@@ -19,9 +19,7 @@ class EquipmentTypeViewSet(BaseViewSet):
     serializer_class = EquipmentTypeSerializer
 
     def get_permissions(self):
-        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
-        return [IsAuthenticated(), IsGeneralService()]
+        return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
 
 
 class EquipmentViewSet(BaseViewSet):
@@ -29,9 +27,7 @@ class EquipmentViewSet(BaseViewSet):
     serializer_class = EquipmentSerializer
 
     def get_permissions(self):
-        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
-        return [IsAuthenticated(), IsGeneralService()]
+        return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
@@ -44,9 +40,7 @@ class EquipmentAllocationViewSet(BaseViewSet):
     serializer_class = EquipmentAllocationSerializer
 
     def get_permissions(self):
-        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
-        return [IsAuthenticated(), IsGeneralService()]
+        return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
 
     def create(self, request, *args, **kwargs):
         request.data._mutable = True
@@ -93,6 +87,4 @@ class EquipmentMaintenanceViewSet(BaseViewSet):
     serializer_class = EquipmentMaintenanceSerializer
 
     def get_permissions(self):
-        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
-        return [IsAuthenticated(), IsGeneralService()]
+        return [IsAuthenticated(), IsSuperAdminOrGeneralService()]

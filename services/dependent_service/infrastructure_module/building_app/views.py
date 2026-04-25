@@ -1,7 +1,7 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from core.permissions import IsSuperAdmin, IsSuperAdminOrGeneralService
+from core.permissions import IsSuperAdminOrGeneralService
 from core.response_handler import error_response, success_response, validate_serializer
 
 from .models import Building
@@ -23,8 +23,8 @@ class BuildingAPIView(APIView):
         """
         if self.request.method in ["GET", "HEAD", "OPTIONS"]:
             return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
-        # POST/PUT/DELETE accessible uniquement à super_admin
-        return [IsAuthenticated(), IsSuperAdmin()]
+        # POST/PUT/DELETE accessible à super_admin, admin et general_service
+        return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
 
     def get(self, request):
         building_id = request.data.get("id")

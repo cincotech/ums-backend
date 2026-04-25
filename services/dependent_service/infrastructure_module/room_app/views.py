@@ -1,6 +1,6 @@
 from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import IsGeneralService, IsSuperAdminOrGeneralService
+from core.permissions import IsSuperAdminOrGeneralService
 from core.views import BaseViewSet
 
 from .models import Room
@@ -12,6 +12,4 @@ class RoomViewSet(BaseViewSet):
     serializer_class = RoomSerializer
 
     def get_permissions(self):
-        if self.request.method in ["GET", "HEAD", "OPTIONS"]:
-            return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
-        return [IsAuthenticated(), IsGeneralService()]
+        return [IsAuthenticated(), IsSuperAdminOrGeneralService()]
