@@ -14,5 +14,5 @@ class ModuleFilter(django_filters.FilterSet):
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(
-            Q(module_name__icontains=value) | Q(module_code__icontains=value)
+            Q(module_name__icontains=value) | Q(code__icontains=value)
         )

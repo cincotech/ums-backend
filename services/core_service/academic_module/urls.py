@@ -8,6 +8,7 @@ from services.core_service.academic_module.faculty_app.views import (
     TypeFormationViewSet,
 )
 from services.core_service.academic_module.module_app.views import ModuleViewSet
+from services.core_service.academic_module.module_app.views import SemesterViewSet
 from services.core_service.academic_module.public_app.views import (
     AcademicTeamViewSet,
     ProgramViewSet,
@@ -40,6 +41,7 @@ router.register(r"departments", DepartmentViewSet, basename="department")
 router.register(r"classes", ClassViewSet, basename="class")
 
 router.register(r"modules", ModuleViewSet, basename="module")
+router.register(r"semesters", SemesterViewSet, basename="semester")
 
 router.register(r"courses", CourseViewSet, basename="course")
 

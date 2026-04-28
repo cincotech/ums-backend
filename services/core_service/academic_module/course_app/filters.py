@@ -16,5 +16,4 @@ class CourseFilter(django_filters.FilterSet):
         return queryset.filter(
             Q(course_name__icontains=value)
             | Q(course_code__icontains=value)
-            | Q(teacher__user__last_name__icontains=value)
         )

@@ -16,4 +16,5 @@ class DepartmentFilter(django_filters.FilterSet):
         return queryset.filter(
             Q(department_name__icontains=value)
             | Q(faculty__faculty_name__icontains=value)
+            | Q(abreviation__icontains=value)
         )

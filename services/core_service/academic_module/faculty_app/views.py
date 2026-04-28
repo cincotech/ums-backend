@@ -23,7 +23,7 @@ class FacultyViewSet(BaseViewSet):
     serializer_class = FacultySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = FacultyFilter
-    search_fields = ["faculty_name", "abreviation", "faculty_abreviation"]
+    search_fields = ["faculty_name", "faculty_abreviation"]
     ordering_fields = ["faculty_name"]
     ordering = ["faculty_name"]
 

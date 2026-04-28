@@ -13,7 +13,7 @@ class UniversityFilter(django_filters.FilterSet):
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(
-            Q(university_name__icontains=value) | Q(university_code__icontains=value)
+            Q(university_name__icontains=value) | Q(university_abrev__icontains=value)
         )
 
 
