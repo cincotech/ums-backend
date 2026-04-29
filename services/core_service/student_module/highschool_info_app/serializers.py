@@ -47,6 +47,7 @@ class OptionSerializer(serializers.ModelSerializer):
 
 
 class TrainingCenterSerializer(serializers.ModelSerializer):
+    commune_name = serializers.CharField(source='commune.commune_name', read_only=True)
     class Meta:
         model = TrainingCenter
-        fields = ["id", "name", "commune"]
+        fields = ["id", "name", "commune", "commune_name"]
