@@ -3,6 +3,7 @@
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
@@ -11,11 +12,12 @@ from core.response_handler import error_response, success_response, validate_ser
 from core.views import BaseViewSet
 
 from .filters import StudentFilter
-from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, Training
+from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, StudentMatricule, Training
 from .serializers import (
     StudentFileSerializer,
     StudentGraduateInfoSerializer,
     StudentHsInfoSerializer,
+    StudentMatriculeSerializer,
     StudentSerializer,
     TrainingSerializer,
 )
@@ -31,8 +33,32 @@ class StudentViewSet(BaseViewSet):
     ordering = ["matricule"]
 
     def perform_create(self, serializer):
-
         return serializer.save()
+
+    @action(detail=True, methods=["get"], url_path="matricules")
+    def matricules(self, request, pk=None):
+        """Returns all matricules of a student grouped by formation type with inscription status."""
+        student = self.get_object()
+        status_filter = request.query_params.get("status")  # Active, Replaced, Completed, etc.
+
+        matricules_qs = StudentMatricule.objects.filter(
+            student=student
+        ).select_related("type_formation", "academic_year")
+
+        # Filter by inscription status if provided
+        if status_filter:
+            from services.core_service.student_module.inscription_app.models import Inscription
+            matching_types = Inscription.objects.filter(
+                student=student,
+                regist_status__iexact=status_filter,
+            ).values_list("class_fk__department__faculty__types", flat=True).distinct()
+            matricules_qs = matricules_qs.filter(type_formation__in=matching_types)
+
+        serializer = StudentMatriculeSerializer(matricules_qs, many=True)
+        return success_response(
+            data=serializer.data,
+            message=f"{matricules_qs.count()} matricule(s) found",
+        )
 
 
 class TrainingViewSet(BaseViewSet):

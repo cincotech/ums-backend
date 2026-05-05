@@ -3,7 +3,8 @@ import uuid
 from django.db import models
 
 from services.core_service.academic_module.department_app.models import Department
-from services.core_service.academic_module.university_app.models import UniversityDegree
+from services.core_service.academic_module.faculty_app.models import TypeFormation
+from services.core_service.academic_module.university_app.models import AcademicYear, UniversityDegree
 from services.core_service.student_module.highschool_info_app.models import (
     Certificate,
     Highschool,
@@ -114,3 +115,25 @@ class StudentGraduateInfo(models.Model):
 
     class Meta:
         db_table = "student_graduate_info"
+
+
+class StudentMatricule(models.Model):
+    """One matricule per student per TypeFormation (F, M, I, D)"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(
+        Student, on_delete=models.RESTRICT, related_name="matricules"
+    )
+    type_formation = models.ForeignKey(
+        TypeFormation, on_delete=models.RESTRICT, related_name="student_matricules"
+    )
+    matricule = models.CharField(max_length=120, unique=True)
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.RESTRICT, related_name="student_matricules"
+    )
+
+    class Meta:
+        db_table = "student_matricules"
+        unique_together = ("student", "type_formation")
+
+    def __str__(self):
+        return f"{self.student.user.get_full_name()} | {self.type_formation.code} | {self.matricule}"

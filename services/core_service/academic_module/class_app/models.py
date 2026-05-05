@@ -8,8 +8,15 @@ from services.core_service.student_module.student_profile_app.models import Stud
 
 
 class Class(models.Model):
+    LEVEL_CHOICES = [(i, f"Level {i}") for i in range(1, 11)]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     class_name = models.CharField(max_length=50)  # ex: "L1 Informatique"
+    level = models.PositiveSmallIntegerField(
+        choices=LEVEL_CHOICES,
+        default=1,
+        help_text="Academic level of this class (1 = first year, up to 10)"
+    )
     department = models.ForeignKey(
         Department, on_delete=models.RESTRICT, related_name="classes"
     )

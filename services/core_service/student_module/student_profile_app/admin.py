@@ -17,7 +17,97 @@ from services.core_service.student_module.parent_app.models import Parent
 from services.foundational_service.auth_module.user_app.models import User
 from services.foundational_service.geo_module.colline_app.models import Colline
 
-from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, Training
+from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, StudentMatricule, Training
+
+
+# ----------------------------
+# StudentMatricule Resource
+# ----------------------------
+class StudentMatriculeResource(resources.ModelResource):
+    student_email = fields.Field(
+        column_name="student_email",
+        attribute="student",
+        widget=ForeignKeyWidget(User, "email"),
+    )
+    student_matricule_legacy = fields.Field(
+        column_name="student_matricule_legacy",
+        attribute="student",
+        widget=ForeignKeyWidget(Student, "matricule"),
+    )
+    type_formation_code = fields.Field(
+        column_name="type_formation_code",
+        attribute="type_formation",
+        widget=ForeignKeyWidget(
+            "faculty_app.TypeFormation", "code"
+        ),
+    )
+    academic_year_label = fields.Field(
+        column_name="academic_year",
+        attribute="academic_year",
+        widget=ForeignKeyWidget(
+            "university_app.AcademicYear", "academic_year"
+        ),
+    )
+
+    class Meta:
+        model = StudentMatricule
+        fields = (
+            "id",
+            "student",
+            "student_email",
+            "student_matricule_legacy",
+            "type_formation",
+            "type_formation_code",
+            "matricule",
+            "academic_year",
+            "academic_year_label",
+        )
+        export_order = (
+            "id",
+            "student_email",
+            "student_matricule_legacy",
+            "type_formation_code",
+            "matricule",
+            "academic_year_label",
+        )
+
+
+@admin.register(StudentMatricule)
+class StudentMatriculeAdmin(ImportExportModelAdmin, ModelAdmin):
+    resource_class = StudentMatriculeResource
+    list_display = (
+        "matricule",
+        "student",
+        "type_formation",
+        "academic_year",
+    )
+    search_fields = (
+        "matricule",
+        "student__user__email",
+        "student__matricule",
+        "type_formation__code",
+        "type_formation__name",
+    )
+    list_filter = (
+        "type_formation",
+        "academic_year",
+    )
+    ordering = ("type_formation", "matricule")
+    readonly_fields = ("matricule", "student", "type_formation", "academic_year")
+
+    fieldsets = (
+        (
+            "Matricule Information",
+            {
+                "fields": (
+                    "student",
+                    "type_formation",
+                    "matricule",
+                    "academic_year",
+                )
+            },
+        ),
+    )
 
 
 # ----------------------------

@@ -44,12 +44,27 @@ STATUS_EMAIL_CONFIG = {
 }
 
 
+def _get_matricule_for_inscription(inscription):
+    """Returns the correct matricule for this inscription's TypeFormation."""
+    from services.core_service.student_module.student_profile_app.models import StudentMatricule
+    if not inscription.class_fk:
+        return inscription.student.matricule or "En attente"
+    try:
+        type_formation = inscription.class_fk.department.faculty.types
+    except AttributeError:
+        return inscription.student.matricule or "En attente"
+    sm = StudentMatricule.objects.filter(
+        student=inscription.student,
+        type_formation=type_formation,
+    ).first()
+    return sm.matricule if sm else (inscription.student.matricule or "En attente")
+
+
 def get_inscription_context(inscription):
     """Prépare le contexte commun pour tous les emails d'inscription"""
     student = inscription.student
     user = student.user
 
-    # Récupérer le nom de l'université
     university_name = (
         user.university.university_name
         if user.university
@@ -58,7 +73,7 @@ def get_inscription_context(inscription):
 
     context = {
         "student_name": user.get_full_name(),
-        "matricule": student.matricule or "En attente",
+        "matricule": _get_matricule_for_inscription(inscription),
         "email": user.email,
         "phone": user.phone_number or "Non renseigné",
         "birth_date": (
@@ -143,7 +158,10 @@ def send_inscription_email(inscription, email_type=None):
 
         context = get_inscription_context(inscription)
         html_content = render_to_string(config["template"], context)
-        subject = f"{config['subject']} - {inscription.student.matricule or inscription.student.user.get_full_name()}"
+
+        # Use the correct matricule for this inscription's TypeFormation in subject
+        matricule_label = _get_matricule_for_inscription(inscription)
+        subject = f"{config['subject']} - {matricule_label}"
 
         email = EmailMultiAlternatives(
             subject=subject,

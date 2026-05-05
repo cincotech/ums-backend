@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from services.core_service.academic_module.class_app.models import Class, ClassGroup
 from services.core_service.academic_module.university_app.models import AcademicYear
-from services.core_service.student_module.student_profile_app.models import Student
+from services.core_service.student_module.student_profile_app.models import Student, StudentMatricule
 
 
 # Create your models here.
@@ -64,6 +64,8 @@ class Inscription(models.Model):
 
     class Meta:
         db_table = "inscriptions"
+        # Permettre plusieurs inscriptions pour le même étudiant dans la même année
+        # mais dans des classes différentes du même niveau/département
         unique_together = ("student", "academic_year", "class_fk")
         indexes = [models.Index(fields=["student", "academic_year", "class_fk"])]
 
@@ -72,16 +74,41 @@ class Inscription(models.Model):
 
     # ----------------- STATUS HANDLER FUNCTIONS -----------------
     def has_verified_payment(self):
-        """Check if inscription has verified payment"""
-        return self.payments_inscription.filter(
+        """Check if THIS SPECIFIC inscription has verified payment for inscription fees.
+        Updated for multi-inscription support: checks only payments for this specific inscription.
+        """
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import Payment
+
+        # Check payments specifically for THIS inscription only
+        # Utiliser 'inscription' au lieu de 'inscription_id' car c'est une ForeignKey
+        return Payment.objects.filter(
+            inscription=self,  # ← Utiliser l'objet directement
+            paymentplan__feessheet__wording__wording_name__icontains="inscription",
+            payment_status="verified",
+        ).exists()
+    
+    def has_any_verified_payment_in_year(self):
+        """Check if student has ANY verified payment for inscription fees in this academic year.
+        Useful for replace() scenarios where payment from previous inscription should be considered.
+        """
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import Payment
+
+        # All inscription IDs of this student in this academic year (including Replaced)
+        inscription_ids = Inscription.objects.filter(
+            student=self.student,
+            academic_year=self.academic_year,
+        ).values_list("id", flat=True)
+
+        return Payment.objects.filter(
+            inscription_id__in=inscription_ids,
             paymentplan__feessheet__wording__wording_name__icontains="inscription",
             payment_status="verified",
         ).exists()
 
-    def activate(self):
+    def activate(self, skip_payment_check=False):
         if self.regist_status in ["Pending", "Suspended"]:
-            # Check payment before activation
-            if not self.has_verified_payment():
+            # Check payment before activation (skip if created by student_service)
+            if not skip_payment_check and not self.has_verified_payment():
                 raise ValidationError(
                     "Cannot activate inscription: Payment for inscription fees must be verified first."
                 )
@@ -141,51 +168,75 @@ class Inscription(models.Model):
         """
         Replace a student's class/faculty safely:
         - Marks current inscription as 'Replaced'
-        - Generates a new matricule if needed to match target class/faculty
-        - Creates new inscription without bypassing clean/save validations
+        - Creates new inscription -> save() handles StudentMatricule generation
+        - Never overwrites existing matricules
+        - Checks se_mark eligibility for the new TypeFormation
         """
         if self.regist_status not in ["Active", "Pending"]:
             raise ValidationError(
                 "Only Active or Pending inscriptions can be replaced."
             )
 
-        with transaction.atomic():
-            # Mark current inscription as replaced
-            self.regist_status = "Replaced"
-            self.save()
+        # Check se_mark eligibility for the new class TypeFormation
+        try:
+            new_type_code = new_class.department.faculty.types.code
+            new_type_name = new_class.department.faculty.types.name
+        except AttributeError:
+            new_type_code = "X"
+            new_type_name = "Unknown"
 
-            # Determine target type code from the new class
+        hs_info = self.student.hs_infos.first()
+        se_mark = None
+        if hs_info and hs_info.se_mark:
             try:
-                target_type_code = new_class.department.faculty.types.code
-            except AttributeError:
-                target_type_code = "X"
+                se_mark = float(hs_info.se_mark)
+            except (ValueError, TypeError):
+                se_mark = None
 
-            # Regenerate matricule **only if it does not match target type**
-            current_matricule_type = (
-                self.student.matricule[0] if self.student.matricule else "X"
+        if se_mark is None:
+            raise ValidationError(
+                "Cannot replace inscription: highschool information (se_mark) is missing."
             )
-            if current_matricule_type != target_type_code:
-                year = self.academic_year.civil_year
-                existing_count = Student.objects.filter(
-                    matricule__startswith=f"{target_type_code}{year}"
-                ).count()
-                new_matricule = (
-                    f"{target_type_code}{year}/{str(existing_count + 1).zfill(5)}"
-                )
-                self.student.matricule = new_matricule
-                self.student.save()  # Must save **before** creating new inscription
 
-            # Now create new inscription, clean/save will pass
-            new_inscription = Inscription.objects.create(
+        if se_mark < 50 and new_type_code != "I":
+            raise ValidationError(
+                f"Cannot replace to {new_type_name}: your highschool percentage "
+                f"is {se_mark}%. A minimum of 50% is required. "
+                f"You are only eligible for Institut."
+            )
+
+        with transaction.atomic():
+            Inscription.objects.filter(pk=self.pk).update(regist_status="Replaced")
+
+            new_inscription = Inscription(
                 student=self.student,
                 academic_year=self.academic_year,
                 class_fk=new_class,
                 regist_status="Active",
+                date_inscription=self.date_inscription,
             )
+            new_inscription.save()
+            
+            # Transfer payment reference if needed
+            # Note: In multi-inscription context, each inscription should have its own payment
+            # The payment system should be updated to handle this properly
 
             return new_inscription
 
     # ----------------- HELPER FUNCTIONS -----------------
+    def _get_se_mark(self):
+        """
+        Returns the student's highschool percentage (se_mark) as a float.
+        Returns None if not available.
+        """
+        hs_info = self.student.hs_infos.first()
+        if not hs_info or not hs_info.se_mark:
+            return None
+        try:
+            return float(hs_info.se_mark)
+        except (ValueError, TypeError):
+            return None
+
     def is_active(self):
         return self.regist_status == "Active"
 
@@ -197,32 +248,60 @@ class Inscription(models.Model):
         """Determine if the student can move to another class in the same faculty"""
         return self.regist_status in ["Completed", "Complement"]
 
+    def get_matricule_for_type(self):
+        """Returns the matricule of this student for the TypeFormation of this inscription."""
+        try:
+            type_formation = self.class_fk.department.faculty.types
+        except AttributeError:
+            return None
+        sm = StudentMatricule.objects.filter(
+            student=self.student, type_formation=type_formation
+        ).first()
+        return sm.matricule if sm else None
+
     def generate_matricule(self):
         """
-        Generates and assigns a matricule to the student based on:
-        type formation code + academic year + sequential number
-        Example: F2025/00001
+        Generates and assigns a matricule per TypeFormation.
+        Returns the existing one if already generated for this type.
+        Format: {TypeCode}{civil_year}/{00001}
         """
-        if self.student.matricule:
-            return self.student.matricule
-
         try:
-            # Get type formation code from class -> department -> faculty -> type formation
-            type_code = self.class_fk.department.faculty.types.code
+            type_formation = self.class_fk.department.faculty.types
+            type_code = type_formation.code
         except AttributeError:
             type_code = "X"
+            return None
 
-        year = (
-            self.academic_year.civil_year
-        )  # use academic year instead of current year
-        existing_count = Student.objects.filter(
-            matricule__startswith=f"{type_code}{year}"
-        ).count()
-        sequential_number = existing_count + 1
+        # Return existing matricule for this type if already exists
+        existing = StudentMatricule.objects.filter(
+            student=self.student, type_formation=type_formation
+        ).first()
+        if existing:
+            return existing.matricule
 
-        matricule = f"{type_code}{year}/{str(sequential_number).zfill(5)}"
-        self.student.matricule = matricule
-        self.student.save()
+        year = self.academic_year.civil_year
+        
+        # Use transaction to prevent race conditions
+        with transaction.atomic():
+            count = StudentMatricule.objects.filter(
+                matricule__startswith=f"{type_code}{year}"
+            ).select_for_update().count()
+            matricule = f"{type_code}{year}/{str(count + 1).zfill(5)}"
+
+            StudentMatricule.objects.create(
+                student=self.student,
+                type_formation=type_formation,
+                matricule=matricule,
+                academic_year=self.academic_year,
+            )
+
+            # Keep Student.matricule in sync with the first matricule generated (legacy)
+            # Refresh student from DB to avoid stale data
+            self.student.refresh_from_db()
+            if not self.student.matricule or self.student.matricule.startswith("X"):
+                self.student.matricule = matricule
+                self.student.save(update_fields=["matricule"])
+
         return matricule
 
     def get_or_create_default_group(self):
@@ -259,12 +338,17 @@ class Inscription(models.Model):
             return
 
         # ---------------------------------------------------------
-        # 0️⃣ CHECK PAYMENT BEFORE ACTIVATION
+        # 0️⃣ CHECK PAYMENT BEFORE ACTIVATION (skip if created by student_service)
         # ---------------------------------------------------------
         if self.regist_status == "Active" and self.pk:
             previous = Inscription.objects.filter(pk=self.pk).first()
             if previous and previous.regist_status != "Active":
-                if not self.has_verified_payment():
+                # Skip payment check if created by student_service
+                skip_payment = (self.created_by and 
+                               hasattr(self.created_by, 'role') and 
+                               self.created_by.role and 
+                               self.created_by.role.name == "student_service")
+                if not skip_payment and not self.has_verified_payment():
                     raise ValidationError(
                         "Cannot activate inscription: Payment for inscription fees must be verified first."
                     )
@@ -304,35 +388,48 @@ class Inscription(models.Model):
         # ---------------------------------------------------------
         # 2️⃣ MATRICULE TYPE VS FACULTY TYPE CHECK
         # ---------------------------------------------------------
+        try:
+            class_type_formation = self.class_fk.department.faculty.types
+        except AttributeError:
+            raise ValidationError(
+                "Faculty type configuration is missing. Please contact the administrator."
+            )
+
+        # Check via StudentMatricule table (multi-matricule support)
+        existing_matricule = StudentMatricule.objects.filter(
+            student=self.student
+        ).exclude(type_formation=class_type_formation).first()
+
+        if existing_matricule:
+            # Student has a matricule for a different type — that's fine, multi-formation allowed
+            # But if they already have one for THIS type, no conflict
+            pass
+
+        # Legacy check: if student.matricule exists and is not X, verify it matches
+        # only when StudentMatricule table is empty (old data)
         matricule = self.student.matricule
-
-        # Ignore temporary/default matricules starting with 'X'
         if matricule and not matricule.startswith("X"):
-            student_type_code = matricule[0]
-
-            try:
-                class_type_code = self.class_fk.department.faculty.types.code
-            except AttributeError:
-                raise ValidationError(
-                    "Faculty type configuration is missing. Please contact the administrator."
-                )
-
-            if student_type_code != class_type_code:
-                raise ValidationError(
-                    f"Student's matricule starts with '{student_type_code}', "
-                    f"which does not match the class faculty type '{class_type_code}'. "
-                    "Use the 'replace' process to move the student to a different faculty."
-                )
+            if not StudentMatricule.objects.filter(student=self.student).exists():
+                student_type_code = matricule[0]
+                if student_type_code != class_type_formation.code:
+                    raise ValidationError(
+                        f"Student's matricule starts with '{student_type_code}', "
+                        f"which does not match the class faculty type '{class_type_formation.code}'. "
+                        "Use the 'replace' process to move the student to a different faculty."
+                    )
 
         # ---------------------------------------------------------
-        # 3️⃣ SINGLE ACTIVE/PENDING INSCRIPTION PER ACADEMIC YEAR
+        # 3️⃣ SINGLE ACTIVE/PENDING INSCRIPTION PER CLASS PER ACADEMIC YEAR
+        # Updated: Allow multiple inscriptions in different classes of same level/department
         # ---------------------------------------------------------
         if not self.academic_year:
             return
 
+        # Vérifier qu'il n'y a pas déjà une inscription pour cette classe spécifique
         qs = Inscription.objects.filter(
             student=self.student,
             academic_year=self.academic_year,
+            class_fk=self.class_fk,  # Même classe exacte
             regist_status__in=["Active", "Pending"],
         )
 
@@ -341,39 +438,157 @@ class Inscription(models.Model):
 
         if qs.exists():
             raise ValidationError(
-                "This student already has an active inscription in the selected academic year. "
-                "You cannot create another one unless you use the 'replace' process."
+                "This student already has an active or pending inscription "
+                "for this specific class in the selected academic year."
+            )
+
+        # ---------------------------------------------------------
+        # 4️⃣ NO HIGHER LEVEL INSCRIPTION IN THE SAME ACADEMIC YEAR
+        # Same TypeFormation, same level or higher → blocked
+        # Exception: different department within the same faculty is allowed
+        # (common years where students split into departments)
+        # ---------------------------------------------------------
+        target_type = self.class_fk.department.faculty.types
+        target_level = self.class_fk.level
+        target_department = self.class_fk.department
+        target_class = self.class_fk
+        # 🔒 1. Bloquer doublon exact (même classe)
+        same_class = Inscription.objects.filter(
+            student=self.student,
+            academic_year=self.academic_year,
+            class_fk=target_class,
+            regist_status__in=["Active", "Pending", "Completed"],
+        )
+
+        # 🔁 Exclure soi-même en update
+        if self.pk:
+            same_class = same_class.exclude(pk=self.pk)
+
+        if same_class.exists():
+            raise ValidationError(
+                "L'étudiant est déjà inscrit dans cette classe pour cette année académique."
+            )
+
+        same_year_higher = Inscription.objects.filter(
+            student=self.student,
+            academic_year=self.academic_year,
+            class_fk__level__gte=target_level,
+            class_fk__department=target_department,  # 🎯 clé ici
+            regist_status__in=["Active", "Pending", "Completed"],
+        )
+
+        # Exclure l'objet courant en cas de mise à jour
+        if self.pk:
+            same_year_higher = same_year_higher.exclude(pk=self.pk)
+
+        if same_year_higher.exists():
+            raise ValidationError(
+                f"The student already has an inscription at level {target_level} or higher "
+                f"in this department for this academic year."
+            )
+
+        # ---------------------------------------------------------
+        # 5️⃣ NO LEVEL SKIP — must have completed previous level
+        # ---------------------------------------------------------
+        if target_level > 1:
+            # Exception: student comes from another university
+            # graduate_infos must match the same TypeFormation as the target class
+            has_university_background = self.student.graduate_infos.filter(
+                department__faculty__types=target_type
+            ).exists()
+
+            if not has_university_background:
+                previous_level_done = Inscription.objects.filter(
+                    student=self.student,
+                    class_fk__level=target_level - 1,
+                    class_fk__department__faculty__types=target_type,
+                    regist_status__in=["Active", "Completed", "Complement"],
+                ).exists()
+
+                if not previous_level_done:
+                    raise ValidationError(
+                        f"The student has no inscription at level {target_level - 1} "
+                        f"in the same formation type. "
+                        f"Cannot enroll at level {target_level} without completing the previous level. "
+                        f"If the student comes from another university, "
+                        f"please fill in the university background information first."
+                    )
+
+        # ---------------------------------------------------------
+        # 6 - HIGHSCHOOL PERCENTAGE (se_mark) CHECK
+        # se_mark absent  -> blocked everywhere
+        # se_mark < 50    -> Institut only (F, M, D blocked)
+        # se_mark >= 50   -> all types allowed
+        # ---------------------------------------------------------
+        se_mark = self._get_se_mark()
+        target_type_code = target_type.code
+
+        if se_mark is None:
+            raise ValidationError(
+                "Cannot enroll: highschool information (se_mark) is missing. "
+                "Please complete your highschool information first."
+            )
+
+        if se_mark < 50 and target_type_code != "I":
+            raise ValidationError(
+                f"Cannot enroll in {target_type.name}: your highschool percentage "
+                f"is {se_mark}%. A minimum of 50% is required for {target_type.name}. "
+                f"You are only eligible for Institut."
             )
 
     def save(self, *args, **kwargs):
-        # On attend un argument 'user' pour renseigner created_by et modified_by
         user = kwargs.pop('user', None)
-        self.clean()
-        if self._state.adding and self.class_group is None:
-            self.class_group = self.get_or_create_default_group()
-
-        # Générer le matricule si besoin
-        try:
-            type_code = self.class_fk.department.faculty.types.code
-        except AttributeError:
-            type_code = "X"
-
-        year = self.academic_year.civil_year
-
-        if not self.student.matricule or self.student.matricule.startswith("X"):
-            existing_count = Student.objects.filter(
-                matricule__startswith=f"{type_code}{year}"
-            ).count()
-            self.student.matricule = (
-                f"{type_code}{year}/{str(existing_count + 1).zfill(5)}"
-            )
-            self.student.save()
-
-        # Mise à jour des champs utilisateur
+        
+        # Set created_by and modified_by before clean() to allow payment check skip
         if user:
             if self._state.adding:
                 self.created_by = user
             self.modified_by = user
             self.modified_at = timezone.now()
+        
+        self.clean()
+        
+        if self._state.adding and self.class_group is None:
+            self.class_group = self.get_or_create_default_group()
+        
+        # Auto-activate if created by student_service
+        if (self._state.adding and user and 
+            hasattr(user, 'role') and user.role and 
+            user.role.name == "student_service" and 
+            self.regist_status == "Pending"):
+            self.regist_status = "Active"
+
+        # Generate matricule for this TypeFormation if not yet created
+        try:
+            type_formation = self.class_fk.department.faculty.types
+            type_code = type_formation.code
+        except AttributeError:
+            type_code = "X"
+
+        if type_code != "X":
+            year = self.academic_year.civil_year
+            has_matricule = StudentMatricule.objects.filter(
+                student=self.student, type_formation=type_formation
+            ).exists()
+            if not has_matricule:
+                # Use transaction to prevent race conditions in matricule generation
+                with transaction.atomic():
+                    # Lock the table to prevent concurrent matricule generation
+                    count = StudentMatricule.objects.filter(
+                        matricule__startswith=f"{type_code}{year}"
+                    ).select_for_update().count()
+                    new_matricule = f"{type_code}{year}/{str(count + 1).zfill(5)}"
+                    StudentMatricule.objects.create(
+                        student=self.student,
+                        type_formation=type_formation,
+                        matricule=new_matricule,
+                        academic_year=self.academic_year,
+                    )
+                    # Sync legacy field only if empty or starts with X
+                    # Refresh student from DB to avoid stale data
+                    self.student.refresh_from_db()
+                    if not self.student.matricule or self.student.matricule.startswith("X"):
+                        self.student.matricule = new_matricule
+                        self.student.save(update_fields=["matricule"])
 
         super().save(*args, **kwargs)

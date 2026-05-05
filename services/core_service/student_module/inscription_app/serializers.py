@@ -3,6 +3,7 @@ from rest_framework import serializers
 from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.class_app.serializers import ClassSerializer
 from services.core_service.academic_module.faculty_app.models import Faculty
+from services.core_service.student_module.student_profile_app.models import StudentMatricule
 
 from .models import Inscription
 
@@ -17,9 +18,7 @@ class InscriptionSerializer(serializers.ModelSerializer):
     student_last_name = serializers.CharField(
         read_only=True, source="student.user.last_name"
     )
-    student_matricule = serializers.CharField(
-        read_only=True, source="student.matricule"
-    )
+    student_matricule = serializers.SerializerMethodField(read_only=True)
 
     # ---------------------------
     # Class
@@ -39,6 +38,7 @@ class InscriptionSerializer(serializers.ModelSerializer):
     # ---------------------------
     faculty_id = serializers.UUIDField(required=False, allow_null=True)
     payment_status = serializers.SerializerMethodField(read_only=True)
+    has_verified_payment = serializers.SerializerMethodField(read_only=True)
     created_by = serializers.SerializerMethodField(read_only=True)
     modified_by = serializers.SerializerMethodField(read_only=True)
 
@@ -60,10 +60,24 @@ class InscriptionSerializer(serializers.ModelSerializer):
             "year",
             "faculty_id",
             "payment_status",
+            "has_verified_payment",
             "created_by",
             "modified_by",
             "modified_at",
         ]
+
+    def get_student_matricule(self, obj):
+        """Returns the matricule for the TypeFormation of this specific inscription."""
+        if not obj.class_fk:
+            return obj.student.matricule
+        try:
+            type_formation = obj.class_fk.department.faculty.types
+        except AttributeError:
+            return obj.student.matricule
+        sm = StudentMatricule.objects.filter(
+            student=obj.student, type_formation=type_formation
+        ).first()
+        return sm.matricule if sm else obj.student.matricule
 
     def get_created_by(self, obj):
         if obj.created_by:
@@ -76,10 +90,23 @@ class InscriptionSerializer(serializers.ModelSerializer):
         return None
 
     def get_payment_status(self, obj):
-        return obj.payments_inscription.filter(
-            paymentplan__feessheet__wording__wording_name__icontains="inscription",
-            payment_status="verified",
-        ).exists()
+        """Retourne le statut exact du paiement d'inscription ou null si aucun paiement"""
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import Payment
+        
+        # Chercher le paiement d'inscription le plus récent pour cette inscription
+        payment = Payment.objects.filter(
+            inscription=obj,
+            paymentplan__feessheet__wording__wording_name__icontains="inscription"
+        ).order_by('-verified_at', '-id').first()
+        
+        if payment:
+            return payment.payment_status  # 'verified', 'unverified', ou 'rejected'
+        else:
+            return None  # Aucun paiement effectué
+    
+    def get_has_verified_payment(self, obj):
+        """Retourne un boolean pour la compatibilité - true si paiement vérifié"""
+        return obj.has_verified_payment()
 
     # ---------------------------
     # CREATE METHOD
@@ -127,19 +154,21 @@ class InscriptionSerializer(serializers.ModelSerializer):
                 if default_class:
                     class_fk = default_class
 
-        # Create or get inscription
+        # Check for existing inscription in the EXACT SAME CLASS
         existing = Inscription.objects.filter(
             student=student,
             academic_year=validated_data.get("academic_year"),
-            class_fk=class_fk,
+            class_fk=class_fk,  # Même classe exacte
         ).first()
 
         if existing:
+            # Mise à jour de l'inscription existante dans la même classe
             for key, value in validated_data.items():
                 setattr(existing, key, value)
             existing.save(user=user)
             inscription = existing
         else:
+            # Création d'une nouvelle inscription (la validation du modèle se chargera des règles métier)
             inscription = Inscription(
                 student=student,
                 academic_year=validated_data.get("academic_year"),

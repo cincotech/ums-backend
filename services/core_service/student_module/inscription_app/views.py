@@ -2,6 +2,8 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.response import Response
+from rest_framework import status
 
 from core.response_handler import error_response, success_response
 from core.views import BaseViewSet
@@ -11,6 +13,7 @@ from .email_utils import send_inscription_email
 from .filters import InscriptionFilter
 from .models import Class, Inscription
 from .serializers import InscriptionSerializer
+from .inscription_template_service import generate_inscription_template
 
 
 class InscriptionViewSet(BaseViewSet):
@@ -47,13 +50,21 @@ class InscriptionViewSet(BaseViewSet):
     def activate(self, request, pk=None):
         inscription = self.get_object()
         if inscription.regist_status in ["Pending", "Suspended"]:
-            inscription.activate()
-            inscription.generate_matricule()
-            send_inscription_email(inscription, "Active")
-            return success_response(
-                message="Inscription activated and email sent",
-                data=InscriptionSerializer(inscription).data,
-            )
+            try:
+                # Skip payment check if user is student_service
+                skip_payment = (request.user and 
+                               hasattr(request.user, 'role') and 
+                               request.user.role and 
+                               request.user.role.name == "student_service")
+                inscription.activate(skip_payment_check=skip_payment)
+                inscription.generate_matricule()
+                send_inscription_email(inscription, "Active")
+                return success_response(
+                    message="Inscription activated and email sent",
+                    data=InscriptionSerializer(inscription).data,
+                )
+            except ValidationError as e:
+                return error_response(message=str(e))
         return error_response(message="Cannot activate")
 
     @action(detail=True, methods=["post"])
@@ -148,3 +159,34 @@ class InscriptionViewSet(BaseViewSet):
         if send_inscription_email(inscription, email_type):
             return success_response(message="Email envoyé avec succès")
         return error_response(message="Erreur lors de l'envoi de l'email")
+    
+    @action(detail=False, methods=["post"])
+    def generate_inscription_template(self, request):
+        inscription_id = request.data.get("inscription_id")
+        academic_year_id = request.query_params.get("academic_year_id")
+
+        if not inscription_id:
+            return error_response(
+                message="inscription_id is required",  
+            )
+
+        try:
+            # On va chercher l'inscription et récupérer user_id
+            inscription = Inscription.objects.filter(id=inscription_id).select_related("student__user").first()
+            if not inscription:
+                return error_response(
+                    message="Inscription not found",
+                )
+            user_id = str(inscription.student.user.id)
+            # Passer l'inscription_id au service
+            data = generate_inscription_template(user_id, academic_year_id, inscription_id)
+            return success_response(
+                message="Template generated successfully",
+                data=data
+            )
+        except Exception as e:
+            return error_response(
+                message=str(e),
+            )
+        
+       
