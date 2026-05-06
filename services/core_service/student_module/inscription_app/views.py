@@ -52,9 +52,9 @@ class InscriptionViewSet(BaseViewSet):
         if inscription.regist_status in ["Pending", "Suspended"]:
             try:
                 # Skip payment check if user is student_service
-                skip_payment = (request.user and 
-                               hasattr(request.user, 'role') and 
-                               request.user.role and 
+                skip_payment = (request.user and
+                               hasattr(request.user, 'role') and
+                               request.user.role and
                                request.user.role.name == "student_service")
                 inscription.activate(skip_payment_check=skip_payment)
                 inscription.generate_matricule()

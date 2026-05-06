@@ -344,9 +344,9 @@ class Inscription(models.Model):
             previous = Inscription.objects.filter(pk=self.pk).first()
             if previous and previous.regist_status != "Active":
                 # Skip payment check if created by student_service
-                skip_payment = (self.created_by and 
-                               hasattr(self.created_by, 'role') and 
-                               self.created_by.role and 
+                skip_payment = (self.created_by and
+                               hasattr(self.created_by, 'role') and
+                               self.created_by.role and
                                self.created_by.role.name == "student_service")
                 if not skip_payment and not self.has_verified_payment():
                     raise ValidationError(
@@ -551,12 +551,20 @@ class Inscription(models.Model):
         if self._state.adding and self.class_group is None:
             self.class_group = self.get_or_create_default_group()
         
-        # Auto-activate if created by student_service
-        if (self._state.adding and user and 
-            hasattr(user, 'role') and user.role and 
-            user.role.name == "student_service" and 
+        # Auto-activate if created by student_service (no payment check)
+        if (self._state.adding and user and
+            hasattr(user, 'role') and user.role and
+            user.role.name == "student_service" and
             self.regist_status == "Pending"):
             self.regist_status = "Active"
+            print(f"DEBUG: Auto-activated inscription for user {user.email} with role {user.role.name}")
+        # Also activate on update if still pending and user is student_service
+        if (not self._state.adding and user and
+            hasattr(user, 'role') and user.role and
+            user.role.name == "student_service" and
+            self.regist_status == "Pending"):
+            self.regist_status = "Active"
+            print(f"DEBUG: Auto-activated (update) inscription for user {user.email} with role {user.role.name}")
 
         # Generate matricule for this TypeFormation if not yet created
         try:

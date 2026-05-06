@@ -50,7 +50,12 @@ class InscriptionFilter(django_filters.FilterSet):
     class_name = django_filters.CharFilter(
         field_name="class_fk__class_name", lookup_expr="icontains"
     )
-
+    payment_status = django_filters.CharFilter(
+       field_name="payments_inscription__payment_status",
+       lookup_expr="exact"  # Use exact match for payment status to avoid partial matches
+    )
+    modified_at = django_filters.DateFilter( field_name="modified_at", lookup_expr="date")
+    created_at = django_filters.DateFilter( field_name="created_at", lookup_expr="date")
     # Q search - searches across multiple fields
     search = django_filters.CharFilter(method="filter_search")
 
@@ -68,6 +73,9 @@ class InscriptionFilter(django_filters.FilterSet):
             "sexe",
             "ageRange",
             "regist_status",
+            "payment_status",
+            "modified_at",
+            "created_at"
         ]
 
     def filter_search(self, queryset, name, value):
@@ -77,6 +85,9 @@ class InscriptionFilter(django_filters.FilterSet):
             | Q(student__matricule__icontains=value)
             | Q(class_fk__class_name__icontains=value)
             | Q(regist_status__icontains=value)
+            | Q(payments_inscription__payment_status__icontains=value)
+            | Q(modified_at=value)
+            | Q(created_at=value)
         )
 
     def filter_age_range(self, queryset, name, value):
