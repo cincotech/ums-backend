@@ -12,6 +12,9 @@ class InscriptionFilter(django_filters.FilterSet):
     class_fk = django_filters.UUIDFilter(field_name="class_fk")
     is_year_close = django_filters.BooleanFilter(field_name="is_year_close")
     date_inscription = django_filters.DateFilter(field_name="date_inscription")
+    matricules = django_filters.CharFilter(
+        field_name="student__matricules__matricule", lookup_expr="icontains"
+    )
     date_inscription__gte = django_filters.DateFilter(
         field_name="date_inscription", lookup_expr="gte"
     )
@@ -79,16 +82,22 @@ class InscriptionFilter(django_filters.FilterSet):
         ]
 
     def filter_search(self, queryset, name, value):
+        if not value:
+            return queryset
+
+        import re
+        clean_value = re.sub(r"[\/]", "", value)
+
         return queryset.filter(
             Q(student__user__first_name__icontains=value)
             | Q(student__user__last_name__icontains=value)
-            | Q(student__matricule__icontains=value)
+            | Q(student__matricule__icontains=clean_value)
             | Q(class_fk__class_name__icontains=value)
             | Q(regist_status__icontains=value)
             | Q(payments_inscription__payment_status__icontains=value)
-            | Q(modified_at=value)
-            | Q(created_at=value)
-        )
+            | Q(student__matricule__icontains=value)
+            | Q(student__matricules__matricule__icontains=value)
+        ).distinct()
 
     def filter_age_range(self, queryset, name, value):
         """
