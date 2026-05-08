@@ -124,9 +124,7 @@ class GradeEntryStatusSerializer(serializers.Serializer):
 
 class CourseResultSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="inscription.student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
     course_name = serializers.CharField(source="course.course_name", read_only=True)
     session_name = serializers.CharField(source="session.session_name", read_only=True)
 
@@ -147,6 +145,9 @@ class CourseResultSerializer(serializers.ModelSerializer):
 
     def get_student_name(self, obj):
         return f"{obj.inscription.student.user.first_name} {obj.inscription.student.user.last_name}"
+
+    def get_student_matricule(self, obj):
+        return obj.inscription.get_matricule_for_type()
 
 
 # ==================== JURY MANAGEMENT ====================
@@ -188,9 +189,7 @@ class JurySessionSerializer(serializers.ModelSerializer):
 
 class JuryDecisionSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
     jury_session_name = serializers.CharField(
         source="jury_session.session_name", read_only=True
     )
@@ -216,6 +215,10 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
     def get_student_name(self, obj):
         return f"{obj.student.user.first_name} {obj.student.user.last_name}"
 
+    def get_student_matricule(self, obj):
+        active_sm = obj.student.get_active_matricule()
+        return active_sm.matricule if active_sm else None
+
     def get_validated_by_name(self, obj):
         return f"{obj.validated_by.first_name} {obj.validated_by.last_name}"
 
@@ -225,9 +228,7 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
 
 class GradeComplaintSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
     course_name = serializers.CharField(source="course.course_name", read_only=True)
     course_code = serializers.CharField(source="course.course_code", read_only=True)
     assigned_to_name = serializers.SerializerMethodField()
@@ -256,6 +257,10 @@ class GradeComplaintSerializer(serializers.ModelSerializer):
 
     def get_student_name(self, obj):
         return f"{obj.student.user.first_name} {obj.student.user.last_name}"
+
+    def get_student_matricule(self, obj):
+        active_sm = obj.student.get_active_matricule()
+        return active_sm.matricule if active_sm else None
 
     def get_assigned_to_name(self, obj):
         if obj.assigned_to:
@@ -353,9 +358,7 @@ class TeacherPaymentClaimSerializer(serializers.ModelSerializer):
 
 class InscriptionSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
     class_name = serializers.CharField(source="class_fk.class_name", read_only=True)
     academic_year_name = serializers.CharField(
         source="academic_year.academic_year", read_only=True
@@ -373,12 +376,17 @@ class InscriptionSerializer(serializers.ModelSerializer):
             "academic_year",
             "academic_year_name",
             "regist_status",
-            "registration_date",
+            "date_inscription",
+            "withdrawal_date",
+            "is_year_close",
         ]
-        read_only_fields = ["id", "registration_date"]
+        read_only_fields = ["id", "withdrawal_date"]
 
     def get_student_name(self, obj):
         return f"{obj.student.user.first_name} {obj.student.user.last_name}"
+
+    def get_student_matricule(self, obj):
+        return obj.get_matricule_for_type()
 
 
 class InscriptionStatisticsSerializer(serializers.Serializer):

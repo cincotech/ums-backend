@@ -48,16 +48,22 @@ def _get_matricule_for_inscription(inscription):
     """Returns the correct matricule for this inscription's TypeFormation."""
     from services.core_service.student_module.student_profile_app.models import StudentMatricule
     if not inscription.class_fk:
-        return inscription.student.matricule or "En attente"
+        active_sm = inscription.student.get_active_matricule()
+        return active_sm.matricule if active_sm else "En attente"
     try:
         type_formation = inscription.class_fk.department.faculty.types
     except AttributeError:
-        return inscription.student.matricule or "En attente"
+        active_sm = inscription.student.get_active_matricule()
+        return active_sm.matricule if active_sm else "En attente"
     sm = StudentMatricule.objects.filter(
         student=inscription.student,
         type_formation=type_formation,
     ).first()
-    return sm.matricule if sm else (inscription.student.matricule or "En attente")
+    if sm:
+        return sm.matricule
+    # Fallback to any active matricule
+    active_sm = inscription.student.get_active_matricule()
+    return active_sm.matricule if active_sm else "En attente"
 
 
 def get_inscription_context(inscription):

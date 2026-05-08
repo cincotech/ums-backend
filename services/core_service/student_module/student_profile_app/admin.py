@@ -19,6 +19,19 @@ from services.foundational_service.geo_module.colline_app.models import Colline
 
 from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, StudentMatricule, Training
 
+# ----------------------------
+# StudentMatricule Inline
+# ----------------------------
+class StudentMatriculeInline(admin.TabularInline):
+    model = StudentMatricule
+    extra = 0
+    readonly_fields = ("matricule", "type_formation", "academic_year")
+    fields = ("type_formation", "matricule", "academic_year")
+    can_delete = False
+    show_change_link = True
+    verbose_name = "Matricule par TypeFormation"
+    verbose_name_plural = "Matricules (par TypeFormation)"
+
 
 # ----------------------------
 # StudentMatricule Resource
@@ -84,7 +97,8 @@ class StudentMatriculeAdmin(ImportExportModelAdmin, ModelAdmin):
     search_fields = (
         "matricule",
         "student__user__email",
-        "student__matricule",
+        "student__user__first_name",
+        "student__user__last_name",
         "type_formation__code",
         "type_formation__name",
     )
@@ -129,6 +143,10 @@ class StudentResource(resources.ModelResource):
         attribute="parent",
         widget=ManyToManyWidget(Parent, field="id", separator=","),
     )
+    matricule = fields.Field(
+        column_name="matricule",
+        attribute="id",  # dummy, will be overwritten by dehydrate
+    )
 
     class Meta:
         model = Student
@@ -152,6 +170,11 @@ class StudentResource(resources.ModelResource):
             "parent_ids",
         )
 
+    def dehydrate_matricule(self, student):
+        """Calcule le matricule à exporter (le plus récent)."""
+        active_sm = student.get_active_matricule()
+        return active_sm.matricule if active_sm else ""
+
 
 # ----------------------------
 # Student Admin
@@ -159,10 +182,31 @@ class StudentResource(resources.ModelResource):
 @admin.register(Student)
 class StudentAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = StudentResource
-    list_display = ("matricule", "user", "colline", "cam")
-    search_fields = ("matricule", "user__email", "colline__colline_name")
+    list_display = ("get_primary_matricule", "user", "colline", "cam", "get_all_matricules")
+    search_fields = ("matricules__matricule", "user__email", "colline__colline_name")
     list_filter = ("colline",)
-    ordering = ("matricule",)
+    ordering = ("id",)
+    inlines = [StudentMatriculeInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Précharger les matricules et leurs types pour éviter N+1
+        return qs.prefetch_related('matricules__type_formation')
+
+    def get_primary_matricule(self, obj):
+        """Affiche le matricule principal (le plus récent) de l'étudiant."""
+        active_sm = obj.get_active_matricule()
+        return active_sm.matricule if active_sm else "-"
+    get_primary_matricule.short_description = "Matricule"
+
+    def get_all_matricules(self, obj):
+        """Affiche tous les matricules de l'étudiant (par TypeFormation)."""
+        # obj.matricules est déjà préchargé
+        matricules = obj.matricules.all()
+        if not matricules:
+            return "-"
+        return ", ".join([f"{sm.type_formation.code}: {sm.matricule}" for sm in matricules])
+    get_all_matricules.short_description = "Matricules (par type)"
 
     formfield_overrides = {
         models.CharField: {
@@ -262,7 +306,11 @@ class StudentHsInfoAdmin(ImportExportModelAdmin, ModelAdmin):
         "se_mark",
         "date_of_obtention",
     )
-    search_fields = ("student__matricule", "highschool__name", "certificate__name")
+    search_fields = (
+        "student__matricules__matricule",  # Cherche dans StudentMatricule
+        "highschool__name",
+        "certificate__name",
+    )
     ordering = ("date_of_obtention",)
 
 
@@ -314,7 +362,7 @@ class StudentGraduateInfoAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = StudentGraduateInfoResource
     list_display = ("student", "department", "option", "mention", "degree")
     search_fields = (
-        "student__matricule",
+        "student__matricules__matricule",  # Cherche dans StudentMatricule
         "department__department_name",
         "degree__degree_name",
     )
@@ -324,6 +372,9 @@ class StudentGraduateInfoAdmin(ImportExportModelAdmin, ModelAdmin):
 @admin.register(StudentFile)
 class StudentFileAdmin(ModelAdmin):
     list_display = ("student", "file_type", "file_name", "is_verified", "uploaded_at")
-    search_fields = ("student__matricule", "file_name")
+    search_fields = (
+        "student__matricules__matricule",  # Cherche dans StudentMatricule
+        "file_name",
+    )
     list_filter = ("file_type", "is_verified")
     ordering = ("-uploaded_at",)

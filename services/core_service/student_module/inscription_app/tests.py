@@ -613,13 +613,12 @@ class TestEmailMatricule(BaseInscriptionTestCase):
         self.assertEqual(matricule, "M2025/00001")
 
     def test_email_context_fallback_when_no_student_matricule(self):
-        """Email context falls back to student.matricule when no StudentMatricule exists."""
+        """Email context returns 'En attente' when no StudentMatricule exists."""
         from services.core_service.student_module.inscription_app.email_utils import (
             _get_matricule_for_inscription,
         )
-        self.student.matricule = "X2025/00001"
-        self.student.save()
-
+        # No StudentMatricule exists for this student/type combination
+        # The legacy student.matricule field no longer exists
         insc = self._make_insc(self.class_i_l1)  # Institut — no StudentMatricule created
         matricule = _get_matricule_for_inscription(insc)
-        self.assertEqual(matricule, "X2025/00001")
+        self.assertEqual(matricule, "En attente")

@@ -16,7 +16,9 @@ class NotificationService:
             # Créer correspondance de suivi
             NotificationService._create_correspondence_record(reminder)
         except Exception as e:
-            logger.error(f"Erreur email pour {reminder.student.matricule}: {e}")
+            active_sm = reminder.student.get_active_matricule()
+            display_matricule = active_sm.matricule if active_sm else None
+            logger.error(f"Erreur email pour {display_matricule}: {e}")
             raise
 
     @staticmethod

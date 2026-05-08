@@ -1656,7 +1656,7 @@ class ResultCompilationService:
                     errors.append(
                         {
                             "inscription_id": str(inscription.id),
-                            "student_matricule": inscription.student.matricule,
+                            "student_matricule": inscription.get_matricule_for_type(),
                             "error": str(e),
                         }
                     )

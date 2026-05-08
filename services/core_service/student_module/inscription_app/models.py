@@ -295,13 +295,6 @@ class Inscription(models.Model):
                 academic_year=self.academic_year,
             )
 
-            # Keep Student.matricule in sync with the first matricule generated (legacy)
-            # Refresh student from DB to avoid stale data
-            self.student.refresh_from_db()
-            if not self.student.matricule or self.student.matricule.startswith("X"):
-                self.student.matricule = matricule
-                self.student.save(update_fields=["matricule"])
-
         return matricule
 
     def get_or_create_default_group(self):
@@ -405,18 +398,8 @@ class Inscription(models.Model):
             # But if they already have one for THIS type, no conflict
             pass
 
-        # Legacy check: if student.matricule exists and is not X, verify it matches
-        # only when StudentMatricule table is empty (old data)
-        matricule = self.student.matricule
-        if matricule and not matricule.startswith("X"):
-            if not StudentMatricule.objects.filter(student=self.student).exists():
-                student_type_code = matricule[0]
-                if student_type_code != class_type_formation.code:
-                    raise ValidationError(
-                        f"Student's matricule starts with '{student_type_code}', "
-                        f"which does not match the class faculty type '{class_type_formation.code}'. "
-                        "Use the 'replace' process to move the student to a different faculty."
-                    )
+        # Legacy check removed — Student.matricule field no longer exists.
+        # Validation now relies solely on StudentMatricule entries.
 
         # ---------------------------------------------------------
         # 3️⃣ SINGLE ACTIVE/PENDING INSCRIPTION PER CLASS PER ACADEMIC YEAR
@@ -592,11 +575,5 @@ class Inscription(models.Model):
                         matricule=new_matricule,
                         academic_year=self.academic_year,
                     )
-                    # Sync legacy field only if empty or starts with X
-                    # Refresh student from DB to avoid stale data
-                    self.student.refresh_from_db()
-                    if not self.student.matricule or self.student.matricule.startswith("X"):
-                        self.student.matricule = new_matricule
-                        self.student.save(update_fields=["matricule"])
 
         super().save(*args, **kwargs)

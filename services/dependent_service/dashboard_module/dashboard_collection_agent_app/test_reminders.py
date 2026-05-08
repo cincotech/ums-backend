@@ -13,8 +13,28 @@ class PaymentReminderTest(TestCase):
             email="test.student@ums.edu", first_name="Jean", last_name="Dupont"
         )
 
-        # Créer un étudiant
-        self.student = Student.objects.create(user=self.user, matricule="UMS2024001")
+        # Créer un étudiant (sans champ matricule)
+        self.student = Student.objects.create(user=self.user)
+
+        # Créer un StudentMatricule pour l'étudiant
+        from services.core_service.student_module.student_profile_app.models import StudentMatricule
+        from services.core_service.academic_module.faculty_app.models import TypeFormation
+        from services.core_service.academic_module.university_app.models import AcademicYear
+
+        # Créer les objets nécessaires
+        type_formation = TypeFormation.objects.create(name="Faculté", code="F")
+        academic_year = AcademicYear.objects.create(
+            academic_year="2024-2025",
+            civil_year="2025",
+            start_date="2024-09-01",
+            end_date="2025-07-31"
+        )
+        StudentMatricule.objects.create(
+            student=self.student,
+            type_formation=type_formation,
+            matricule="UMS2024001",
+            academic_year=academic_year,
+        )
 
     def test_email_sending(self):
         """Test l'envoi d'email de rappel"""
@@ -51,7 +71,8 @@ class PaymentReminderTest(TestCase):
         self.assertEqual(email, "test.student@ums.edu")
 
         print(f"✅ Email trouvé : {email}")
-        print(f"✅ Étudiant : {reminder.student.matricule}")
+        active_sm = reminder.student.get_active_matricule()
+        print(f"✅ Étudiant : {active_sm.matricule if active_sm else 'No matricule'}")
         print(f"✅ Nom complet : {reminder.student.user.get_full_name()}")
 
 
@@ -64,7 +85,8 @@ def test_email_access():
         if student:
             email = student.user.email
             print(f"✅ Email trouvé : {email}")
-            print(f"✅ Matricule : {student.matricule}")
+            active_sm = student.get_active_matricule()
+            print(f"✅ Matricule : {active_sm.matricule if active_sm else 'Aucun'}")
             return True
         else:
             print("❌ Aucun étudiant trouvé")

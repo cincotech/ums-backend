@@ -12,9 +12,6 @@ class InscriptionFilter(django_filters.FilterSet):
     class_fk = django_filters.UUIDFilter(field_name="class_fk")
     is_year_close = django_filters.BooleanFilter(field_name="is_year_close")
     date_inscription = django_filters.DateFilter(field_name="date_inscription")
-    matricules = django_filters.CharFilter(
-        field_name="student__matricules__matricule", lookup_expr="icontains"
-    )
     date_inscription__gte = django_filters.DateFilter(
         field_name="date_inscription", lookup_expr="gte"
     )
@@ -48,7 +45,7 @@ class InscriptionFilter(django_filters.FilterSet):
         field_name="student__user__last_name", lookup_expr="icontains"
     )
     student_matricule = django_filters.CharFilter(
-        field_name="student__matricule", lookup_expr="icontains"
+        field_name="student__matricules__matricule", lookup_expr="icontains"
     )
     class_name = django_filters.CharFilter(
         field_name="class_fk__class_name", lookup_expr="icontains"
@@ -78,7 +75,7 @@ class InscriptionFilter(django_filters.FilterSet):
             "regist_status",
             "payment_status",
             "modified_at",
-            "created_at"
+            "created_at",
         ]
 
     def filter_search(self, queryset, name, value):
@@ -91,11 +88,10 @@ class InscriptionFilter(django_filters.FilterSet):
         return queryset.filter(
             Q(student__user__first_name__icontains=value)
             | Q(student__user__last_name__icontains=value)
-            | Q(student__matricule__icontains=clean_value)
+            | Q(student__matricules__matricule__icontains=clean_value)
             | Q(class_fk__class_name__icontains=value)
             | Q(regist_status__icontains=value)
             | Q(payments_inscription__payment_status__icontains=value)
-            | Q(student__matricule__icontains=value)
             | Q(student__matricules__matricule__icontains=value)
         ).distinct()
 

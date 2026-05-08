@@ -94,7 +94,7 @@ class TeacherCourseSerializer(serializers.Serializer):
 
 class TeacherCourseStudentSerializer(serializers.Serializer):
     student_id = serializers.UUIDField(source="student.id")
-    matricule = serializers.CharField(source="student.matricule")
+    matricule = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     email = serializers.EmailField(source="student.user.email")
     class_name = serializers.CharField(source="inscription.class_fk.class_name")
@@ -102,7 +102,17 @@ class TeacherCourseStudentSerializer(serializers.Serializer):
     attendance_rate = serializers.FloatField()
 
     def get_full_name(self, obj):
-        return f"{obj['student'].user.first_name} {obj['student'].user.last_name}"
+        return f"{obj.student.user.first_name} {obj.student.user.last_name}"
+
+    def get_matricule(self, obj):
+        """Retourne le matricule correspondant à l'inscription de l'étudiant."""
+        if hasattr(obj, 'inscription') and obj.inscription:
+            matricule = obj.inscription.get_matricule_for_type()
+            if matricule:
+                return matricule
+        # Fallback: use student's active matricule
+        active_sm = obj.student.get_active_matricule()
+        return active_sm.matricule if active_sm else None
 
     def get_mark(self, obj):
         return obj["result"].mark if obj["result"] else None
@@ -254,9 +264,7 @@ class TeacherPaymentClaimSerializer(serializers.ModelSerializer):
 
 class AttendanceRecordSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="inscription.student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
 
     class Meta:
         model = Attendance
@@ -273,6 +281,9 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
 
     def get_student_name(self, obj):
         return f"{obj.inscription.student.user.first_name} {obj.inscription.student.user.last_name}"
+
+    def get_student_matricule(self, obj):
+        return obj.inscription.get_matricule_for_type()
 
 
 class AttendanceEntrySerializer(serializers.Serializer):

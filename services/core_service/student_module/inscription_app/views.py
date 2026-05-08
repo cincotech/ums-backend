@@ -24,10 +24,10 @@ class InscriptionViewSet(BaseViewSet):
     search_fields = [
         "student__user__first_name",
         "student__user__last_name",
-        "student__matricule",
+        "student__matricules__matricule",
         "class_fk__class_name",
     ]
-    ordering_fields = ["date_inscription", "regist_status", "student__matricule"]
+    ordering_fields = ["date_inscription", "regist_status"]
     ordering = ["-date_inscription"]
 
     def get_queryset(self):

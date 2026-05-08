@@ -105,6 +105,7 @@ INSTALLED_APPS = [
     "core",
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
+    "django_erd_generator",
 ]
 
 

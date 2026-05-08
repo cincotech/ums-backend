@@ -95,9 +95,16 @@ class StudentDashboardService:
         ).first()
         program = student.graduate_infos.first()
 
+        # Determiner le matricule à afficher
+        if inscription:
+            matricule = inscription.get_matricule_for_type()
+        else:
+            active_sm = student.get_active_matricule()
+            matricule = active_sm.matricule if active_sm else None
+
         return {
             "student_id": student.id,
-            "matricule": student.matricule,
+            "matricule": matricule,
             "full_name": f"{student.user.first_name} {student.user.last_name}",
             "email": student.user.email,
             "phone_number": student.user.phone_number or "",

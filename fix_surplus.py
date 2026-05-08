@@ -19,7 +19,9 @@ def fix_surplus_for_payment(payment_id):
             return
 
         student = payment.inscription.student
-        print(f"✅ Traitement du paiement {payment_id} pour {student.matricule}")
+        active_sm = student.get_active_matricule()
+        display_matricule = active_sm.matricule if active_sm else "No matricule"
+        print(f"✅ Traitement du paiement {payment_id} pour {display_matricule}")
 
         # Recalculer le PaymentInstallement
         installment = PaymentInstallement.objects.filter(
@@ -65,7 +67,9 @@ def fix_all_surplus():
     for installment in installments_with_surplus:
         if installment.paid_amount > installment.amount:
             surplus = installment.paid_amount - installment.amount
-            print(f"\n💰 Surplus trouvé pour {installment.student.matricule}")
+            active_sm = installment.student.get_active_matricule()
+            display_matricule = active_sm.matricule if active_sm else "No matricule"
+            print(f"\n💰 Surplus trouvé pour {display_matricule}")
             print(f"   Plan: {installment.payment_plan.description}")
             print(f"   Surplus: {surplus}")
 

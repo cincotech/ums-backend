@@ -55,6 +55,7 @@ class StudentSerializer(serializers.ModelSerializer):
     user_obj = UserSerializer(source="user", read_only=True)
     colline_name = serializers.CharField(source="colline.colline_name", read_only=True)
     parent_obj = ParentSerializer(source="parent", many=True, read_only=True)
+    matricule = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Student
@@ -70,7 +71,11 @@ class StudentSerializer(serializers.ModelSerializer):
             "user_obj",
             "parent_obj",
         ]
-        read_only_fields = ["parent"]
+        read_only_fields = ["parent", "matricule"]
+
+    def get_matricule(self, obj):
+        active_sm = obj.get_active_matricule()
+        return active_sm.matricule if active_sm else None
 
     def create(self, validated_data):
         parents = validated_data.pop("parent", [])

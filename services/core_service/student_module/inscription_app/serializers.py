@@ -69,15 +69,21 @@ class InscriptionSerializer(serializers.ModelSerializer):
     def get_student_matricule(self, obj):
         """Returns the matricule for the TypeFormation of this specific inscription."""
         if not obj.class_fk:
-            return obj.student.matricule
+            active_sm = obj.student.get_active_matricule()
+            return active_sm.matricule if active_sm else None
         try:
             type_formation = obj.class_fk.department.faculty.types
         except AttributeError:
-            return obj.student.matricule
+            active_sm = obj.student.get_active_matricule()
+            return active_sm.matricule if active_sm else None
         sm = StudentMatricule.objects.filter(
             student=obj.student, type_formation=type_formation
         ).first()
-        return sm.matricule if sm else obj.student.matricule
+        if sm:
+            return sm.matricule
+        # Fallback: return any active matricule if none for this type
+        active_sm = obj.student.get_active_matricule()
+        return active_sm.matricule if active_sm else None
 
     def get_created_by(self, obj):
         if obj.created_by:
@@ -181,9 +187,10 @@ class InscriptionSerializer(serializers.ModelSerializer):
             inscription.save(user=user)
 
         # ---------------------------
-        # Generate matricule if status is Active
+        # Generate matricule for this TypeFormation if status is Active
+        # Note: generate_matricule() is idempotent — it creates only if missing for this type
         # ---------------------------
-        if inscription.regist_status == "Active" and not student.matricule:
+        if inscription.regist_status == "Active":
             inscription.generate_matricule()
 
         return inscription

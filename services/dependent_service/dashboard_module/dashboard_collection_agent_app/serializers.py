@@ -212,7 +212,8 @@ class PaymentInstallementSerializer(serializers.ModelSerializer):
         return f"{obj.student.user.first_name} {obj.student.user.last_name}"
 
     def get_student_matricule(self, obj):
-        return obj.student.matricule
+        active_sm = obj.student.get_active_matricule()
+        return active_sm.matricule if active_sm else None
 
     def get_remaining_amount(self, obj):
         return obj.amount - obj.paid_amount
@@ -348,7 +349,7 @@ class PaymentSerializer(serializers.ModelSerializer):
                 ),
                 "student": {
                     "id": str(obj.inscription.student.id),
-                    "matricule": obj.inscription.student.matricule,
+                    "matricule": obj.inscription.get_matricule_for_type(),
                     "first_name": obj.inscription.student.user.first_name,
                     "last_name": obj.inscription.student.user.last_name,
                     "email": obj.inscription.student.user.email,

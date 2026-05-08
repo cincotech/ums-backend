@@ -404,7 +404,9 @@ class PaymentInstallementViewSet(BaseViewSet):
                     "student": {
                         "id": str(inst.student.id),
                         "name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
-                        "matricule": inst.student.matricule,
+                        "matricule": inst.student.get_active_matricule().matricule
+                        if inst.student.get_active_matricule()
+                        else None,
                     },
                     "class_info": (
                         {

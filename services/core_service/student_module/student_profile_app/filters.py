@@ -56,7 +56,7 @@ class StudentFilter(django_filters.FilterSet):
             Q(user__first_name__icontains=value)
             | Q(user__last_name__icontains=value)
             | Q(user__email__icontains=value)
-            | Q(matricule__icontains=value)
+            | Q(matricules__matricule__icontains=value)
         )
 
     def filter_age_range(self, queryset, name, value):

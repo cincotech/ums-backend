@@ -423,7 +423,6 @@ class UserViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = UserFilter
-    filterset_class = BackupFilter
     filterset_fields = ["role", "is_active", "university"]
     search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
     ordering_fields = ["email", "first_name", "last_name", "created_at"]

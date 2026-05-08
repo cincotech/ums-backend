@@ -78,7 +78,7 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
         "requires_2fa",
         "university",
     )
-    list_filter = ("gender", "marital_status", "email_verified", "requires_2fa")
+    list_filter = ("gender", "marital_status", "email_verified", "requires_2fa", "role")
     search_fields = ("email", "phone_number", "role__name")
     ordering = ("email",)
 

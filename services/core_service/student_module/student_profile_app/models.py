@@ -15,12 +15,15 @@ from services.foundational_service.auth_module.user_app.models import User
 from services.foundational_service.geo_module.colline_app.models import Colline
 
 
+
+
+
+
 class Student(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(
         User, on_delete=models.RESTRICT, related_name="students_users"
     )
-    matricule = models.CharField(max_length=120, unique=True, null=True, blank=True)
     colline = models.ForeignKey(
         Colline, on_delete=models.RESTRICT, related_name="birthplaces"
     )
@@ -30,8 +33,15 @@ class Student(models.Model):
     class Meta:
         db_table = "students"
 
+    def get_active_matricule(self):
+        """Retourne le StudentMatricule le plus récent (par année civile décroissante)."""
+        return self.matricules.select_related('academic_year').order_by('-academic_year__civil_year', '-id').first()
+
     def __str__(self):
-        return f"{self.user.get_full_name()} ({self.matricule})"
+        active_sm = self.get_active_matricule()
+        if active_sm:
+            return f"{self.user.get_full_name()} ({active_sm.matricule})"
+        return self.user.get_full_name()
 
 
 class StudentFile(models.Model):
@@ -73,7 +83,8 @@ class StudentFile(models.Model):
         unique_together = ("student", "file_type")
 
     def __str__(self):
-        return f"{self.student.matricule} - {self.get_file_type_display()}"
+        matricule = self.student.matricules.first()
+        return f"{matricule.matricule if matricule else 'No matricule'} - {self.get_file_type_display()}"
 
 
 class Training(models.Model):

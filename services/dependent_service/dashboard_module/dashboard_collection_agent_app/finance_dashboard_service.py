@@ -362,13 +362,18 @@ class FinanceDashboardService:
         for p in recent_payments_qs:
             student = p.inscription.student if p.inscription else None
             user = student.user if student else None
+            if student:
+                active_sm = student.get_active_matricule()
+                matricule_display = active_sm.matricule if active_sm else None
+            else:
+                matricule_display = "N/A"
             recent_payments.append(
                 {
                     "id": str(p.id),
                     "student_name": f"{user.first_name} {user.last_name}".strip()
                     if user
                     else "N/A",
-                    "matricule": student.matricule if student else "N/A",
+                    "matricule": matricule_display,
                     "amount": p.amount_paid,
                     "method": p.payment_method,
                     "date": p.payment_date or date.today(),

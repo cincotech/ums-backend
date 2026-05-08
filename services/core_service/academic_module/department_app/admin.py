@@ -15,17 +15,27 @@ from .models import Department
 # Department Resource
 # ----------------------------
 class DepartmentResource(resources.ModelResource):
-    faculty_name = fields.Field(
-        column_name="faculty_name",
+
+    faculty = fields.Field(
+        column_name="faculty",
         attribute="faculty",
-        widget=ForeignKeyWidget(Faculty, "faculty_name"),
+        widget=ForeignKeyWidget(Faculty, "id"),
     )
 
     class Meta:
         model = Department
-        fields = ("id", "department_name", "abreviation", "faculty", "faculty_name")
-        export_order = ("id", "department_name", "abreviation", "faculty_name")
-
+        fields = (
+            "id",
+            "department_name",
+            "abreviation",
+            "faculty",
+        )
+        export_order = (
+            "id",
+            "department_name",
+            "abreviation",
+            "faculty",
+        )
 
 # ----------------------------
 # Department Admin

@@ -50,14 +50,17 @@ class StudentCard(models.Model):
             if self.student.user.last_name
             else "X"
         )
-        matricule = self.student.matricule or "00000"
+        active_sm = self.student.get_active_matricule()
+        matricule = active_sm.matricule if active_sm else "00000"
         return f"{first_initial}{last_initial}{matricule}"
 
     def generate_qr_data(self):
+        active_sm = self.student.get_active_matricule()
+        matricule_display = active_sm.matricule if active_sm else None
         student_info = {
             "student_id": str(self.student.id),
             "name": f"{self.student.user.first_name} {self.student.user.last_name}",
-            "matricule": self.student.matricule,
+            "matricule": matricule_display,
             "card_number": self.card_number,
             "issue_date": str(self.issue_date),
             "expiry_date": str(self.expiry_date),

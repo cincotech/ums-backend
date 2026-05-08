@@ -79,7 +79,7 @@ class UserFilter(django_filters.FilterSet):
 
     class Meta:
         model = User
-        fields = []
+        fields = ["role", "created_at"]
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(
@@ -87,6 +87,7 @@ class UserFilter(django_filters.FilterSet):
             | Q(first_name__icontains=value)
             | Q(last_name__icontains=value)
             | Q(phone_number__icontains=value)
+            | Q(role__name__icontains=value)
         )
 
 
@@ -103,6 +104,7 @@ class StudentUserFilter(django_filters.FilterSet):
             | Q(first_name__icontains=value)
             | Q(last_name__icontains=value)
             | Q(student__matricule__icontains=value)
+            | Q(role__name__icontains=value)
         )
 
 

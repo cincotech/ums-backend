@@ -37,7 +37,9 @@ class PaymentService:
         """Crée un paiement et redistribue automatiquement si nécessaire."""
         logger.info(f"\n{'='*80}")
         logger.info("🔵 CREATE_PAYMENT - Début")
-        logger.info(f"Étudiant: {student.user.get_full_name()} ({student.matricule})")
+        active_sm = student.get_active_matricule()
+        display_matricule = active_sm.matricule if active_sm else None
+        logger.info(f"Étudiant: {student.user.get_full_name()} ({display_matricule})")
         logger.info(f"Plan cible: {target_plan.description}")
         logger.info(f"Montant: {amount}")
         logger.info(f"Méthode: {payment_method}")

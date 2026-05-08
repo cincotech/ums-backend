@@ -538,7 +538,7 @@ class InscriptionSerializer(serializers.ModelSerializer):
 
     def get_student_info(self, obj):
         return {
-            "matricule": obj.student.matricule,
+            "matricule": obj.get_matricule_for_type(),
             "first_name": obj.student.user.first_name,
             "last_name": obj.student.user.last_name,
             "email": obj.student.user.email,
@@ -622,8 +622,10 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "validated_at"]
 
     def get_student_info(self, obj):
+        active_sm = obj.student.get_active_matricule()
+        matricule = active_sm.matricule if active_sm else None
         return {
-            "matricule": obj.student.matricule,
+            "matricule": matricule,
             "first_name": obj.student.user.first_name,
             "last_name": obj.student.user.last_name,
             "email": obj.student.user.email,
@@ -901,9 +903,7 @@ class TimetableDetailSerializer(serializers.ModelSerializer):
 
 class AttendanceSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
     timetable_info = serializers.SerializerMethodField()
 
     class Meta:
@@ -922,6 +922,10 @@ class AttendanceSerializer(serializers.ModelSerializer):
 
     def get_student_name(self, obj):
         return f"{obj.student.user.first_name} {obj.student.user.last_name}"
+
+    def get_student_matricule(self, obj):
+        active_sm = obj.student.get_active_matricule()
+        return active_sm.matricule if active_sm else None
 
     def get_timetable_info(self, obj):
         tt = obj.timetable
@@ -1131,9 +1135,7 @@ class ResultSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source="course.course_name", read_only=True)
     session_name = serializers.CharField(source="session.session_name", read_only=True)
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="inscription.student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
 
     class Meta:
         model = Result
@@ -1154,6 +1156,9 @@ class ResultSerializer(serializers.ModelSerializer):
         student = obj.inscription.student
         return f"{student.user.first_name} {student.user.last_name}"
 
+    def get_student_matricule(self, obj):
+        return obj.inscription.get_matricule_for_type()
+
 
 class BulkResultEntrySerializer(serializers.Serializer):
     marks = serializers.ListField(
@@ -1165,9 +1170,7 @@ class BulkResultEntrySerializer(serializers.Serializer):
 
 class CompiledResultSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="inscription.student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
     class_name = serializers.CharField(
         source="inscription.class_fk.class_name", read_only=True
     )
@@ -1182,8 +1185,10 @@ class CompiledResultSerializer(serializers.ModelSerializer):
             "class_name",
             "results",
             "average_mark",
-            "status",
-            "is_promoted",
+            "credits_earned",
+            "decision",
+            "decision_date",
+            "notes",
         ]
         read_only_fields = ["id"]
 
@@ -1191,13 +1196,14 @@ class CompiledResultSerializer(serializers.ModelSerializer):
         student = obj.inscription.student
         return f"{student.user.first_name} {student.user.last_name}"
 
+    def get_student_matricule(self, obj):
+        return obj.inscription.get_matricule_for_type()
+
 
 class SupplementSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source="course.course_name", read_only=True)
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="inscription.student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
 
     class Meta:
         model = Supplement
@@ -1218,12 +1224,13 @@ class SupplementSerializer(serializers.ModelSerializer):
         student = obj.inscription.student
         return f"{student.user.first_name} {student.user.last_name}"
 
+    def get_student_matricule(self, obj):
+        return obj.inscription.get_matricule_for_type()
+
 
 class GradeComplaintSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
-    student_matricule = serializers.CharField(
-        source="student.matricule", read_only=True
-    )
+    student_matricule = serializers.SerializerMethodField()
     course_name = serializers.CharField(source="course.course_name", read_only=True)
     assigned_to_name = serializers.SerializerMethodField()
 
@@ -1250,6 +1257,10 @@ class GradeComplaintSerializer(serializers.ModelSerializer):
 
     def get_student_name(self, obj):
         return f"{obj.student.user.first_name} {obj.student.user.last_name}"
+
+    def get_student_matricule(self, obj):
+        active_sm = obj.student.get_active_matricule()
+        return active_sm.matricule if active_sm else None
 
     def get_assigned_to_name(self, obj):
         if obj.assigned_to:

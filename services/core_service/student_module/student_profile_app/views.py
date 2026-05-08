@@ -28,9 +28,9 @@ class StudentViewSet(BaseViewSet):
     serializer_class = StudentSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = StudentFilter
-    search_fields = ["user__first_name", "user__last_name", "user__email", "matricule"]
-    ordering_fields = ["matricule", "user__first_name", "user__last_name"]
-    ordering = ["matricule"]
+    search_fields = ["user__first_name", "user__last_name", "user__email", "matricules__matricule"]
+    ordering_fields = ["user__last_name", "user__first_name"]
+    ordering = ["user__last_name", "user__first_name"]
 
     def perform_create(self, serializer):
         return serializer.save()
@@ -97,7 +97,11 @@ class StudentSiblingsAPIView(APIView):
 
     def get(self, request, matricule):
         try:
-            student = Student.objects.get(matricule=matricule)
+            # Chercher l'étudiant via StudentMatricule (source de vérité)
+            student_matricule = StudentMatricule.objects.filter(matricule=matricule).first()
+            if not student_matricule:
+                raise Student.DoesNotExist
+            student = student_matricule.student
             # Get parent data
             parents = student.parent.all()
             parents_data = [
