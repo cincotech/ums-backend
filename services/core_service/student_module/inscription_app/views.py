@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
@@ -5,7 +6,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework import status
 
-from core.response_handler import error_response, success_response
+from core.response_handler import error_response, success_response, validate_serializer
 from core.views import BaseViewSet
 from services.core_service.academic_module.university_app.models import AcademicYear
 
@@ -30,8 +31,39 @@ class InscriptionViewSet(BaseViewSet):
     ordering_fields = ["date_inscription", "regist_status"]
     ordering = ["-date_inscription"]
 
+    def get_closed_year_warning(self, academic_year):
+        if academic_year and academic_year.is_closed:
+            return (
+                "Attention : cette inscription est enregistrée dans une année "
+                "académique déjà fermée. Elle restera visible dans les archives "
+                "de cette année."
+            )
+        return None
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        validation_error = validate_serializer(serializer)
+        if validation_error:
+            return validation_error
+
+        self.perform_create(serializer)
+        inscription = serializer.instance
+        message = (
+            self.get_closed_year_warning(inscription.academic_year)
+            or "Inscription créée avec succès"
+        )
+        return success_response(
+            data=serializer.data,
+            message=message,
+            status_code=status.HTTP_201_CREATED,
+        )
+
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        if getattr(self, "action", None) != "list":
+            return queryset
+
         academic_year_id = self.request.query_params.get("academic_year_id")
 
         if academic_year_id:
@@ -149,6 +181,34 @@ class InscriptionViewSet(BaseViewSet):
             )
 
         return error_response(message="Cannot replace")
+
+    @action(detail=True, methods=["post"])
+    def transfer_academic_year(self, request, pk=None):
+        inscription = self.get_object()
+        academic_year_id = request.data.get("academic_year_id")
+        if not academic_year_id:
+            return error_response(message="academic_year_id is required")
+
+        try:
+            target_academic_year = AcademicYear.objects.get(id=academic_year_id)
+        except AcademicYear.DoesNotExist:
+            return error_response(message="Année académique introuvable")
+
+        try:
+            transferred = inscription.transfer_academic_year(
+                target_academic_year,
+                user=request.user,
+            )
+            message = (
+                self.get_closed_year_warning(target_academic_year)
+                or "Inscription transférée vers l'année académique sélectionnée"
+            )
+            return success_response(
+                message=message,
+                data=InscriptionSerializer(transferred).data,
+            )
+        except ValidationError as e:
+            return error_response(message=" ".join(e.messages))
 
     @action(detail=True, methods=["post"])
     def send_email(self, request, pk=None):

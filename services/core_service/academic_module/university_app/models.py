@@ -53,22 +53,54 @@ class AcademicYear(models.Model):
 
     class Meta:
         db_table = "academic_years"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["university"],
+                condition=models.Q(is_closed=False),
+                name="unique_open_academic_year_per_university",
+            )
+        ]
 
     def __str__(self):
         return self.academic_year
 
-    def save(self, *args, **kwargs):
-        # Ensure only one open year per university
+    def clean(self):
+        super().clean()
+
+        if self.start_date and self.end_date and self.start_date >= self.end_date:
+            raise ValidationError(
+                "La date de début doit être antérieure à la date de fin."
+            )
+
+        if not self.university_id or not self.start_date or not self.end_date:
+            return
+
+        overlapping_years = AcademicYear.objects.filter(
+            university=self.university,
+            start_date__lte=self.end_date,
+            end_date__gte=self.start_date,
+        )
+        if self.pk:
+            overlapping_years = overlapping_years.exclude(pk=self.pk)
+        if overlapping_years.exists():
+            raise ValidationError(
+                "Cette période chevauche déjà une autre année académique de cette université."
+            )
+
         if not self.is_closed:
-            qs = AcademicYear.objects.filter(
+            open_years = AcademicYear.objects.filter(
                 university=self.university, is_closed=False
             )
             if self.pk:
-                qs = qs.exclude(pk=self.pk)
-            if qs.exists():
+                open_years = open_years.exclude(pk=self.pk)
+            if open_years.exists():
                 raise ValidationError(
-                    "There is already an open academic year for this university."
+                    "Une année académique est déjà ouverte pour cette université. "
+                    "Créez les anciennes années avec le statut Fermée, ou fermez l'année ouverte avant d'en ouvrir une nouvelle."
                 )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
 
         super().save(*args, **kwargs)
 

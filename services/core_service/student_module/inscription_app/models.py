@@ -1,4 +1,5 @@
 import uuid
+import re
 
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -177,33 +178,14 @@ class Inscription(models.Model):
                 "Only Active or Pending inscriptions can be replaced."
             )
 
-        # Check se_mark eligibility for the new class TypeFormation
         try:
-            new_type_code = new_class.department.faculty.types.code
-            new_type_name = new_class.department.faculty.types.name
+            new_type = new_class.department.faculty.types
         except AttributeError:
-            new_type_code = "X"
-            new_type_name = "Unknown"
-
-        hs_info = self.student.hs_infos.first()
-        se_mark = None
-        if hs_info and hs_info.se_mark:
-            try:
-                se_mark = float(hs_info.se_mark)
-            except (ValueError, TypeError):
-                se_mark = None
-
-        if se_mark is None:
             raise ValidationError(
-                "Cannot replace inscription: highschool information (se_mark) is missing."
+                "Faculty type configuration is missing. Please contact the administrator."
             )
 
-        if se_mark < 50 and new_type_code != "I":
-            raise ValidationError(
-                f"Cannot replace to {new_type_name}: your highschool percentage "
-                f"is {se_mark}%. A minimum of 50% is required. "
-                f"You are only eligible for Institut."
-            )
+        self._validate_registration_eligibility(new_type)
 
         with transaction.atomic():
             Inscription.objects.filter(pk=self.pk).update(regist_status="Replaced")
@@ -236,6 +218,57 @@ class Inscription(models.Model):
             return float(hs_info.se_mark)
         except (ValueError, TypeError):
             return None
+
+    def _has_university_background(self):
+        """Returns True when the student has a university parcours/background."""
+        return self.student.graduate_infos.exists()
+
+    def _validate_registration_eligibility(self, target_type):
+        """
+        Applies hierarchical admission rules:
+        - F/I baseline entries always require valid highschool information.
+        - Without university background, highschool se_mark drives eligibility.
+        - With university background, advanced tracks (M/D) bypass highschool.
+        """
+        target_type_code = target_type.code
+        baseline_type_codes = {"F", "I"}
+        advanced_type_codes = {"M", "D"}
+        has_university_background = self._has_university_background()
+
+        if has_university_background and target_type_code in advanced_type_codes:
+            return
+
+        se_mark = self._get_se_mark()
+        if se_mark is None:
+            if has_university_background and target_type_code in baseline_type_codes:
+                raise ValidationError(
+                    "Cannot enroll in Institut or Faculté with university background "
+                    "without highschool information. For this baseline institution "
+                    "entry, highschool information remains mandatory."
+                )
+            raise ValidationError(
+                "Cannot enroll: highschool information (se_mark) is missing. "
+                "Please complete your highschool information first."
+            )
+
+        if target_type_code not in baseline_type_codes and not has_university_background:
+            raise ValidationError(
+                "Cannot enroll in Master or Doctorate without university background. "
+                "Highschool information only gives access to Institut or Faculté."
+            )
+
+        if se_mark < 50 and target_type_code != "I":
+            raise ValidationError(
+                f"Cannot enroll in {target_type.name}: your highschool percentage "
+                f"is {se_mark}%. With a score below 50%, registration is restricted "
+                "to Institut."
+            )
+
+        if se_mark >= 50 and target_type_code not in baseline_type_codes and not has_university_background:
+            raise ValidationError(
+                "Cannot enroll in this program with highschool information only. "
+                "A university background is required for Master or Doctorate."
+            )
 
     def is_active(self):
         return self.regist_status == "Active"
@@ -318,6 +351,120 @@ class Inscription(models.Model):
                 group.save(update_fields=["is_default"])
 
             return group
+
+    def transfer_academic_year(self, target_academic_year, user=None):
+        """
+        Move this inscription to another academic year atomically.
+
+        This is intentionally different from a plain PATCH because the class group
+        depends on the academic year. When the year changes, the inscription must
+        be attached to the default group for the same class in the target year.
+        """
+        if self.academic_year_id == target_academic_year.id:
+            return self
+
+        with transaction.atomic():
+            inscription = (
+                Inscription.objects.select_for_update()
+                .select_related(
+                    "academic_year",
+                    "class_fk__department__faculty__types",
+                    "student",
+                )
+                .get(pk=self.pk)
+            )
+            old_academic_year = inscription.academic_year
+            inscription.academic_year = target_academic_year
+            inscription.class_group = inscription.get_or_create_default_group()
+
+            if user:
+                inscription.modified_by = user
+                inscription.modified_at = timezone.now()
+
+            inscription.clean()
+
+            update_fields = ["academic_year", "class_group"]
+            if user:
+                update_fields.extend(["modified_by", "modified_at"])
+            super(Inscription, inscription).save(update_fields=update_fields)
+
+            inscription._transfer_matricule_year_if_needed(old_academic_year)
+
+            return inscription
+
+    def _transfer_matricule_year_if_needed(self, old_academic_year):
+        """
+        Keep the student's TypeFormation matricule coherent when an inscription
+        was created in the wrong year and is corrected before another inscription
+        uses that old-year matricule.
+        """
+        try:
+            type_formation = self.class_fk.department.faculty.types
+            type_code = type_formation.code
+        except AttributeError:
+            return
+
+        matricule = StudentMatricule.objects.select_for_update().filter(
+            student=self.student,
+            type_formation=type_formation,
+            academic_year=old_academic_year,
+        ).first()
+        if not matricule:
+            return
+
+        old_year_still_used = Inscription.objects.filter(
+            student=self.student,
+            academic_year=old_academic_year,
+            class_fk__department__faculty__types=type_formation,
+        ).exclude(pk=self.pk).exists()
+        if old_year_still_used:
+            return
+
+        old_prefix = f"{type_code}{old_academic_year.civil_year}/"
+        if matricule.matricule.startswith(old_prefix):
+            preferred_number = self._extract_matricule_number(matricule.matricule)
+            matricule.matricule = self._get_available_matricule(
+                type_code=type_code,
+                civil_year=self.academic_year.civil_year,
+                preferred_number=preferred_number,
+                exclude_matricule_id=matricule.pk,
+            )
+
+        matricule.academic_year = self.academic_year
+        matricule.save(update_fields=["academic_year", "matricule"])
+
+    def _extract_matricule_number(self, matricule):
+        match = re.search(r"/(\d+)$", matricule or "")
+        return int(match.group(1)) if match else None
+
+    def _get_available_matricule(
+        self,
+        type_code,
+        civil_year,
+        preferred_number=None,
+        exclude_matricule_id=None,
+    ):
+        prefix = f"{type_code}{civil_year}/"
+        existing_qs = StudentMatricule.objects.select_for_update().filter(
+            matricule__startswith=prefix
+        )
+        if exclude_matricule_id:
+            existing_qs = existing_qs.exclude(pk=exclude_matricule_id)
+
+        used_numbers = set()
+        for existing in existing_qs.values_list("matricule", flat=True):
+            number = self._extract_matricule_number(existing)
+            if number is not None:
+                used_numbers.add(number)
+
+        if preferred_number and preferred_number not in used_numbers:
+            return f"{prefix}{str(preferred_number).zfill(5)}"
+
+        next_number = max(used_numbers, default=0) + 1
+        while next_number in used_numbers:
+            next_number += 1
+
+        return f"{prefix}{str(next_number).zfill(5)}"
 
     def clean(self):
         """
@@ -498,26 +645,11 @@ class Inscription(models.Model):
                     )
 
         # ---------------------------------------------------------
-        # 6 - HIGHSCHOOL PERCENTAGE (se_mark) CHECK
-        # se_mark absent  -> blocked everywhere
-        # se_mark < 50    -> Institut only (F, M, D blocked)
-        # se_mark >= 50   -> all types allowed
+        # 6 - REGISTRATION ELIGIBILITY
+        # Highschool drives F/I baseline admission. University parcours can
+        # override highschool only for advanced tracks such as Master/Doctorate.
         # ---------------------------------------------------------
-        se_mark = self._get_se_mark()
-        target_type_code = target_type.code
-
-        if se_mark is None:
-            raise ValidationError(
-                "Cannot enroll: highschool information (se_mark) is missing. "
-                "Please complete your highschool information first."
-            )
-
-        if se_mark < 50 and target_type_code != "I":
-            raise ValidationError(
-                f"Cannot enroll in {target_type.name}: your highschool percentage "
-                f"is {se_mark}%. A minimum of 50% is required for {target_type.name}. "
-                f"You are only eligible for Institut."
-            )
+        self._validate_registration_eligibility(target_type)
 
     def save(self, *args, **kwargs):
         user = kwargs.pop('user', None)

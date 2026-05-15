@@ -24,6 +24,18 @@ class AcademicYearViewSet(BaseViewSet):
     ordering_fields = ["start_date", "end_date"]
     ordering = ["-start_date"]
 
+    def get_default_university(self):
+        university, _ = University.objects.get_or_create(
+            university_name="Université Polytechnique de Gitega",
+            defaults={"university_abrev": "UPG"},
+        )
+        return university
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["academic_year_university"] = self.get_default_university()
+        return context
+
     def get_queryset(self):
         qs = AcademicYear.objects.all()
         university_id = self.request.query_params.get("university_id")
@@ -34,11 +46,7 @@ class AcademicYearViewSet(BaseViewSet):
         return qs
 
     def perform_create(self, serializer):
-        university, created = University.objects.get_or_create(
-            university_name="Université Polytechnique de Gitega",
-            defaults={"university_abrev": "UPG"},
-        )
-        serializer.save(university=university)
+        serializer.save(university=self.get_default_university())
 
 
 class UniversityViewSet(BaseViewSet):
