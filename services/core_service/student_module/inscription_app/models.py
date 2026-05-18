@@ -316,10 +316,10 @@ class Inscription(models.Model):
         
         # Use transaction to prevent race conditions
         with transaction.atomic():
-            count = StudentMatricule.objects.filter(
-                matricule__startswith=f"{type_code}{year}"
-            ).select_for_update().count()
-            matricule = f"{type_code}{year}/{str(count + 1).zfill(5)}"
+            matricule = self._get_available_matricule(
+                type_code=type_code,
+                civil_year=year,
+            )
 
             StudentMatricule.objects.create(
                 student=self.student,
@@ -696,11 +696,10 @@ class Inscription(models.Model):
             if not has_matricule:
                 # Use transaction to prevent race conditions in matricule generation
                 with transaction.atomic():
-                    # Lock the table to prevent concurrent matricule generation
-                    count = StudentMatricule.objects.filter(
-                        matricule__startswith=f"{type_code}{year}"
-                    ).select_for_update().count()
-                    new_matricule = f"{type_code}{year}/{str(count + 1).zfill(5)}"
+                    new_matricule = self._get_available_matricule(
+                        type_code=type_code,
+                        civil_year=year,
+                    )
                     StudentMatricule.objects.create(
                         student=self.student,
                         type_formation=type_formation,

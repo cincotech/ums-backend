@@ -1067,3 +1067,49 @@ class RoleProfileViewSet(viewsets.ViewSet):
                 message=f"Error: {str(e)}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+    @action(detail=True, methods=["delete"])
+    def profile_delete(self, request, pk=None):
+        """Delete the role-specific profile belonging to a user."""
+        try:
+            university = getattr(request.user, "university", None)
+            if not university:
+                return error_response(
+                    message="University not found",
+                    status_code=status.HTTP_403_FORBIDDEN,
+                )
+
+            user = User.objects.get(id=pk, university=university)
+            profile = user.profiles.first()
+            if not profile:
+                return error_response(
+                    message="Profile not found",
+                    status_code=status.HTTP_404_NOT_FOUND,
+                )
+
+            profile_id = str(profile.id)
+            profile.delete()
+            log_user_action(
+                request,
+                "delete",
+                f"Deleted profile for user: {user.email}",
+                "Profile",
+                profile_id,
+            )
+            return success_response(message="Profile deleted successfully")
+        except User.DoesNotExist:
+            return error_response(
+                message="User not found", status_code=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            log_security_event(
+                request,
+                "delete",
+                f"Profile delete failed: {str(e)}",
+                severity="error",
+                success=False,
+            )
+            return error_response(
+                message=f"Error: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

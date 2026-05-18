@@ -15,6 +15,7 @@ from .filters import InscriptionFilter
 from .models import Class, Inscription
 from .serializers import InscriptionSerializer
 from .inscription_template_service import generate_inscription_template
+from .annual_registration_service import AnnualRegistrationService
 
 
 class InscriptionViewSet(BaseViewSet):
@@ -206,6 +207,52 @@ class InscriptionViewSet(BaseViewSet):
             return success_response(
                 message=message,
                 data=InscriptionSerializer(transferred).data,
+            )
+        except ValidationError as e:
+            return error_response(message=" ".join(e.messages))
+
+    @action(detail=True, methods=["post"])
+    def annual_registration(self, request, pk=None):
+        source_inscription = self.get_object()
+        academic_year_id = request.data.get("academic_year_id")
+        class_id = request.data.get("class_fk_id") or request.data.get("class_id")
+        mode = request.data.get("mode")
+        date_inscription = request.data.get("date_inscription")
+
+        if not academic_year_id:
+            return error_response(message="academic_year_id is required")
+        if not class_id:
+            return error_response(message="class_fk_id is required")
+        if not mode:
+            return error_response(message="mode is required")
+
+        try:
+            target_academic_year = AcademicYear.objects.get(id=academic_year_id)
+        except AcademicYear.DoesNotExist:
+            return error_response(message="Année académique introuvable")
+
+        try:
+            target_class = Class.objects.get(id=class_id)
+        except Class.DoesNotExist:
+            return error_response(message="Classe introuvable")
+
+        try:
+            result = AnnualRegistrationService.create_next_registration(
+                source_inscription=source_inscription,
+                target_academic_year=target_academic_year,
+                target_class=target_class,
+                mode=mode,
+                date_inscription=date_inscription,
+                created_by=request.user,
+            )
+            return success_response(
+                message=result["message"],
+                data={
+                    "inscription": InscriptionSerializer(result["inscription"]).data,
+                    "created": result["created"],
+                    "decision": result["decision"],
+                    "payment_required": result["payment_required"],
+                },
             )
         except ValidationError as e:
             return error_response(message=" ".join(e.messages))

@@ -417,6 +417,7 @@ class StudentSerializer(serializers.ModelSerializer):
     inscription_status = serializers.SerializerMethodField()
     student_group = serializers.SerializerMethodField()
     colline = serializers.SerializerMethodField()
+    matricule = serializers.SerializerMethodField()
 
     class Meta:
         model = Student
@@ -431,6 +432,10 @@ class StudentSerializer(serializers.ModelSerializer):
             "colline",
         ]
         read_only_fields = ["id"]
+
+    def get_matricule(self, obj):
+        active_sm = obj.get_active_matricule()
+        return active_sm.matricule if active_sm else None
 
     def get_user_obj(self, obj):
         user = obj.user
@@ -473,7 +478,7 @@ class StudentSerializer(serializers.ModelSerializer):
         return None
 
     def get_colline(self, obj):
-        return CollineSerializer(obj.user.residence, many=True).data
+        return CollineSerializer(obj.colline).data
 
     def get_current_class(self, obj):
         current_inscription = (
