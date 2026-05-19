@@ -21,9 +21,10 @@ class ProfileViewSet(BaseViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        role_name = getattr(user.role, "name", "").lower() if getattr(user, "role", None) else ""
 
-        # STAFF / ADMIN → see all profiles
-        if user.is_staff or user.is_superuser:
+        # STAFF / SUPERUSER / admin role → voir tous les profils
+        if user.is_staff or user.is_superuser or role_name in {"admin", "super_admin"}:
             return Profile.objects.select_related("user")
 
         # NORMAL USER → only his profile

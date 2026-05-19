@@ -111,7 +111,7 @@ class Inscription(models.Model):
             # Check payment before activation (skip if created by student_service)
             if not skip_payment_check and not self.has_verified_payment():
                 raise ValidationError(
-                    "Cannot activate inscription: Payment for inscription fees must be verified first."
+                    "Cannot activate inscription: Payment for inscription fees must be verified first. this block can be skipped if activation is triggered by student_service role, which creates inscriptions without payment and activates them directly.    "
                 )
 
             self.regist_status = "Active"
@@ -488,9 +488,10 @@ class Inscription(models.Model):
                                hasattr(self.created_by, 'role') and
                                self.created_by.role and
                                self.created_by.role.name == "student_service")
+                print(f"DEBUG: Activation detected for inscription {self.pk}. skip_payment={skip_payment}")
                 if not skip_payment and not self.has_verified_payment():
                     raise ValidationError(
-                        "Cannot activate inscription: Payment for inscription fees must be verified first."
+                        "Cannot activate inscription: Payment for inscription fees must be verified first. "
                     )
 
         # ---------------------------------------------------------

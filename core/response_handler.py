@@ -1,5 +1,24 @@
+import json
+import logging
+from datetime import date, datetime
+
 from rest_framework import status
 from rest_framework.response import Response
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_json_value(obj):
+    """Recursively convert any Python date/datetime value to an ISO-format string so JSON serialization can never fail."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, date):
+        return obj.isoformat()
+    if isinstance(obj, dict):
+        return {k: _safe_json_value(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_safe_json_value(v) for v in obj]
+    return obj
 
 
 def success_response(
@@ -7,17 +26,24 @@ def success_response(
 ):
     """
     Return a standardized success response with optional extra fields.
+    All date/datetime values are silently converted to ISO strings before the
+    response is handed to DRF, preventing ``TypeError: Object of type date is
+    not JSON serializable`` from leaking through.
     """
-    response_data = {
+    # Ensure every value in the outer dict is JSON-safe (covers any back-end
+    # call that still passes a raw Python date / datetime object).
+    safe_data = {
         "status": "success",
         "message": message,
-        "data": data,
+        "data": _safe_json_value(data),
     }
 
     if extra and isinstance(extra, dict):
-        response_data.update(extra)  # merge extra fields like typeError, etc.
+        safe_data.update(
+            {k: _safe_json_value(v) for k, v in extra.items()}
+        )
 
-    return Response(response_data, status=status_code)
+    return Response(safe_data, status=status_code)
 
 
 def error_response(
@@ -30,7 +56,7 @@ def error_response(
         {
             "status": "error",
             "message": message,
-            "errors": errors,
+            "errors": _safe_json_value(errors),
         },
         status=status_code,
     )
