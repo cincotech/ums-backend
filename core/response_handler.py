@@ -34,7 +34,7 @@ def success_response(
     # call that still passes a raw Python date / datetime object).
     safe_data = {
         "status": "success",
-        "message": message,
+        "message": _safe_json_value(message),
         "data": _safe_json_value(data),
     }
 
@@ -55,7 +55,7 @@ def error_response(
     return Response(
         {
             "status": "error",
-            "message": message,
+            "message": _safe_json_value(message),
             "errors": _safe_json_value(errors),
         },
         status=status_code,

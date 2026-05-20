@@ -79,26 +79,81 @@ class InscriptionViewSet(BaseViewSet):
         except AcademicYear.DoesNotExist:
             return queryset.none()
 
+
+
     @action(detail=True, methods=["post"])
     def activate(self, request, pk=None):
         inscription = self.get_object()
-        if inscription.regist_status in ["Pending", "Suspended"]:
-            try:
-                # Skip payment check if user is student_service
-                skip_payment = (request.user and
-                               hasattr(request.user, 'role') and
-                               request.user.role and
-                               request.user.role.name == "student_service")
-                inscription.activate(skip_payment_check=skip_payment)
-                inscription.generate_matricule()
-                send_inscription_email(inscription, "Active")
-                return success_response(
-                    message="Inscription activated and email sent",
-                    data=InscriptionSerializer(inscription).data,
+
+        allowed_statuses = ["Pending", "Suspended"]
+
+        if inscription.regist_status not in allowed_statuses:
+            return error_response(
+                message=(
+                    f"This inscription cannot be activated because "
+                    f"its current status is '{inscription.regist_status}'. "
+                    f"Only Pending or Suspended inscriptions can be activated."
                 )
-            except ValidationError as e:
-                return error_response(message=str(e))
-        return error_response(message="Cannot activate")
+            )
+
+        try:
+            # Determine whether payment verification should be skipped
+            skip_payment = (
+                request.user
+                and hasattr(request.user, "role")
+                and request.user.role
+                and request.user.role.name == "student_service"
+            )
+
+            with transaction.atomic():
+
+                # Activate inscription
+                inscription.activate(
+                    skip_payment_check=skip_payment
+                )
+
+                # Generate matricule if missing
+                matricule = inscription.generate_matricule()
+
+                # Send email only after successful transaction
+                transaction.on_commit(
+                    lambda: send_inscription_email(
+                        inscription,
+                        "Active"
+                    )
+                )
+
+            return success_response(
+                message=(
+                    "The inscription has been successfully activated. "
+                    "The student can now access academic services."
+                ),
+                data={
+                    "inscription": InscriptionSerializer(inscription).data,
+                    "matricule": matricule,
+                    "status": inscription.regist_status,
+                },
+            )
+
+        except ValidationError as e:
+
+            return error_response(
+                message=(
+                    "The inscription could not be activated because "
+                    "one or more business rules failed."
+                ),
+                errors=e.message_dict if hasattr(e, "message_dict") else str(e),
+            )
+
+        except Exception as e:
+
+            return error_response(
+                message=(
+                    "An unexpected error occurred while activating "
+                    "the inscription."
+                ),
+                errors=str(e),
+            )
 
     @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):

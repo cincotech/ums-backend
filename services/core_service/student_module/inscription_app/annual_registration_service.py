@@ -1,7 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
-
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from services.core_service.student_module.inscription_app.models import Inscription as InscriptionType
+    from services.core_service.academic_module.university_app.models import AcademicYear as AcademicYearType
 from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.university_app.models import AcademicYear
 from services.core_service.student_module.inscription_app.models import Inscription
@@ -114,7 +117,7 @@ class AnnualRegistrationService:
             }
 
     @staticmethod
-    def _validate_year(source, target_academic_year):
+    def _validate_year(source:"InscriptionType", target_academic_year:"AcademicYear"):
         if source.academic_year_id == target_academic_year.id:
             raise ValidationError(
                 "La réinscription annuelle doit cibler une autre année académique."
@@ -128,7 +131,7 @@ class AnnualRegistrationService:
             )
 
     @staticmethod
-    def _get_decision_context(source):
+    def _get_decision_context(source: "InscriptionType"):
         from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
             JuryDecision,
         )
@@ -232,7 +235,7 @@ class AnnualRegistrationService:
             Inscription.objects.filter(pk=source.pk).update(**update_data)
 
     @staticmethod
-    def _build_success_message(mode, target_academic_year):
+    def _build_success_message(mode, target_academic_year:"AcademicYearType"):
         action = "Promotion" if mode == AnnualRegistrationService.PROMOTED else "Redoublement"
         message = f"{action} enregistré(e) avec succès pour {target_academic_year.academic_year}."
         if target_academic_year.is_closed:

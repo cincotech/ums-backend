@@ -33,8 +33,19 @@ class ProfileViewSet(BaseViewSet):
     def perform_create(self, serializer):
         user = self.request.user
 
-        # Prevent normal users from creating for others
-        if not (user.is_staff or user.is_superuser):
+        role_name = (
+            getattr(user.role, "name", "").lower()
+            if getattr(user, "role", None)
+            else ""
+        )
+
+        is_admin = (
+            user.is_staff
+            or user.is_superuser
+            or role_name in {"admin", "super_admin"}
+        )
+
+        if not is_admin:
             serializer.save(user=user)
         else:
             serializer.save()
