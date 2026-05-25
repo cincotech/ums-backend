@@ -10,6 +10,34 @@ from services.foundational_service.auth_module.user_app.models import User
 
 
 class JurySession(models.Model):
+    """
+    Représente une session officielle de jury académique.
+
+    Une session de jury est organisée pour examiner les résultats
+    académiques d'un groupe de classe à la fin d'une période
+    d'évaluation (semestre ou année académique).
+
+    Responsabilités :
+        - Examiner les résultats compilés des étudiants.
+        - Délibérer sur les cas particuliers.
+        - Valider les décisions académiques finales.
+        - Produire un procès-verbal officiel.
+
+    Une session de jury est généralement associée à :
+        - Une année académique.
+        - Un groupe de classe.
+        - Un ensemble de membres du jury.
+
+    Cycle de vie :
+        scheduled  -> session planifiée
+        in_progress -> délibération en cours
+        completed   -> délibération terminée
+
+    Exemple :
+        Jury L3 Informatique 2025-2026
+        Date : 15/07/2026
+        Membres : Doyen, Chef de département, Enseignants
+    """
     STATUS_CHOICES = (
         ("scheduled", "Planifié"),
         ("in_progress", "En Cours"),
@@ -38,6 +66,38 @@ class JurySession(models.Model):
 
 
 class JuryDecision(models.Model):
+    """
+    Représente la décision académique finale prise par le jury
+    pour un étudiant donné.
+
+    Cette décision constitue la source officielle permettant
+    de déterminer la progression académique de l'étudiant.
+
+    Sources utilisées lors de la délibération :
+        - Résultats compilés.
+        - Notes de suppléments.
+        - Situations particulières.
+        - Décisions administratives.
+
+    Décisions possibles :
+        admitted :
+            L'étudiant est admis et passe au niveau supérieur.
+
+        repeat :
+            L'étudiant redouble son année.
+
+        deferred :
+            La décision est reportée dans l'attente
+            d'informations complémentaires.
+
+        excluded :
+            L'étudiant est exclu selon les règlements
+            académiques en vigueur.
+
+    Cette entité doit être considérée comme la référence
+    officielle pour les opérations de promotion et de
+    réinscription annuelle.
+    """
     DECISION_TYPES = (
         ("admitted", "Admis"),
         ("deferred", "Ajourné"),
@@ -58,6 +118,53 @@ class JuryDecision(models.Model):
 
 
 class GradeComplaint(models.Model):
+    """
+    Représente une demande officielle de révision de note
+    introduite par un étudiant.
+
+    Un étudiant peut contester une note lorsqu'il estime
+    qu'une erreur de calcul, de transcription ou d'évaluation
+    a été commise.
+
+    Processus métier :
+
+        submitted
+            La réclamation vient d'être introduite.
+
+        assigned
+            Un responsable a été désigné pour traiter
+            la demande.
+
+        in_review
+            La réclamation est en cours d'analyse.
+
+        resolved
+            Une décision a été prise et la note a été
+            confirmée ou modifiée.
+
+        rejected
+            La demande est refusée.
+
+    Historique conservé :
+        - Note initiale.
+        - Motif de réclamation.
+        - Nouvelle note éventuelle.
+        - Décision finale.
+        - Commentaires de traitement.
+
+    Exemple :
+        Étudiant :
+            Jean Dupont
+
+        Cours :
+            Analyse Mathématique
+
+        Note initiale :
+            8/20
+
+        Motif :
+            Erreur de totalisation des points.
+    """
     STATUS_CHOICES = (
         ("submitted", "Soumise"),
         ("assigned", "Attribuée"),
@@ -87,6 +194,53 @@ class GradeComplaint(models.Model):
 
 
 class OfficialDocument(models.Model):
+    """
+    Représente un document administratif officiel produit
+    par l'institution académique.
+
+    Ce module centralise la génération, la validation,
+    la signature et l'archivage des documents officiels.
+
+    Types de documents pris en charge :
+
+        transcript
+            Relevé officiel des notes.
+
+        certificate
+            Certificat académique ou administratif.
+
+        minutes
+            Procès-verbal d'une réunion ou d'un jury.
+
+        circular
+            Circulaire administrative.
+
+        service_note
+            Note de service interne.
+
+    Cycle documentaire :
+
+        draft
+            Document en préparation.
+
+        pending_signature
+            Document prêt à être signé.
+
+        signed
+            Document validé officiellement.
+
+        archived
+            Document clôturé et archivé.
+
+    Traçabilité :
+        - Auteur du document.
+        - Signataire officiel.
+        - Dates de création et signature.
+
+    Objectif :
+        Garantir l'authenticité et la conservation
+        des documents institutionnels.
+    """
     DOCUMENT_TYPES = (
         ("transcript", "Relevé de Notes"),
         ("certificate", "Certificat"),
@@ -125,6 +279,64 @@ class OfficialDocument(models.Model):
 
 
 class TeacherPaymentClaim(models.Model):
+    """
+    Représente une demande de paiement des prestations
+    pédagogiques réalisées par un enseignant.
+
+    Cette demande permet de calculer et de valider les
+    rémunérations dues sur base des heures effectivement
+    dispensées.
+
+    Informations financières :
+        - Enseignant concerné.
+        - Cours enseigné.
+        - Nombre d'heures prestées.
+        - Taux horaire.
+        - Montant total à payer.
+
+    Workflow de validation :
+
+        submitted
+            Demande introduite.
+
+        verified
+            Contrôle administratif effectué.
+
+        approved
+            Validation hiérarchique accordée.
+
+        signed
+            Signature officielle obtenue.
+
+        sent_to_finance
+            Transmise au service financier.
+
+        rejected
+            Demande refusée.
+
+    Objectifs :
+        - Assurer la traçabilité des prestations.
+        - Garantir le contrôle administratif.
+        - Faciliter le traitement financier.
+        - Constituer un historique des paiements.
+
+    Exemple :
+
+        Enseignant :
+            Prof. Martin
+
+        Cours :
+            Programmation Python
+
+        Heures :
+            45
+
+        Tarif :
+            25 USD/heure
+
+        Montant :
+            1125 USD
+    """
     STATUS_CHOICES = (
         ("submitted", "Soumise"),
         ("verified", "Vérifiée"),
