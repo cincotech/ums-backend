@@ -10,7 +10,7 @@ class InscriptionDraftSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'created_by_email', 'modified_by_email',
             'session_id', 'current_step', 'form_data', 'title',
-            'created_at', 'updated_at', 'is_completed'
+            'created_at', 'updated_at', 'is_completed', 'status'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'user', 'created_by_email', 'modified_by_email']
 

@@ -1,6 +1,9 @@
 from rest_framework import serializers
 
-from services.core_service.student_module.inscription_app.models import Inscription
+from services.core_service.student_module.inscription_app.models import (
+    Inscription,
+    ComplementRequirement,
+)
 from services.dependent_service.exam_module.exam_app.models import (
     Exam,
     ExamRoom,
@@ -221,6 +224,43 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
 
     def get_validated_by_name(self, obj):
         return f"{obj.validated_by.first_name} {obj.validated_by.last_name}"
+
+
+class ComplementRequirementSerializer(serializers.ModelSerializer):
+    student_name = serializers.SerializerMethodField()
+    inscription_id = serializers.SerializerMethodField()
+    feesheet_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ComplementRequirement
+        fields = [
+            "id",
+            "student",
+            "student_name",
+            "inscription",
+            "inscription_id",
+            "requirements",
+            "course_count",
+            "unit_price",
+            "amount_due",
+            "annual_renewal",
+            "feesheet",
+            "feesheet_name",
+            "due_date",
+            "status",
+            "created_by",
+            "created_at",
+        ]
+        read_only_fields = ["id", "amount_due", "created_at"]
+
+    def get_student_name(self, obj):
+        return f"{obj.student.user.first_name} {obj.student.user.last_name}"
+
+    def get_inscription_id(self, obj):
+        return str(obj.inscription.id) if obj.inscription else None
+
+    def get_feesheet_name(self, obj):
+        return obj.feesheet.wording.wording_name if obj.feesheet else None
 
 
 # ==================== GRADE COMPLAINTS ====================

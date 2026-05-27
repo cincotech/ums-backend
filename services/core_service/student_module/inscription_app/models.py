@@ -257,6 +257,62 @@ class Inscription(InscriptionStatusMixin, models.Model):
         
         # Persist to database
         super().save(*args, **kwargs)
-        
-        # Post-save side effects
-        InscriptionAutomation.after_save(self, created=is_create)
+
+
+class ComplementRequirement(models.Model):
+    """
+    Représente un besoin de complément pour un étudiant (ex: matières ou procédures
+    complémentaires à réaliser suite à une décision de type AAC - Avance avec complément).
+
+    Objectif:
+        - Permettre au bureau des inscriptions et à la finance de suivre les compléments
+        - Lier un complément à une inscription si pertinent
+    """
+
+    STATUS_CHOICES = (
+        ("pending", "En attente"),
+        ("validated", "Validé"),
+        ("paid", "Payé"),
+        ("cancelled", "Annulé"),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="complement_requirements")
+    inscription = models.ForeignKey(
+        "Inscription", on_delete=models.SET_NULL, null=True, blank=True, related_name="complement_requirements"
+    )
+    requirements = models.TextField(null=True, blank=True)
+    course_count = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    annual_renewal = models.BooleanField(default=True)
+    feesheet = models.ForeignKey(
+        "dashboard_collection_agent_app.FeesSheet",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="complement_requirements",
+    )
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    created_by = models.ForeignKey(
+        'user_app.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='complement_created'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "complement_requirements"
+
+    def __str__(self):
+        return f"ComplementRequirement({self.student}, {self.status}, amount_due:{self.amount_due})"
+
+    def save(self, *args, **kwargs):
+        if self.feesheet and self.unit_price != self.feesheet.base_amount:
+            self.unit_price = self.feesheet.base_amount
+
+        self.amount_due = self.unit_price * self.course_count
+        super().save(*args, **kwargs)
+
+    @property
+    def balance_due(self):
+        return self.amount_due

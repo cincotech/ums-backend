@@ -165,27 +165,34 @@ class AnnualRegistrationService:
         jury_decision = decision_context["jury_decision"]
         compiled_status = decision_context["compiled_status"]
         is_promoted = decision_context["is_promoted"]
-
-        if jury_decision == "excluded":
-            raise ValidationError("L'étudiant est exclu par décision du jury.")
-        if jury_decision == "deferred":
+        # Nouveau: bloquer uniquement les décisions explicites 'AAA' (assimile aux ajournés)
+        # et 'ND' (non décision). Tous les autres codes sont considérés autorisés
+        # pour démarrer le processus de réinscription, sous réserve des vérifications
+        # complémentaires ci-dessous.
+        if jury_decision in ("AAA", "ND"):
             raise ValidationError(
-                "La décision du jury est ajournée. Une réinscription annuelle normale n'est pas encore autorisée."
+                "Réinscription refusée : décision du jury non autorisée (AAA ou ND)."
             )
 
         if mode == AnnualRegistrationService.PROMOTED:
-            if jury_decision == "admitted" or is_promoted or compiled_status == "passed":
+            # Pour la promotion, accepter si la décision du jury est favorable
+            # (AAC / R1S / R2S) ou si le résultat compilé indique une promotion.
+            if jury_decision in ("AAC", "R1S", "R2S") or is_promoted or compiled_status == "passed":
                 return
             raise ValidationError(
-                "Promotion refusée : aucune décision d'admission ou résultat validé ne permet le passage."
+                "Promotion refusée : aucune décision favorable (AAC/R1S/R2S) ou résultat validé ne permet le passage."
             )
 
         if mode == AnnualRegistrationService.REPEAT:
-            if jury_decision == "repeat" or compiled_status in ["repeat", "failed"]:
+            # Pour le redoublement, autoriser la plupart des cas sauf si le jury
+            # a explicitement indiqué réussite (R1S / R2S). On accepte aussi si
+            # le résultat compilé indique 'repeat' ou 'failed'.
+            if compiled_status in ["repeat", "failed"]:
                 return
-            raise ValidationError(
-                "Redoublement refusé : aucune décision de redoublement ou résultat compatible n'a été trouvé."
-            )
+            if jury_decision in ("R1S", "R2S"):
+                raise ValidationError("Redoublement refusé : décision du jury indique réussite.")
+            # Tout le reste est autorisé (sauf AAA/ND qui sont bloqués plus haut).
+            return
 
     @staticmethod
     def _validate_class_transition(source, target_class, mode):

@@ -1833,7 +1833,7 @@ class JuryDecisionService:
         if jury_session.status == "completed":
             raise ValueError("Cannot modify decisions for completed jury sessions")
 
-        valid_decisions = ["admitted", "deferred", "repeat", "excluded"]
+        valid_decisions = ["AAC", "AAA", "R1S", "R2S", "ND", "EXC"]
         if decision not in valid_decisions:
             raise ValueError(f"Invalid decision. Must be one of {valid_decisions}")
 

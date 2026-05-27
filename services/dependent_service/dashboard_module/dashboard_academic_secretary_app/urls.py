@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    ComplementRequirementViewSet,
     ExamViewSet,
     GradeComplaintViewSet,
     InscriptionViewSet,
@@ -23,6 +24,7 @@ router.register(r"grade-complaints", GradeComplaintViewSet, basename="grade-comp
 router.register(
     r"official-documents", OfficialDocumentViewSet, basename="official-documents"
 )
+router.register(r"complement-requirements", ComplementRequirementViewSet, basename="complement-requirements")
 router.register(r"payment-claims", PaymentClaimViewSet, basename="payment-claims")
 router.register(r"inscriptions", InscriptionViewSet, basename="inscriptions")
 

@@ -99,10 +99,12 @@ class JuryDecision(models.Model):
     réinscription annuelle.
     """
     DECISION_TYPES = (
-        ("admitted", "Admis"),
-        ("deferred", "Ajourné"),
-        ("repeat", "Redoublement"),
-        ("excluded", "Exclu"),
+        ("AAC", "Avance avec complément"),
+        ("AAA", "Assimilé aux ajournés"),
+        ("R1S", "Réussite 1ère session"),
+        ("R2S", "Réussite 2ème session"),
+        ("ND", "Non décision"),
+        ("EXC", "Exclusion"),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

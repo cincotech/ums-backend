@@ -16,9 +16,11 @@ from .filters import (
     OfficialDocumentFilter,
     PaymentClaimFilter,
 )
+from services.core_service.student_module.inscription_app.models import ComplementRequirement
 from .serializers import (
     AcademicSecretaryStatsSerializer,
     CompilationStatusSerializer,
+    ComplementRequirementSerializer,
     CourseResultSerializer,
     ExamRoomSerializer,
     ExamSerializer,
@@ -360,6 +362,28 @@ class GradeComplaintViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class ComplementRequirementViewSet(viewsets.ModelViewSet):
+    """ViewSet for tracking academic complement requirements"""
+
+    serializer_class = ComplementRequirementSerializer
+    permission_classes = [IsAuthenticated, IsAcademicSecretary]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["status", "student", "inscription"]
+    search_fields = [
+        "student__user__first_name",
+        "student__user__last_name",
+        "requirements",
+        "status",
+    ]
+    ordering_fields = ["created_at", "due_date", "amount_due"]
+    ordering = ["-created_at"]
+
+    def get_queryset(self):
+        return ComplementRequirement.objects.select_related(
+            "student", "inscription", "feesheet", "created_by"
+        )
 
 
 # ==================== OFFICIAL DOCUMENT MANAGEMENT ====================

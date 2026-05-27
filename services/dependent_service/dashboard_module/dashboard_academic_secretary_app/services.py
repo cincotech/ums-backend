@@ -326,6 +326,79 @@ class AcademicSecretaryService:
             message=f"A jury decision has been made for you: {decision}",
         )
 
+        # If the decision requires complements (AAC), create a ComplementRequirement
+        # so that registrars and finance can follow up.
+        if decision == "AAC":
+            try:
+                from services.core_service.student_module.inscription_app.models import (
+                    ComplementRequirement,
+                )
+                from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+                    FeesSheet,
+                )
+
+                # try to find the relevant inscription for this student in the same class group
+                inscription = (
+                    Inscription.objects.filter(
+                        student=student, class_group=jury.class_group
+                    )
+                    .order_by("-academic_year_id")
+                    .first()
+                )
+
+                feesheet = None
+                unit_price = 0
+                if jury.class_group and hasattr(jury.class_group, "academic_year"):
+                    feesheet = (
+                        FeesSheet.objects.filter(
+                            wording__wording_name__icontains="compl",
+                            academic_year=jury.class_group.academic_year,
+                            class_fk=jury.class_group.class_fk,
+                        )
+                        .order_by("-base_amount")
+                        .first()
+                    )
+                    if not feesheet:
+                        feesheet = (
+                            FeesSheet.objects.filter(
+                                wording__wording_name__icontains="compl",
+                                academic_year=jury.class_group.academic_year,
+                            )
+                            .order_by("-base_amount")
+                            .first()
+                        )
+                if feesheet:
+                    unit_price = feesheet.base_amount
+
+                ComplementRequirement.objects.create(
+                    student=student,
+                    inscription=inscription,
+                    requirements="Compléments à définir",
+                    course_count=1,
+                    unit_price=unit_price,
+                    feesheet=feesheet,
+                    status="pending",
+                    created_by=validated_by,
+                )
+
+                # mark the inscription as 'Complement' so it appears in registries
+                if inscription:
+                    Inscription.objects.filter(pk=inscription.pk).update(regist_status="Complement")
+
+                Notification.objects.create(
+                    recipient=student.user,
+                    recipient_type="student",
+                    notification_type="academic",
+                    title="Complément requis",
+                    message=(
+                        "Votre dossier nécessite des compléments suite à la décision 'Avance avec complément'. "
+                        "Veuillez consulter le bureau des inscriptions pour les détails."
+                    ),
+                )
+            except Exception:
+                # don't break the decision recording if complement creation fails
+                pass
+
         return jury_decision
 
     @staticmethod
