@@ -25,6 +25,7 @@ class InscriptionDraftResource(resources.ModelResource):
             "current_step",
             "form_data",
             "title",
+            "status",
             "is_completed",
             "created_at",
             "updated_at",
@@ -35,6 +36,7 @@ class InscriptionDraftResource(resources.ModelResource):
             "session_id",
             "current_step",
             "title",
+            "status",
             "is_completed",
             "created_at",
             "updated_at",
@@ -48,6 +50,7 @@ class InscriptionDraftAdmin(ImportExportModelAdmin, ModelAdmin):
         "session_id",
         "current_step",
         "title",
+        "status",
         "is_completed",
         "created_at",
         "updated_at",
@@ -60,6 +63,7 @@ class InscriptionDraftAdmin(ImportExportModelAdmin, ModelAdmin):
     list_filter = (
         "is_completed",
         "current_step",
+        "status",
     )
     ordering = ("-updated_at",)
     fieldsets = (
@@ -72,6 +76,7 @@ class InscriptionDraftAdmin(ImportExportModelAdmin, ModelAdmin):
                     "current_step",
                     "form_data",
                     "title",
+                    "status",
                     "is_completed",
                 )
             },

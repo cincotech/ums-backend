@@ -258,11 +258,20 @@ class AcademicSecretaryService:
 
     @staticmethod
     @transaction.atomic
-    def create_jury_session(session_name, session_date, jury_member_ids, created_by):
+    def create_jury_session(session_name, session_date, jury_member_ids, class_group_id, created_by):
         """Create jury session for deliberations"""
+        from services.core_service.academic_module.class_app.models import ClassGroup
+        
+        # Validate class_group exists
+        try:
+            class_group = ClassGroup.objects.get(id=class_group_id)
+        except ClassGroup.DoesNotExist:
+            raise ValueError(f"ClassGroup {class_group_id} not found")
+        
         jury = JurySession.objects.create(
             session_name=session_name,
             session_date=session_date,
+            class_group=class_group,
             status="scheduled",
             created_by=created_by,
         )

@@ -320,8 +320,18 @@ class ChangePasswordSerializer(serializers.Serializer):
         return data
 
 
+class TeacherDataSerializer(serializers.Serializer):
+    teacher_grade = serializers.CharField(max_length=255)
+    degree_id = serializers.UUIDField()
+    university_id = serializers.UUIDField()
+    speciality = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    url_cv = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    url_diploma = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+
 class AssignRoleSerializer(serializers.Serializer):
     role_id = serializers.UUIDField()
+    teacher_data = TeacherDataSerializer(required=False)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

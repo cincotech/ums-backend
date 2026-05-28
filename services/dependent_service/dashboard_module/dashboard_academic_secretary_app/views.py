@@ -227,10 +227,15 @@ class JurySessionViewSet(viewsets.ModelViewSet):
                 session_name=request.data.get("session_name"),
                 session_date=request.data.get("session_date"),
                 jury_member_ids=request.data.get("jury_members", []),
+                class_group_id=request.data.get("class_group"),
                 created_by=request.user,
             )
             serializer = self.get_serializer(jury)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except ValueError as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR

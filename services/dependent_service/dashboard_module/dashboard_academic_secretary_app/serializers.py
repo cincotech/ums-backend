@@ -167,6 +167,7 @@ class JurySessionSerializer(serializers.ModelSerializer):
             "id",
             "session_name",
             "session_date",
+            "class_group",
             "jury_members",
             "jury_member_names",
             "status",
@@ -176,7 +177,7 @@ class JurySessionSerializer(serializers.ModelSerializer):
             "decision_count",
             "created_at",
         ]
-        read_only_fields = ["id", "created_by", "created_at"]
+        read_only_fields = ["id", "created_by", "created_at", "class_group"]
 
     def get_jury_member_names(self, obj):
         return [

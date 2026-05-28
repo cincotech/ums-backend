@@ -573,7 +573,7 @@ class JurySessionSerializer(serializers.ModelSerializer):
             "created_at",
             "decisions_count",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = ["id", "created_at", "created_by"]
 
     def get_class_group_info(self, obj):
         return {

@@ -108,7 +108,7 @@ class JuryDecision(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    jury_session = models.ForeignKey(JurySession, on_delete=models.CASCADE)
+    jury_session = models.ForeignKey(JurySession, on_delete=models.CASCADE, related_name="jury_decisions")
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     decision = models.CharField(max_length=20, choices=DECISION_TYPES)
     notes = models.TextField(null=True, blank=True)

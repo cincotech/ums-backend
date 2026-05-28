@@ -509,7 +509,9 @@ class UserViewSet(BaseViewSet):
             if serializer.is_valid():
                 try:
                     user = UniversityUserManagementService.assign_role(
-                        user, serializer.validated_data["role_id"]
+                        user,
+                        serializer.validated_data["role_id"],
+                        serializer.validated_data.get("teacher_data"),
                     )
                     log_user_action(
                         request,

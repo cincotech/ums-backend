@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from services.core_service.academic_module.public_app.serializers import RoleSerializer
+
 from .models import GuestDocument, GuestRequest
 
 
@@ -40,7 +42,7 @@ class AccountRequestSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source="user.last_name", read_only=True)
     email = serializers.EmailField(source="user.email", read_only=True)
     profile_image_url = serializers.SerializerMethodField()
-    requested_role = serializers.CharField(source="requested_role.name", read_only=True)
+    requested_role = RoleSerializer(read_only=True)
     submitted_at = serializers.SerializerMethodField()
     documents = AccountRequestDocumentSerializer(many=True, read_only=True)
 

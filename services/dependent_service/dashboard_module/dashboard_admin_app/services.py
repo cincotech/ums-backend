@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet
 from django.contrib.auth import get_user_model
 from django.core import serializers as django_serializers
 from django.core.management import call_command
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
@@ -252,12 +253,39 @@ class UniversityUserManagementService:
         return user
 
     @staticmethod
-    def assign_role(user, role_id):
-        """Assign role to user"""
+    def assign_role(user, role_id, teacher_data=None):
+        """Assign role to user and create teacher profile if role is teacher"""
         try:
             role = Role.objects.get(id=role_id)
-            user.role = role
-            user.save()
+
+            with transaction.atomic():
+                # Si le rôle est teacher, vérifier d'abord que les données sont complètes
+                if role.name.lower() == "teacher":
+                    if not teacher_data:
+                        raise ValueError(
+                            "teacher_data is required when assigning teacher role. "
+                            "Expected: {'teacher_grade': str, 'degree_id': uuid, 'university_id': uuid}"
+                        )
+
+                    required_fields = ["teacher_grade", "degree_id", "university_id"]
+                    for field in required_fields:
+                        if field not in teacher_data or not teacher_data[field]:
+                            raise ValueError(f"Missing required field: {field}")
+
+                user.role = role
+                user.save()
+
+                if role.name.lower() == "teacher":
+                    Teacher.objects.create(
+                        user=user,
+                        teacher_grade=teacher_data.get("teacher_grade"),
+                        degree_id=teacher_data.get("degree_id"),
+                        university_id=teacher_data.get("university_id"),
+                        speciality=teacher_data.get("speciality"),
+                        url_cv=teacher_data.get("url_cv"),
+                        url_diploma=teacher_data.get("url_diploma"),
+                    )
+
             return user
         except Role.DoesNotExist:
             raise ValueError(f"Role {role_id} not found")
