@@ -154,6 +154,8 @@ class StudentJuryDecisionSerializer(serializers.Serializer):
     validated_at = serializers.DateTimeField()
 
     def get_validated_by_name(self, obj):
+        if not getattr(obj, "validated_by", None):
+            return None
         return f"{obj.validated_by.first_name} {obj.validated_by.last_name}"
 
 

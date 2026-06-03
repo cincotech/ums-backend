@@ -50,7 +50,11 @@ class JurySession(models.Model):
     class_group = models.ForeignKey(
         ClassGroup, on_delete=models.CASCADE, related_name="jury_sessions"
     )
-    jury_members = models.ManyToManyField(User, related_name="jury_sessions")
+    jury_members = models.ManyToManyField(
+        User,
+        through="JuryMember",
+        related_name="jury_sessions",
+    )
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="scheduled"
     )
@@ -64,7 +68,96 @@ class JurySession(models.Model):
     def __str__(self):
         return f"{self.session_name} - {self.class_group.class_fk.class_name} ({self.class_group.group_name}) - {self.session_date}"
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.status in ["in_progress", "completed"]:
+            if not self._state.adding:
+                has_president = JuryMember.objects.filter(
+                    jury_session=self,
+                    role="president"
+                ).exists()
+                if not has_president:
+                    raise ValidationError(
+                        f"Cannot set status to '{self.get_status_display()}': session must have a president"
+                    )
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def has_president(self, user):
+        return JuryMember.objects.filter(
+            jury_session=self, user=user, role="president"
+        ).exists()
+
+    def get_president(self):
+        president_member = (
+            JuryMember.objects.filter(jury_session=self, role="president")
+            .select_related("user")
+            .first()
+        )
+        return president_member.user if president_member else None
+
+
+class JuryMember(models.Model):
+    """
+    Représente un membre du jury académique.
+
+    Un membre du jury est un enseignant ou un responsable académique
+    qui participe aux délibérations d'une session de jury.
+
+    Rôles possibles :
+        - Président : dirige les délibérations et prend la parole principale.
+        - Membre : participe aux discussions et votes.
+        - Secrétaire : rédige le procès-verbal et assure la traçabilité.
+
+    Un membre de jury peut être associé à plusieurs sessions de jury
+    au cours de sa carrière académique.
+
+    Exemple :
+        Prof. Martin - Président
+        Dr. Dupont - Membre
+        Mme. Durand - Secrétaire
+    """
+    ROLE_CHOICES = (
+        ("president", "Président"),
+        ("member", "Membre"),
+        ("secretary", "Secrétaire"),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    jury_session = models.ForeignKey(
+        JurySession,
+        on_delete=models.CASCADE,
+        related_name="jury_member_records",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="jury_memberships",
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    class Meta:
+        db_table = "jury_members"
+        unique_together = ("jury_session", "user")
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.role == "president":
+            existing_president = JuryMember.objects.filter(
+                jury_session=self.jury_session,
+                role="president"
+            ).exclude(pk=self.pk).exists()
+            if existing_president:
+                raise ValidationError("Only one president allowed per jury session")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user} - {self.get_role_display()}"
 class JuryDecision(models.Model):
     """
     Représente la décision académique finale prise par le jury
@@ -110,9 +203,10 @@ class JuryDecision(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     jury_session = models.ForeignKey(JurySession, on_delete=models.CASCADE, related_name="jury_decisions")
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    decision = models.CharField(max_length=20, choices=DECISION_TYPES)
+    decision = models.CharField(max_length=20, choices=DECISION_TYPES, default="ND")
     notes = models.TextField(null=True, blank=True)
-    validated_by = models.ForeignKey(User, on_delete=models.RESTRICT)
+    # allow temporary decisions without a validator; will be set when decision is validated
+    validated_by = models.ForeignKey(User, on_delete=models.RESTRICT, null=True, blank=True)
     validated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

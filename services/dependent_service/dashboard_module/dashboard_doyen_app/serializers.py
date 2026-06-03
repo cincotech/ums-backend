@@ -379,10 +379,14 @@ class ClassSerializer(serializers.ModelSerializer):
 
 class ClassGroupSerializer(serializers.ModelSerializer):
     class_name = serializers.CharField(source="class_fk.class_name", read_only=True)
+    class_level = serializers.CharField(source="class_fk.level", read_only=True)
     student_count = serializers.SerializerMethodField()
     timetable_count = serializers.SerializerMethodField()
     department_name = serializers.CharField(
         source="class_fk.department.department_name", read_only=True
+    )
+    faculty_name = serializers.CharField(
+        source="class_fk.department.faculty.faculty_name", read_only=True
     )
 
     class Meta:
@@ -391,7 +395,9 @@ class ClassGroupSerializer(serializers.ModelSerializer):
             "id",
             "class_fk",
             "class_name",
+            "class_level",
             "department_name",
+            "faculty_name",
             "academic_year",
             "group_name",
             "created_date",
@@ -586,12 +592,14 @@ class JurySessionSerializer(serializers.ModelSerializer):
     def get_jury_members_info(self, obj):
         return [
             {
-                "id": member.id,
-                "first_name": member.first_name,
-                "last_name": member.last_name,
-                "email": member.email,
+                "id": jury_member.user.id,
+                "first_name": jury_member.user.first_name,
+                "last_name": jury_member.user.last_name,
+                "email": jury_member.user.email,
+                "role": jury_member.role,
+                "role_display": jury_member.get_role_display(),
             }
-            for member in obj.jury_members.all()
+            for jury_member in obj.jury_member_records.select_related("user").all()
         ]
 
     def get_created_by_info(self, obj):
@@ -644,6 +652,8 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
         }
 
     def get_validated_by_info(self, obj):
+        if not obj.validated_by:
+            return None
         return {
             "first_name": obj.validated_by.first_name,
             "validated_last_name": obj.validated_by.last_name,

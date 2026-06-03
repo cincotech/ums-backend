@@ -248,6 +248,13 @@ class Inscription(InscriptionStatusMixin, models.Model):
         user = kwargs.pop('user', None)
         
         is_create = self._state.adding
+        old_status = None
+        if not is_create and self.pk:
+            try:
+                old = self.__class__.objects.filter(pk=self.pk).only('regist_status').first()
+                old_status = old.regist_status if old else None
+            except Exception:
+                old_status = None
         
         # Pre-save preparation
         InscriptionAutomation.prepare(self, user)
@@ -257,6 +264,47 @@ class Inscription(InscriptionStatusMixin, models.Model):
         
         # Persist to database
         super().save(*args, **kwargs)
+
+        # POST-SAVE automation hook
+        try:
+            InscriptionAutomation.after_save(self, created=is_create)
+        except Exception:
+            # don't break normal inscription save flow on automation errors
+            pass
+
+        # Ensure JuryDecision rows exist for this student when a new inscription
+        # is created or when an inscription becomes active (validated).
+        try:
+            from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+                JurySession,
+                JuryDecision,
+            )
+
+            should_populate = False
+            if is_create:
+                should_populate = True
+            elif old_status != self.regist_status and self.regist_status == "Active":
+                should_populate = True
+
+            if should_populate and self.class_group_id and self.regist_status in ["Active", "Pending", "Complement"]:
+                # Only consider jury sessions that belong to the same academic year as this inscription
+                jury_sessions = JurySession.objects.filter(class_group_id=self.class_group_id).select_related("class_group")
+                for js in jury_sessions:
+                    try:
+                        if js.class_group.academic_year_id != self.academic_year_id:
+                            # mismatch of academic year, skip
+                            continue
+                        JuryDecision.objects.get_or_create(
+                            jury_session=js,
+                            student_id=self.student_id,
+                            defaults={"decision": "ND", "notes": "", "validated_by": None},
+                        )
+                    except Exception:
+                        # ignore failures per-session to avoid breaking save
+                        continue
+        except Exception:
+            # ignore any errors while populating jury decisions
+            pass
 
 
 class ComplementRequirement(models.Model):

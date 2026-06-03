@@ -14,6 +14,7 @@ from services.dependent_service.exam_module.result_app.models import Result
 from .models import (
     GradeComplaint,
     JuryDecision,
+    JuryMember,
     JurySession,
     OfficialDocument,
     TeacherPaymentClaim,
@@ -156,8 +157,26 @@ class CourseResultSerializer(serializers.ModelSerializer):
 # ==================== JURY MANAGEMENT ====================
 
 
+class JuryMemberSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JuryMember
+        fields = ["id", "user", "user_name", "user_email", "role"]
+        read_only_fields = ["id"]
+
+    def get_user_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def get_user_email(self, obj):
+        return obj.user.email
+
+
 class JurySessionSerializer(serializers.ModelSerializer):
-    jury_member_names = serializers.SerializerMethodField()
+    jury_members = JuryMemberSerializer(
+        many=True, required=False, source="jury_member_records"
+    )
     created_by_name = serializers.SerializerMethodField()
     decision_count = serializers.SerializerMethodField()
 
@@ -169,7 +188,6 @@ class JurySessionSerializer(serializers.ModelSerializer):
             "session_date",
             "class_group",
             "jury_members",
-            "jury_member_names",
             "status",
             "minutes_document",
             "created_by",
@@ -179,16 +197,18 @@ class JurySessionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_by", "created_at", "class_group"]
 
-    def get_jury_member_names(self, obj):
-        return [
-            f"{user.first_name} {user.last_name}" for user in obj.jury_members.all()
-        ]
+    def create(self, validated_data):
+        jury_member_data = validated_data.pop("jury_member_records", [])
+        session = JurySession.objects.create(**validated_data)
+        for member in jury_member_data:
+            JuryMember.objects.create(jury_session=session, **member)
+        return session
 
     def get_created_by_name(self, obj):
         return f"{obj.created_by.first_name} {obj.created_by.last_name}"
 
     def get_decision_count(self, obj):
-        return obj.jurydecision_set.count()
+        return obj.jury_decisions.count()
 
 
 class JuryDecisionSerializer(serializers.ModelSerializer):
@@ -224,6 +244,8 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
         return active_sm.matricule if active_sm else None
 
     def get_validated_by_name(self, obj):
+        if not obj.validated_by:
+            return None
         return f"{obj.validated_by.first_name} {obj.validated_by.last_name}"
 
 

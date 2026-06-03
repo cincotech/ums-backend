@@ -1732,6 +1732,7 @@ class JurySessionService:
         session_name, session_date, class_group_id, jury_member_ids, created_by
     ):
         from django.db import transaction
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import JuryMember
 
         with transaction.atomic():
             jury_session = JurySession.objects.create(
@@ -1742,7 +1743,22 @@ class JurySessionService:
                 created_by=created_by,
             )
 
-            jury_session.jury_members.set(jury_member_ids)
+            for member_data in jury_member_ids:
+                if isinstance(member_data, dict):
+                    user_id = member_data.get("user_id")
+                    role = member_data.get("role", "member")
+                else:
+                    user_id = member_data
+                    role = "member"
+
+                if not user_id:
+                    continue
+
+                JuryMember.objects.create(
+                    jury_session=jury_session,
+                    user_id=user_id,
+                    role=role,
+                )
 
             return jury_session
 
@@ -1772,13 +1788,104 @@ class JurySessionService:
         return jury_session
 
     @staticmethod
-    def add_jury_member(jury_session_id, user_id):
+    def add_jury_member(jury_session_id, user_id, role="member"):
+        from django.db import transaction
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import JuryMember
+
         jury_session = JurySession.objects.get(id=jury_session_id)
 
         if jury_session.status != "scheduled":
             raise ValueError("Can only add jury members to scheduled sessions")
 
-        jury_session.jury_members.add(user_id)
+        with transaction.atomic():
+            jury_member, created = JuryMember.objects.get_or_create(
+                jury_session=jury_session,
+                user_id=user_id,
+                defaults={"role": role},
+            )
+            if not created and jury_member.role != role:
+                jury_member.role = role
+                jury_member.save()
+
+        return jury_session
+
+    @staticmethod
+    def update_jury_members(jury_session_id, member_data_list):
+        from django.db import transaction
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import JuryMember
+
+        jury_session = JurySession.objects.get(id=jury_session_id)
+
+        if jury_session.status != "scheduled":
+            raise ValueError("Les membres du jury ne peuvent être modifiés qu'une fois la session planifiée.")
+
+        if not isinstance(member_data_list, list):
+            raise ValueError("Le format des membres du jury est invalide.")
+
+        with transaction.atomic():
+            # Normalize keys to strings so incoming payload (often UUID strings)
+            # compares correctly with existing FK values (UUID objects).
+            existing_members = {
+                str(jm.user_id): jm
+                for jm in jury_session.jury_member_records.select_related("user").all()
+            }
+            incoming_user_ids = set()
+
+            # Quick validation: ensure incoming payload does not request more than
+            # one president (business rule).
+            president_count = sum(
+                1
+                for md in member_data_list
+                if isinstance(md, dict) and md.get("role") == "president"
+            )
+            if president_count > 1:
+                raise ValueError("Only one president allowed per jury session")
+
+            for member_data in member_data_list:
+                if not isinstance(member_data, dict):
+                    raise ValueError("Chaque membre doit être un objet contenant user_id et role.")
+
+                user_id = member_data.get("user_id")
+                role = member_data.get("role")
+
+                if not user_id or role not in ["president", "member", "secretary"]:
+                    raise ValueError(
+                        "Chaque membre doit inclure un user_id valide et un role parmi president, member, secretary."
+                    )
+
+                # Normalize incoming id to string to match existing_members keys
+                user_key = str(user_id)
+                incoming_user_ids.add(user_key)
+
+                if user_key in existing_members:
+                    jury_member = existing_members[user_key]
+                    if jury_member.role != role:
+                        jury_member.role = role
+                        jury_member.save()
+                else:
+                    # Ensure we don't violate single-president constraint
+                    if role == "president":
+                        existing_president = JuryMember.objects.filter(
+                            jury_session=jury_session, role="president"
+                        ).first()
+                        if existing_president:
+                            # If the existing president is the same user we're adding,
+                            # allow role change; otherwise reject to avoid duplicate presidents.
+                            if str(existing_president.user_id) != user_key:
+                                raise ValueError("Only one president allowed per jury session")
+
+                    # Create new membership (user_key will be converted by ORM)
+                    JuryMember.objects.create(
+                        jury_session=jury_session,
+                        user_id=user_id,
+                        role=role,
+                    )
+
+            # Remove members no longer present
+            for existing_user_id, jury_member in existing_members.items():
+                if existing_user_id not in incoming_user_ids:
+                    jury_member.delete()
+
         return jury_session
 
     @staticmethod

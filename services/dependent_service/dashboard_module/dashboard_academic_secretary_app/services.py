@@ -23,6 +23,7 @@ from services.dependent_service.exam_module.result_app.models import (
 from .models import (
     GradeComplaint,
     JuryDecision,
+    JuryMember,
     JurySession,
     OfficialDocument,
     TeacherPaymentClaim,
@@ -259,10 +260,9 @@ class AcademicSecretaryService:
     @staticmethod
     @transaction.atomic
     def create_jury_session(session_name, session_date, jury_member_ids, class_group_id, created_by):
-        """Create jury session for deliberations"""
+        """Create jury session for deliberations with role-based members"""
         from services.core_service.academic_module.class_app.models import ClassGroup
         
-        # Validate class_group exists
         try:
             class_group = ClassGroup.objects.get(id=class_group_id)
         except ClassGroup.DoesNotExist:
@@ -276,14 +276,45 @@ class AcademicSecretaryService:
             created_by=created_by,
         )
 
-        jury.jury_members.set(jury_member_ids)
+        for member_data in jury_member_ids:
+            JuryMember.objects.create(
+                jury_session=jury,
+                user_id=member_data.get("user_id") if isinstance(member_data, dict) else member_data,
+                role=member_data.get("role", "member") if isinstance(member_data, dict) else "member",
+            )
+
+        # Pre-create temporary JuryDecision entries for all students in the class group.
+        # This makes it easier for the frontend to show a row per student even before decisions are entered.
+        try:
+            from services.core_service.student_module.inscription_app.models import Inscription
+
+            # Only consider inscriptions linked to this class_group and its academic year
+            student_ids = (
+                Inscription.objects.filter(class_group=class_group, regist_status__in=["Active", "Pending", "Complement"])
+                .values_list("student_id", flat=True)
+                .distinct()
+            )
+
+            for sid in student_ids:
+                try:
+                    JuryDecision.objects.get_or_create(
+                        jury_session=jury,
+                        student_id=sid,
+                        defaults={"decision": "ND", "notes": "", "validated_by": None},
+                    )
+                except Exception:
+                    # ignore per-student failures
+                    continue
+        except Exception:
+            # don't break jury creation if prepopulation fails
+            pass
 
         return jury
 
     @staticmethod
     @transaction.atomic
     def update_jury_status(jury_id, status, minutes_document=None):
-        """Update jury session status"""
+        """Update jury session status with president validation"""
         valid_transitions = {
             "scheduled": ["in_progress", "completed"],
             "in_progress": ["completed"],
@@ -294,6 +325,14 @@ class AcademicSecretaryService:
 
         if status not in valid_transitions.get(jury.status, []):
             raise ValueError(f"Cannot transition from {jury.status} to {status}")
+
+        if status in ["in_progress", "completed"]:
+            has_president = JuryMember.objects.filter(
+                jury_session=jury,
+                role="president"
+            ).exists()
+            if not has_president:
+                raise ValueError("Cannot transition to this status: session must have a president")
 
         jury.status = status
         if minutes_document:
@@ -414,7 +453,7 @@ class AcademicSecretaryService:
     def get_jury_sessions(filters=None):
         """Get jury sessions with optional filters"""
         sessions = JurySession.objects.select_related("created_by").prefetch_related(
-            "jury_members"
+            "jury_member_records__user"
         )
 
         if filters:

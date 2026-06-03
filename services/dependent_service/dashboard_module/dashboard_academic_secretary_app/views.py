@@ -221,6 +221,26 @@ class JurySessionViewSet(viewsets.ModelViewSet):
             filters["date_to"] = self.request.query_params.get("date_to")
         return AcademicSecretaryService.get_jury_sessions(filters if filters else None)
 
+    def destroy(self, request, *args, **kwargs):
+        """Override delete to return a clear error when FK constraints prevent deletion."""
+        from django.db import IntegrityError
+
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except IntegrityError as e:
+            # Friendly message for FK constraint failures
+            return error_response(
+                message=(
+                    "Impossible de supprimer la session de jury : des enregistrements liés "
+                    "(membres, décisions, etc.) empêchent la suppression. Supprimez d'abord "
+                    "les dépendances ou videz-les via l'interface avant de réessayer."
+                ),
+                errors=str(e),
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            return error_response(message="Erreur lors de la suppression", errors=str(e))
+
     def create(self, request, *args, **kwargs):
         try:
             jury = AcademicSecretaryService.create_jury_session(
