@@ -8,6 +8,7 @@ from .views import (
     AttributionStatisticsView,
     ClassGroupViewSet,
     ClassViewSet,
+    ComplementRequirementViewSet,
     CompiledResultViewSet,
     CourseAttributionViewSet,
     DeanDashboardStatsView,
@@ -17,6 +18,7 @@ from .views import (
     ExamTypeViewSet,
     ExamViewSet,
     FacultyOverviewView,
+    FeesSheetListView,
     GradeComplaintViewSet,
     InscriptionViewSet,
     JuryDecisionViewSet,
@@ -76,6 +78,7 @@ router.register(r"supplements", SupplementViewSet)
 # Jury Management
 router.register(r"jury-sessions", JurySessionViewSet)
 router.register(r"jury-decisions", JuryDecisionViewSet)
+router.register(r"complement-requirements", ComplementRequirementViewSet)
 router.register(r"grade-complaints", GradeComplaintViewSet)
 
 # Teacher Payment Claims
@@ -83,6 +86,7 @@ router.register(r"teacher-payment-claims", TeacherPaymentClaimViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("fees-sheets/", FeesSheetListView.as_view(), name="fees-sheets-list"),
     path("stats/", DeanDashboardStatsView.as_view(), name="dean-dashboard-stats"),
     path(
         "faculty/overview/",

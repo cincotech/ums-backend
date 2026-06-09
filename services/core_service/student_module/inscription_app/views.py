@@ -236,7 +236,21 @@ class InscriptionViewSet(BaseViewSet):
                 data={"new_inscription_id": str(new_inscription.id)},
             )
 
-        return error_response(message="Cannot replace")
+        messages = {
+            "Completed": "Impossible de remplacer : l'inscription est déjà terminée.",
+            "Withdrawn": "Impossible de remplacer : l'étudiant s'est retiré.",
+            "Dropped": "Impossible de remplacer : l'étudiant a abandonné.",
+            "Suspended": "Impossible de remplacer : l'inscription est suspendue.",
+            "Canceled": "Impossible de remplacer : l'inscription est annulée.",
+            "Replaced": "Impossible de remplacer : l'inscription a déjà été remplacée.",
+            "Complement": "Impossible de remplacer : l'inscription est en complément.",
+        }
+        return error_response(
+            message=messages.get(
+                inscription.regist_status,
+                f"Impossible de remplacer : statut '{inscription.regist_status}' non autorisé.",
+            )
+        )
 
     @action(detail=True, methods=["post"])
     def transfer_academic_year(self, request, pk=None):

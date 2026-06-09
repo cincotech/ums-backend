@@ -207,10 +207,11 @@ class JuryDecision(models.Model):
     notes = models.TextField(null=True, blank=True)
     # allow temporary decisions without a validator; will be set when decision is validated
     validated_by = models.ForeignKey(User, on_delete=models.RESTRICT, null=True, blank=True)
-    validated_at = models.DateTimeField(auto_now_add=True)
+    validated_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "jury_decisions"
+        ordering = ["-validated_at", "id"]
 
 
 class GradeComplaint(models.Model):

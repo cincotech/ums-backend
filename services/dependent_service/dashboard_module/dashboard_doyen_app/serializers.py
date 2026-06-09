@@ -1,3 +1,4 @@
+from django.db import models
 from rest_framework import serializers
 
 from services.core_service.academic_module.class_app.models import Class, ClassGroup
@@ -7,7 +8,10 @@ from services.core_service.academic_module.teacher_app.models import (
     Attribution,
     Teacher,
 )
-from services.core_service.student_module.inscription_app.models import Inscription
+from services.core_service.student_module.inscription_app.models import (
+    ComplementRequirement,
+    Inscription,
+)
 from services.core_service.student_module.student_profile_app.models import Student
 from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
     GradeComplaint,
@@ -613,10 +617,53 @@ class JurySessionSerializer(serializers.ModelSerializer):
         return obj.jury_decisions.count()
 
 
+class ComplementRequirementSerializer(serializers.ModelSerializer):
+    student_info = serializers.SerializerMethodField()
+    inscription_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ComplementRequirement
+        fields = [
+            "id",
+            "student",
+            "student_info",
+            "inscription",
+            "inscription_info",
+            "jury_decision",
+            "requirements",
+            "course_count",
+            "unit_price",
+            "amount_due",
+            "annual_renewal",
+            "due_date",
+            "status",
+            "created_at",
+        ]
+        read_only_fields = ["id", "amount_due", "created_at"]
+
+    def get_student_info(self, obj):
+        return {
+            "first_name": obj.student.user.first_name,
+            "last_name": obj.student.user.last_name,
+            "email": obj.student.user.email,
+        }
+
+    def get_inscription_info(self, obj):
+        if not obj.inscription:
+            return None
+        return {"id": str(obj.inscription.id), "regist_status": obj.inscription.regist_status}
+
+
 class JuryDecisionSerializer(serializers.ModelSerializer):
     student_info = serializers.SerializerMethodField()
     jury_session_info = serializers.SerializerMethodField()
     validated_by_info = serializers.SerializerMethodField()
+    average_score = serializers.SerializerMethodField()
+    total_credits_obtained = serializers.SerializerMethodField()
+    complement_count = serializers.SerializerMethodField()
+    complement_requirements = ComplementRequirementSerializer(
+        many=True, read_only=True
+    )
 
     class Meta:
         model = JuryDecision
@@ -631,6 +678,10 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
             "validated_by",
             "validated_by_info",
             "validated_at",
+            "average_score",
+            "total_credits_obtained",
+            "complement_count",
+            "complement_requirements",
         ]
         read_only_fields = ["id", "validated_at"]
 
@@ -645,10 +696,13 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
         }
 
     def get_jury_session_info(self, obj):
+        class_group = obj.jury_session.class_group
         return {
             "session_name": obj.jury_session.session_name,
             "session_date": obj.jury_session.session_date,
             "status": obj.jury_session.status,
+            "class_group_id": str(class_group.id) if class_group else None,
+            "class_id": str(class_group.class_fk.id) if class_group and class_group.class_fk else None,
         }
 
     def get_validated_by_info(self, obj):
@@ -661,6 +715,39 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
             "last_name": obj.student.user.last_name,
             "email": obj.student.user.email,
         }
+
+    def get_average_score(self, obj):
+        try:
+            inscription = Inscription.objects.filter(
+                student=obj.student,
+                academic_year=obj.jury_session.class_group.academic_year,
+            ).first()
+            if not inscription:
+                return None
+            compiled = CompiledResult.objects.filter(
+                inscription=inscription
+            ).first()
+            return float(compiled.average_mark) if compiled else None
+        except Exception:
+            return None
+
+    def get_total_credits_obtained(self, obj):
+        try:
+            inscription = Inscription.objects.filter(
+                student=obj.student,
+                academic_year=obj.jury_session.class_group.academic_year,
+            ).first()
+            if not inscription:
+                return None
+            total = Result.objects.filter(
+                inscription=inscription,
+            ).aggregate(total=models.Sum("course__credits"))["total"]
+            return total or 0
+        except Exception:
+            return None
+
+    def get_complement_count(self, obj):
+        return obj.complement_requirements.count()
 
 
 class FacultyOverviewSerializer(serializers.ModelSerializer):

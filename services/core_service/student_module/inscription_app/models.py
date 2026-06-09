@@ -268,9 +268,8 @@ class Inscription(InscriptionStatusMixin, models.Model):
         # POST-SAVE automation hook
         try:
             InscriptionAutomation.after_save(self, created=is_create)
-        except Exception:
-            # don't break normal inscription save flow on automation errors
-            pass
+        except Exception as e:
+            logger.exception("InscriptionAutomation.after_save failed: %s", e)
 
         # Ensure JuryDecision rows exist for this student when a new inscription
         # is created or when an inscription becomes active (validated).
@@ -286,25 +285,35 @@ class Inscription(InscriptionStatusMixin, models.Model):
             elif old_status != self.regist_status and self.regist_status == "Active":
                 should_populate = True
 
-            if should_populate and self.class_group_id and self.regist_status in ["Active", "Pending", "Complement"]:
-                # Only consider jury sessions that belong to the same academic year as this inscription
-                jury_sessions = JurySession.objects.filter(class_group_id=self.class_group_id).select_related("class_group")
+            if should_populate and self.regist_status in ["Active", "Pending", "Complement"]:
+                if self.class_fk_id:
+                    jury_sessions = JurySession.objects.filter(
+                        class_group__class_fk_id=self.class_fk_id
+                    ).select_related("class_group")
+                elif self.class_group_id:
+                    jury_sessions = JurySession.objects.filter(
+                        class_group_id=self.class_group_id
+                    ).select_related("class_group")
+                else:
+                    jury_sessions = JurySession.objects.none()
+
                 for js in jury_sessions:
                     try:
                         if js.class_group.academic_year_id != self.academic_year_id:
-                            # mismatch of academic year, skip
                             continue
                         JuryDecision.objects.get_or_create(
                             jury_session=js,
                             student_id=self.student_id,
                             defaults={"decision": "ND", "notes": "", "validated_by": None},
                         )
-                    except Exception:
-                        # ignore failures per-session to avoid breaking save
-                        continue
-        except Exception:
-            # ignore any errors while populating jury decisions
-            pass
+                    except Exception as e:
+                        logger.exception(
+                            "JuryDecision.get_or_create failed for "
+                            "jury_session=%s student_id=%s: %s",
+                            js.id, self.student_id, e,
+                        )
+        except Exception as e:
+            logger.exception("JuryDecision populating block failed: %s", e)
 
 
 class ComplementRequirement(models.Model):
@@ -343,6 +352,13 @@ class ComplementRequirement(models.Model):
     )
     due_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    jury_decision = models.ForeignKey(
+        "dashboard_academic_secretary_app.JuryDecision",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="complement_requirements",
+    )
     created_by = models.ForeignKey(
         'user_app.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='complement_created'
     )

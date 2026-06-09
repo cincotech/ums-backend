@@ -1,3 +1,5 @@
+import logging
+
 from datetime import timedelta
 
 from django.db import transaction
@@ -28,6 +30,8 @@ from .models import (
     OfficialDocument,
     TeacherPaymentClaim,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AcademicSecretaryService:
@@ -259,7 +263,7 @@ class AcademicSecretaryService:
 
     @staticmethod
     @transaction.atomic
-    def create_jury_session(session_name, session_date, jury_member_ids, class_group_id, created_by):
+    def create_jury_session(session_name, session_date, jury_member_ids, class_group_id, created_by, academic_year_id=None):
         """Create jury session for deliberations with role-based members"""
         from services.core_service.academic_module.class_app.models import ClassGroup
         
@@ -283,16 +287,39 @@ class AcademicSecretaryService:
                 role=member_data.get("role", "member") if isinstance(member_data, dict) else "member",
             )
 
-        # Pre-create temporary JuryDecision entries for all students in the class group.
-        # This makes it easier for the frontend to show a row per student even before decisions are entered.
+        # Pre-create JuryDecision entries for all students linked to this class group.
         try:
             from services.core_service.student_module.inscription_app.models import Inscription
 
-            # Only consider inscriptions linked to this class_group and its academic year
-            student_ids = (
-                Inscription.objects.filter(class_group=class_group, regist_status__in=["Active", "Pending", "Complement"])
-                .values_list("student_id", flat=True)
-                .distinct()
+            q = Inscription.objects.filter(
+                class_group=class_group,
+                regist_status__in=["Active", "Pending", "Complement"],
+            )
+            if academic_year_id:
+                q = q.filter(academic_year_id=academic_year_id)
+
+            student_ids = list(q.values_list("student_id", flat=True).distinct())
+
+            # Fallback: if no students found in the exact group, try by class_fk
+            if not student_ids:
+                logger.info(
+                    "No Active/Pending/Complement inscriptions found for "
+                    "class_group=%s, trying by class_fk_id=%s",
+                    class_group.id, class_group.class_fk_id,
+                )
+                q2 = Inscription.objects.filter(
+                    class_fk_id=class_group.class_fk_id,
+                    regist_status__in=["Active", "Pending", "Complement"],
+                )
+                if academic_year_id:
+                    q2 = q2.filter(academic_year_id=academic_year_id)
+                student_ids = list(
+                    q2.values_list("student_id", flat=True).distinct()
+                )
+
+            logger.info(
+                "Pre-creating %d JuryDecision(s) for jury_session=%s",
+                len(student_ids), jury.id,
             )
 
             for sid in student_ids:
@@ -302,12 +329,14 @@ class AcademicSecretaryService:
                         student_id=sid,
                         defaults={"decision": "ND", "notes": "", "validated_by": None},
                     )
-                except Exception:
-                    # ignore per-student failures
-                    continue
-        except Exception:
-            # don't break jury creation if prepopulation fails
-            pass
+                except Exception as e:
+                    logger.exception(
+                        "Failed to create JuryDecision for "
+                        "jury_session=%s student_id=%s: %s",
+                        jury.id, sid, e,
+                    )
+        except Exception as e:
+            logger.exception("JuryDecision pre-creation block failed: %s", e)
 
         return jury
 

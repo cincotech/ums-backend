@@ -39,6 +39,7 @@ class InscriptionSerializer(serializers.ModelSerializer):
     faculty_id = serializers.UUIDField(required=False, allow_null=True)
     payment_status = serializers.SerializerMethodField(read_only=True)
     has_verified_payment = serializers.SerializerMethodField(read_only=True)
+    current_decision = serializers.SerializerMethodField(read_only=True)
     created_by = serializers.SerializerMethodField(read_only=True)
     modified_by = serializers.SerializerMethodField(read_only=True)
 
@@ -61,6 +62,7 @@ class InscriptionSerializer(serializers.ModelSerializer):
             "faculty_id",
             "payment_status",
             "has_verified_payment",
+            "current_decision",
             "created_by",
             "modified_by",
             "modified_at",
@@ -84,6 +86,29 @@ class InscriptionSerializer(serializers.ModelSerializer):
         # Fallback: return any active matricule if none for this type
         active_sm = obj.student.get_active_matricule()
         return active_sm.matricule if active_sm else None
+
+    def get_current_decision(self, obj):
+        try:
+            from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+                JuryDecision,
+                JurySession,
+            )
+
+            jury_decision = JuryDecision.objects.filter(
+                student=obj.student,
+                jury_session__class_group__class_fk=obj.class_fk,
+                jury_session__class_group__academic_year=obj.academic_year,
+            ).order_by("-jury_session__session_date", "-validated_at").first()
+
+            if jury_decision:
+                return {
+                    "id": str(jury_decision.id),
+                    "decision": jury_decision.decision,
+                    "validated_at": jury_decision.validated_at,
+                }
+            return None
+        except Exception:
+            return None
 
     def get_created_by(self, obj):
         if obj.created_by:

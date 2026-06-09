@@ -1,10 +1,14 @@
+import logging
+
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.views import APIView, PermissionDenied
 
 from core.permissions import IsDean
 from core.response_handler import error_response, success_response, validate_serializer
@@ -12,7 +16,10 @@ from core.views import BaseViewSet
 from services.core_service.academic_module.class_app.models import Class, ClassGroup
 from services.core_service.academic_module.department_app.models import Department
 from services.core_service.academic_module.teacher_app.models import Attribution
-from services.core_service.student_module.inscription_app.models import Inscription
+from services.core_service.student_module.inscription_app.models import (
+    ComplementRequirement,
+    Inscription,
+)
 from services.core_service.student_module.student_profile_app.models import Student
 from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
     GradeComplaint,
@@ -20,6 +27,7 @@ from services.dependent_service.dashboard_module.dashboard_academic_secretary_ap
     JurySession,
     TeacherPaymentClaim,
 )
+from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.serializers import ComplementRequirementSerializer
 from services.dependent_service.exam_module.exam_app.models import (
     Exam,
     ExamRoom,
@@ -603,6 +611,27 @@ class ClassGroupViewSet(BaseViewSet):
 
                      ]
     ordering_fields = ["group_name", "created_date"]
+
+    def get_queryset(self):
+            user = self.request.user
+            
+            # 1. On extrait les IDs des facultés associées aux profils de l'utilisateur.
+            # Puisque Dean est abstrait, la colonne "faculty" est directement sur Profile.
+            faculty_ids = user.profiles.filter(
+                faculty__isnull=False
+            ).values_list('faculty_id', flat=True)
+
+            # 2. Sécurité : Si l'utilisateur n'a aucun profil avec une faculté rattachée
+            if not faculty_ids:
+                raise PermissionDenied(
+                    "Accès refusé. Vous n'êtes assigné à aucune faculté dans vos profils."
+                )
+
+            # 3. On filtre et on retourne les groupes de cette (ou ces) faculté(s)
+            # Relation : ClassGroup -> Class -> Department -> Faculty
+            return ClassGroup.objects.filter(
+                class_fk__department__faculty_id__in=faculty_ids
+            ).distinct()
 
     @action(detail=False, methods=["get"])
     def by_class(self, request):
@@ -1621,6 +1650,30 @@ class JurySessionViewSet(BaseViewSet):
     search_fields = ["session_name"]
     ordering_fields = ["session_date", "created_at"]
 
+    def get_queryset(self):
+        from rest_framework.exceptions import PermissionDenied
+        
+        queryset = JurySession.objects.all()
+
+        # Filter by faculty (doyen's faculty)
+        try:
+            faculty = get_faculty_for_request(self.request)
+            queryset = queryset.filter(class_group__class_fk__department__faculty=faculty)
+        except PermissionDenied:
+            queryset = queryset.none()
+
+        # Filter by academic_year_id if provided
+        academic_year_id = self.request.query_params.get("academic_year_id")
+        if academic_year_id:
+            queryset = queryset.filter(class_group__academic_year_id=academic_year_id)
+
+        return queryset.select_related(
+            "class_group",
+            "class_group__class_fk",
+            "class_group__academic_year",
+            "created_by",
+        ).prefetch_related("jury_members")
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         validation_error = validate_serializer(serializer)
@@ -1634,6 +1687,7 @@ class JurySessionViewSet(BaseViewSet):
                 class_group_id=request.data.get("class_group"),
                 jury_member_ids=request.data.get("jury_members", []),
                 created_by=request.user,
+                academic_year_id=request.data.get("academic_year_id"),
             )
 
             return success_response(
@@ -1645,23 +1699,12 @@ class JurySessionViewSet(BaseViewSet):
             return error_response(message="Error creating jury session", errors=str(e))
 
     def destroy(self, request, *args, **kwargs):
-        """Override delete to return a clear error when FK constraints prevent deletion."""
-        from django.db import IntegrityError
-
-        try:
-            return super().destroy(request, *args, **kwargs)
-        except IntegrityError as e:
-            return error_response(
-                message=(
-                    "Impossible de supprimer la session de jury : des enregistrements liés "
-                    "(membres, décisions, etc.) empêchent la suppression. Supprimez d'abord "
-                    "les dépendances ou videz-les via l'interface avant de réessayer."
-                ),
-                errors=str(e),
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as e:
-            return error_response(message="Erreur lors de la suppression", errors=str(e))
+        """Force delete jury session and all related records."""
+        jury = self.get_object()
+        jury.jury_member_records.all().delete()
+        jury.jury_decisions.all().delete()
+        jury.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["patch"])
     def members(self, request, pk=None):
@@ -1796,6 +1839,65 @@ class JuryDecisionViewSet(BaseViewSet):
             return error_response(
                 message="Error validating jury decision", errors=str(e)
             )
+
+
+class FeesSheetListView(APIView):
+    permission_classes = [IsDean]
+
+    def get(self, request):
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import FeesSheet
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.serializers import FeesSheetSerializer
+
+        faculty = get_faculty_for_request(request)
+        feesheets = FeesSheet.objects.filter(
+            Q(class_fk__department__faculty=faculty)
+            | Q(department__faculty=faculty)
+            | Q(faculty=faculty)
+        ).select_related("wording", "class_fk", "department", "faculty", "academic_year")
+        serializer = FeesSheetSerializer(feesheets, many=True)
+        return success_response(data=serializer.data)
+
+
+class ComplementRequirementViewSet(BaseViewSet):
+    queryset = ComplementRequirement.objects.all()
+    serializer_class = ComplementRequirementSerializer
+    permission_classes = [IsDean]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["status", "student", "inscription", "jury_decision"]
+    search_fields = [
+        "student__user__first_name",
+        "student__user__last_name",
+        "requirements",
+    ]
+    ordering_fields = ["created_at", "due_date", "amount_due"]
+    ordering = ["-created_at"]
+
+    def get_queryset(self):
+        return ComplementRequirement.objects.select_related(
+            "student", "student__user", "inscription", "jury_decision"
+        )
+
+    def perform_create(self, serializer):
+        student_id = self.request.data.get("student")
+        jury_decision_id = self.request.data.get("jury_decision")
+        if student_id and jury_decision_id:
+            try:
+                jury_decision = JuryDecision.objects.get(id=jury_decision_id)
+                class_group_id = jury_decision.jury_session.class_group_id
+                inscription = Inscription.objects.filter(
+                    student_id=student_id,
+                    class_group_id=class_group_id,
+                    regist_status__in=["Active", "Pending", "Complement"],
+                ).order_by("-academic_year_id").first()
+                if inscription:
+                    serializer.save(
+                        created_by=self.request.user,
+                        inscription=inscription,
+                    )
+                    return
+            except (JuryDecision.DoesNotExist, AttributeError):
+                pass
+        serializer.save(created_by=self.request.user)
 
 
 class GradeComplaintViewSet(BaseViewSet):

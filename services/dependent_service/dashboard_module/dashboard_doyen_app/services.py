@@ -1,3 +1,5 @@
+import logging
+
 from django.db import transaction
 from django.db.models import Avg, Count, Q, Sum
 from django.shortcuts import get_object_or_404
@@ -12,7 +14,10 @@ from services.core_service.academic_module.teacher_app.models import (
     Teacher,
 )
 from services.core_service.academic_module.university_app.models import AcademicYear
-from services.core_service.student_module.inscription_app.models import Inscription
+from services.core_service.student_module.inscription_app.models import (
+    ComplementRequirement,
+    Inscription,
+)
 from services.core_service.student_module.student_profile_app.models import Student
 from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
     GradeComplaint,
@@ -37,6 +42,8 @@ from services.dependent_service.scheduling_module.scheduling_app.models import (
 )
 
 from .models import SecretaryNote, TeacherWorkload, TeachingProgress
+
+logger = logging.getLogger(__name__)
 
 
 class DeanDashboardService:
@@ -1729,7 +1736,7 @@ class SupplementService:
 class JurySessionService:
     @staticmethod
     def create_jury_session(
-        session_name, session_date, class_group_id, jury_member_ids, created_by
+        session_name, session_date, class_group_id, jury_member_ids, created_by, academic_year_id=None
     ):
         from django.db import transaction
         from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import JuryMember
@@ -1759,6 +1766,56 @@ class JurySessionService:
                     user_id=user_id,
                     role=role,
                 )
+
+            # Pre-create JuryDecision entries for all students linked to this class group
+            try:
+                q = Inscription.objects.filter(
+                    class_group_id=class_group_id,
+                    regist_status__in=["Active", "Pending", "Complement"],
+                )
+                if academic_year_id:
+                    q = q.filter(academic_year_id=academic_year_id)
+
+                student_ids = list(q.values_list("student_id", flat=True).distinct())
+
+                # Fallback: if no students found in the exact group, try by class_fk
+                if not student_ids:
+                    class_group = ClassGroup.objects.get(id=class_group_id)
+                    logger.info(
+                        "No Active/Pending/Complement inscriptions found for "
+                        "class_group=%s, trying by class_fk_id=%s",
+                        class_group_id, class_group.class_fk_id,
+                    )
+                    q2 = Inscription.objects.filter(
+                        class_fk_id=class_group.class_fk_id,
+                        regist_status__in=["Active", "Pending", "Complement"],
+                    )
+                    if academic_year_id:
+                        q2 = q2.filter(academic_year_id=academic_year_id)
+                    student_ids = list(
+                        q2.values_list("student_id", flat=True).distinct()
+                    )
+
+                logger.info(
+                    "Pre-creating %d JuryDecision(s) for jury_session=%s",
+                    len(student_ids), jury_session.id,
+                )
+
+                for sid in student_ids:
+                    try:
+                        JuryDecision.objects.get_or_create(
+                            jury_session=jury_session,
+                            student_id=sid,
+                            defaults={"decision": "ND", "notes": "", "validated_by": None},
+                        )
+                    except Exception as e:
+                        logger.exception(
+                            "Failed to create JuryDecision for "
+                            "jury_session=%s student_id=%s: %s",
+                            jury_session.id, sid, e,
+                        )
+            except Exception as e:
+                logger.exception("JuryDecision pre-creation block failed: %s", e)
 
             return jury_session
 
@@ -1954,6 +2011,11 @@ class JuryDecisionService:
                     "validated_by": validated_by,
                 },
             )
+
+            if decision != "AAC":
+                ComplementRequirement.objects.filter(
+                    jury_decision=jury_decision
+                ).delete()
 
             return jury_decision, created
 

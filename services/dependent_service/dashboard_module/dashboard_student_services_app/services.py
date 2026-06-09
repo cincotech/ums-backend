@@ -1,4 +1,5 @@
 from datetime import date
+import logging
 
 from django.db.models import Count, Q
 
@@ -14,6 +15,8 @@ from .models import (
     StudentActivity,
     StudentStatusChange,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class StudentServicesService:
@@ -167,16 +170,19 @@ class PopulationDataService:
 
         # Get current academic year based on date if not specified
         if not academic_year_id:
-
             current_year = AcademicYear.objects.filter(is_closed=False).first()
             if current_year:
-                academic_year_id = current_year
+                academic_year_id = current_year.id
+                logger.info(f"Using current academic year: {academic_year_id}")
             else:
+                logger.warning("No open academic year found")
                 return []
+        else:
+            logger.info(f"Using provided academic year: {academic_year_id}")
 
         # Base queryset for active inscriptions filtered by academic year
         queryset = Inscription.objects.filter(
-            regist_status="Active", academic_year=academic_year_id
+            regist_status="Active", academic_year_id=academic_year_id
         ).select_related(
             "student__user",
             "class_fk__department__faculty",
@@ -184,22 +190,27 @@ class PopulationDataService:
             "class_fk",
             "academic_year",
         )
+        
+        logger.debug(f"Initial queryset count: {queryset.count()}")
 
         # Apply additional filters
-
         if filters.get("faculty"):
             queryset = queryset.filter(
                 class_fk__department__faculty_id=filters["faculty"]
             )
+            logger.debug(f"After faculty filter: {queryset.count()}")
 
         if filters.get("department"):
             queryset = queryset.filter(class_fk__department_id=filters["department"])
+            logger.debug(f"After department filter: {queryset.count()}")
 
         if filters.get("class_name"):
             queryset = queryset.filter(class_fk_id=filters["class_name"])
+            logger.debug(f"After class filter: {queryset.count()}")
 
         if filters.get("sexe"):
             queryset = queryset.filter(student__user__gender=filters["sexe"])
+            logger.debug(f"After gender filter: {queryset.count()}")
 
         # Calculate age ranges
         today = date.today()
@@ -207,19 +218,27 @@ class PopulationDataService:
         # Group by faculty, department, class, and gender
         population_data = []
 
-        # Get unique combinations
-        combinations = queryset.values(
+        # Get unique combinations (EXCLUDE None genders from the query itself)
+        combinations = queryset.filter(
+            student__user__gender__isnull=False
+        ).values(
             "class_fk__department__faculty__faculty_abreviation",
             "class_fk__department__department_name",
             "class_fk__class_name",
             "student__user__gender",
         ).distinct()
+        
+        logger.debug(f"Found {combinations.count()} unique combinations")
 
         for combo in combinations:
-            if not combo["student__user__gender"]:
+            # Skip if gender is still None (safety check)
+            if not combo.get("student__user__gender"):
+                logger.debug("Skipping combo with None gender")
                 continue
 
-            # Filter for this specific combination
+            logger.debug(f"Processing combo: {combo}")
+
+            # Filter for this specific combination using the exact dictionary keys
             combo_queryset = queryset.filter(
                 class_fk__department__faculty__faculty_abreviation=combo[
                     "class_fk__department__faculty__faculty_abreviation"
@@ -230,112 +249,115 @@ class PopulationDataService:
                 class_fk__class_name=combo["class_fk__class_name"],
                 student__user__gender=combo["student__user__gender"],
             )
+            
+            combo_count = combo_queryset.count()
+            logger.debug(f"Combo queryset count: {combo_count}")
+
+            if combo_count == 0:
+                logger.warning(f"No inscriptions found for combo: {combo}")
+                continue
 
             # Calculate age breakdowns
             age_counts = {}
             total_count = 0
 
             for inscription in combo_queryset:
-                if inscription.student.user.birth_date:
-                    age = today.year - inscription.student.user.birth_date.year
-                    if today < inscription.student.user.birth_date.replace(
-                        year=today.year
-                    ):
-                        age -= 1
+                if not inscription.student or not inscription.student.user.birth_date:
+                    logger.debug(f"Skipping inscription {inscription.id}: no student or birth_date")
+                    continue
 
-                    total_count += 1
+                age = today.year - inscription.student.user.birth_date.year
+                if today < inscription.student.user.birth_date.replace(
+                    year=today.year
+                ):
+                    age -= 1
 
-                    if age < 19:
-                        age_counts["less_than_nineteen"] = (
-                            age_counts.get("less_than_nineteen", 0) + 1
-                        )
-                    elif age == 19:
-                        age_counts["nineteen"] = age_counts.get("nineteen", 0) + 1
-                    elif age == 20:
-                        age_counts["twenty"] = age_counts.get("twenty", 0) + 1
-                    elif age == 21:
-                        age_counts["twenty_one"] = age_counts.get("twenty_one", 0) + 1
-                    elif age == 22:
-                        age_counts["twenty_two"] = age_counts.get("twenty_two", 0) + 1
-                    elif age == 23:
-                        age_counts["twenty_three"] = (
-                            age_counts.get("twenty_three", 0) + 1
-                        )
-                    elif age == 24:
-                        age_counts["twenty_four"] = age_counts.get("twenty_four", 0) + 1
-                    elif age == 25:
-                        age_counts["twenty_five"] = age_counts.get("twenty_five", 0) + 1
-                    elif age == 26:
-                        age_counts["twenty_six"] = age_counts.get("twenty_six", 0) + 1
-                    elif age == 27:
-                        age_counts["twenty_seven"] = (
-                            age_counts.get("twenty_seven", 0) + 1
-                        )
-                    elif age == 28:
-                        age_counts["twenty_eight"] = (
-                            age_counts.get("twenty_eight", 0) + 1
-                        )
-                    elif age == 29:
-                        age_counts["twenty_nine"] = age_counts.get("twenty_nine", 0) + 1
-                    elif age == 30:
-                        age_counts["thirty"] = age_counts.get("thirty", 0) + 1
-                    elif age == 31:
-                        age_counts["thirty_one"] = age_counts.get("thirty_one", 0) + 1
-                    else:
-                        age_counts["greater_than_thirty_one"] = (
-                            age_counts.get("greater_than_thirty_one", 0) + 1
-                        )
+                total_count += 1
 
-            if total_count > 0:
-                # Get totals by gender for this class
-                class_totals = queryset.filter(
-                    class_fk__department__faculty__faculty_abreviation=combo[
+                # Age categorization
+                age_key = None
+                if age < 19:
+                    age_key = "less_than_nineteen"
+                elif age <= 30:
+                    age_key = str(age)  # Use age as key for 19-30
+                else:
+                    age_key = "greater_than_thirty_one"
+
+                if age_key:
+                    if age_key.isdigit():
+                        age_key = {
+                            "19": "nineteen",
+                            "20": "twenty",
+                            "21": "twenty_one",
+                            "22": "twenty_two",
+                            "23": "twenty_three",
+                            "24": "twenty_four",
+                            "25": "twenty_five",
+                            "26": "twenty_six",
+                            "27": "twenty_seven",
+                            "28": "twenty_eight",
+                            "29": "twenty_nine",
+                            "30": "thirty",
+                            "31": "thirty_one",
+                        }.get(age_key, "greater_than_thirty_one")
+                    
+                    age_counts[age_key] = age_counts.get(age_key, 0) + 1
+
+            if total_count == 0:
+                logger.warning(f"No valid age data found for combo: {combo}")
+                continue
+
+            logger.debug(f"Total count for combo: {total_count}, age_counts: {age_counts}")
+
+            # Get totals by gender for this class
+            class_totals = queryset.filter(
+                class_fk__department__faculty__faculty_abreviation=combo[
+                    "class_fk__department__faculty__faculty_abreviation"
+                ],
+                class_fk__department__department_name=combo[
+                    "class_fk__department__department_name"
+                ],
+                class_fk__class_name=combo["class_fk__class_name"],
+            ).aggregate(
+                total_male=Count("id", filter=Q(student__user__gender="M")),
+                total_female=Count("id", filter=Q(student__user__gender="F")),
+            )
+
+            population_data.append(
+                {
+                    "id": len(population_data) + 1,
+                    "faculty_abreviation": combo[
                         "class_fk__department__faculty__faculty_abreviation"
-                    ],
-                    class_fk__department__department_name=combo[
+                    ] or "",
+                    "departement_name": combo[
                         "class_fk__department__department_name"
-                    ],
-                    class_fk__class_name=combo["class_fk__class_name"],
-                ).aggregate(
-                    total_male=Count("id", filter=Q(student__user__gender="M")),
-                    total_female=Count("id", filter=Q(student__user__gender="F")),
-                )
+                    ] or "",
+                    "class_name": combo["class_fk__class_name"] or "",
+                    "sexe": combo["student__user__gender"],
+                    "less_than_nineteen": age_counts.get("less_than_nineteen", 0),
+                    "nineteen": age_counts.get("nineteen", 0),
+                    "twenty": age_counts.get("twenty", 0),
+                    "twenty_one": age_counts.get("twenty_one", 0),
+                    "twenty_two": age_counts.get("twenty_two", 0),
+                    "twenty_three": age_counts.get("twenty_three", 0),
+                    "twenty_four": age_counts.get("twenty_four", 0),
+                    "twenty_five": age_counts.get("twenty_five", 0),
+                    "twenty_six": age_counts.get("twenty_six", 0),
+                    "twenty_seven": age_counts.get("twenty_seven", 0),
+                    "twenty_eight": age_counts.get("twenty_eight", 0),
+                    "twenty_nine": age_counts.get("twenty_nine", 0),
+                    "thirty": age_counts.get("thirty", 0),
+                    "thirty_one": age_counts.get("thirty_one", 0),
+                    "greater_than_thirty_one": age_counts.get(
+                        "greater_than_thirty_one", 0
+                    ),
+                    "total_female": class_totals["total_female"],
+                    "total_male": class_totals["total_male"],
+                    "student_count": total_count,
+                }
+            )
 
-                population_data.append(
-                    {
-                        "id": len(population_data) + 1,
-                        "faculty_abreviation": combo[
-                            "class_fk__department__faculty__faculty_abreviation"
-                        ]
-                        or "",
-                        "departement_name": combo[
-                            "class_fk__department__department_name"
-                        ]
-                        or "",
-                        "class_name": combo["class_fk__class_name"] or "",
-                        "sexe": combo["student__user__gender"],
-                        "less_than_nineteen": age_counts.get("less_than_nineteen", 0),
-                        "nineteen": age_counts.get("nineteen", 0),
-                        "twenty": age_counts.get("twenty", 0),
-                        "twenty_one": age_counts.get("twenty_one", 0),
-                        "twenty_two": age_counts.get("twenty_two", 0),
-                        "twenty_three": age_counts.get("twenty_three", 0),
-                        "twenty_four": age_counts.get("twenty_four", 0),
-                        "twenty_five": age_counts.get("twenty_five", 0),
-                        "twenty_six": age_counts.get("twenty_six", 0),
-                        "twenty_seven": age_counts.get("twenty_seven", 0),
-                        "twenty_eight": age_counts.get("twenty_eight", 0),
-                        "twenty_nine": age_counts.get("twenty_nine", 0),
-                        "thirty": age_counts.get("thirty", 0),
-                        "thirty_one": age_counts.get("thirty_one", 0),
-                        "greater_than_thirty_one": age_counts.get(
-                            "greater_than_thirty_one", 0
-                        ),
-                        "total_female": class_totals["total_female"],
-                        "total_male": class_totals["total_male"],
-                        "student_count": total_count,
-                    }
-                )
+        logger.info(f"Final population_data count: {len(population_data)}")
 
         # Apply search filter
         if filters.get("search"):

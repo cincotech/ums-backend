@@ -20,7 +20,7 @@ SECRET_KEY = get_env_variable(
 )
 AUTH_USER_MODEL = "user_app.User"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Africa/Bujumbura"
 LANGUAGE_CODE = "en-us"
 USE_I18N = True
 USE_TZ = True

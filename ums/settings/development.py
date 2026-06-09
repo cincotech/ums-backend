@@ -23,18 +23,41 @@ DATABASES = {
 
 
 
-# --- LOGGING (Optionnel mais recommandé) ---
-# Pour voir les requêtes SQL dans la console pendant le développement
+# --- LOGGING avec Rich (coloré, structuré) ---
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'rich': {
+            'format': '%(message)s',
+        },
+    },
     'handlers': {
         'console': {
-            'class': 'logging.StreamHandler',
+            'class': 'rich.logging.RichHandler',
+            'level': 'DEBUG',
+            'formatter': 'rich',
+            'rich_tracebacks': True,
+            'tracebacks_show_locals': True,
+            'show_time': True,
+            'show_level': True,
+            'show_path': True,
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'DEBUG',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
     },
 }

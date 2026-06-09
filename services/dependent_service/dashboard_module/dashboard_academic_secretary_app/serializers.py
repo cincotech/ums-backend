@@ -451,6 +451,12 @@ class InscriptionSerializer(serializers.ModelSerializer):
     def get_student_matricule(self, obj):
         return obj.get_matricule_for_type()
 
+    def create(self, validated_data):
+        user = validated_data.pop("user", None)
+        inscription = Inscription(**validated_data)
+        inscription.save(user=user)
+        return inscription
+
 
 class InscriptionStatisticsSerializer(serializers.Serializer):
     total = serializers.IntegerField()

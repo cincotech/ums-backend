@@ -87,7 +87,8 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
 
             filters = {k: v for k, v in filters.items() if v}
 
-            queryset = PopulationDataService.get_population_data(filters)
+            queryset = PopulationDataService.get_population_data(filters,request.query_params.get("academic_year_id"))
+           
 
             if (
                 not self.pagination_enabled
@@ -101,7 +102,6 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
 
             page = self.paginate_queryset(queryset)
             serializer = self.get_serializer(page, many=True)
-
             return success_response(
                 data=serializer.data,
                 message="Population data retrieved successfully",

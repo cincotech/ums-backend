@@ -76,9 +76,13 @@ LOGGING = {
             "level": "CRITICAL",
         },
         "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "simple",
-            "filters": ["template_debug_filter"],
+            "class": "rich.logging.RichHandler",
+            "level": "DEBUG",
+            "rich_tracebacks": True,
+            "tracebacks_show_locals": True,
+            "show_time": True,
+            "show_level": True,
+            "show_path": True,
         },
     },
     "loggers": {
