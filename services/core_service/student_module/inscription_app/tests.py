@@ -1,5 +1,6 @@
 import logging
 from datetime import date
+from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -8,13 +9,20 @@ from services.core_service.academic_module.class_app.models import Class, ClassG
 from services.core_service.academic_module.department_app.models import Department
 from services.core_service.academic_module.faculty_app.models import Faculty, TypeFormation
 from services.core_service.academic_module.university_app.models import AcademicYear, University
+from services.core_service.student_module.highschool_info_app.models import (
+    Certificate,
+    Highschool,
+    Section,
+)
 from services.core_service.student_module.inscription_app.models import Inscription
 from services.core_service.student_module.student_profile_app.models import (
     Student,
     StudentGraduateInfo,
+    StudentHsInfo,
     StudentMatricule,
+    Training,
 )
-from services.foundational_service.auth_module.user_app.models import User
+from services.foundational_service.auth_module.user_app.models import Role, User
 from services.foundational_service.geo_module.colline_app.models import Colline
 from services.foundational_service.geo_module.commune_app.models import Commune
 from services.foundational_service.geo_module.country_app.models import Country
@@ -85,11 +93,24 @@ class BaseInscriptionTestCase(TestCase):
         self.student = Student.objects.create(user=self.user, colline=self.colline)
         logger.info(f"Student created: {self.student}")
 
+        # Highschool Info (required for registration eligibility validation)
+        section = Section.objects.create(section_name="Scientifique")
+        self.highschool = Highschool.objects.create(hs_name="Lycee de Gitega", zone=self.zone)
+        self.certificate = Certificate.objects.create(certificate_name="Diplome d'Etat", section=section)
+        StudentHsInfo.objects.create(
+            student=self.student,
+            highschool=self.highschool,
+            certificate=self.certificate,
+            se_mark="75",
+            date_of_obtention=2024,
+        )
+        logger.info(f"StudentHsInfo created for: {self.student}")
+
     def _save_bypass_clean(self, insc):
         """Save inscription bypassing clean() but still triggering StudentMatricule generation."""
-       
+        from django.db.models import Model
         logger.debug(f"  _save_bypass_clean: student={insc.student}, class={insc.class_fk}, status={insc.regist_status}")
-        self._save_bypass_clean(insc)
+        Model.save(insc)
 
         if insc.class_fk:
             try:
@@ -248,25 +269,25 @@ class TestDuplicateInscription(BaseInscriptionTestCase):
 class TestNoHigherLevelSameYear(BaseInscriptionTestCase):
 
     def test_higher_level_same_year_blocked(self):
-        """Cannot enroll in L2 if already enrolled in L1 same year same TypeFormation."""
-        insc_l1 = Inscription(
-            student=self.student,
-            academic_year=self.academic_year,
-            class_fk=self.class_f_l1,
-            date_inscription=date.today(),
-            regist_status="Active",
-        )
-        self._save_bypass_clean(insc_l1)
-
+        """Cannot enroll in L1 if already enrolled in L2 same year same department."""
         insc_l2 = Inscription(
             student=self.student,
             academic_year=self.academic_year,
             class_fk=self.class_f_l2,
             date_inscription=date.today(),
+            regist_status="Active",
+        )
+        self._save_bypass_clean(insc_l2)
+
+        insc_l1 = Inscription(
+            student=self.student,
+            academic_year=self.academic_year,
+            class_fk=self.class_f_l1,
+            date_inscription=date.today(),
             regist_status="Pending",
         )
         with self.assertRaises(ValidationError):
-            insc_l2.clean()
+            insc_l1.clean()
 
     def test_same_level_different_department_same_faculty_allowed(self):
         """Can enroll in L1 Maths if already enrolled in L1 Info (same faculty, different dept)."""
@@ -293,7 +314,15 @@ class TestNoHigherLevelSameYear(BaseInscriptionTestCase):
             self.fail(f"clean() raised ValidationError unexpectedly: {e}")
 
     def test_different_type_formation_same_year_allowed(self):
-        """Can enroll in Master L1 while enrolled in Faculté L1 same year."""
+        """Can enroll in Master L1 while enrolled in Faculté L1 same year (with university background)."""
+        from services.core_service.academic_module.university_app.models import UniversityDegree
+        degree = UniversityDegree.objects.create(degree_name="Licence", description="L")
+        StudentGraduateInfo.objects.create(
+            student=self.student,
+            department=self.dept_info,
+            mention="Bien",
+            degree=degree,
+        )
         insc_f = Inscription(
             student=self.student,
             academic_year=self.academic_year,
@@ -332,7 +361,7 @@ class TestNoLevelSkip(BaseInscriptionTestCase):
         )
         with self.assertRaises(ValidationError) as ctx:
             insc_l2.clean()
-        self.assertIn("level 1", str(ctx.exception).lower())
+        self.assertIn("niveau 1", str(ctx.exception).lower())
 
     def test_level_skip_allowed_with_graduate_infos_same_type(self):
         """Can enroll in L2 if StudentGraduateInfo exists for same TypeFormation."""
@@ -509,7 +538,6 @@ class TestReplace(BaseInscriptionTestCase):
 # 6. STUDENT MATRICULE API
 # ─────────────────────────────────────────────
 class TestStudentMatriculeEndpoint(BaseInscriptionTestCase):
-    from django.urls import reverse
 
     def setUp(self):
         super().setUp()
@@ -519,7 +547,7 @@ class TestStudentMatriculeEndpoint(BaseInscriptionTestCase):
         self.client.force_authenticate(user=admin_user)
 
     def _url(self, suffix=""):
-        return f"/student/students/{self.student.id}/matricules/{suffix}"
+        return f"/api/student/students/{self.student.id}/matricules/{suffix}"
 
     def _setup_matricules(self):
         StudentMatricule.objects.create(
@@ -537,9 +565,8 @@ class TestStudentMatriculeEndpoint(BaseInscriptionTestCase):
 
     def test_get_all_matricules(self):
         """GET /students/{id}/matricules/ returns all matricules."""
-        from django.urls import reverse
-        url = reverse("student-detail", kwargs={"pk": str(self.student.id)})
-        response = self.client.get(f"/student/students/{self.student.id}/matricules/")
+        self._setup_matricules()
+        response = self.client.get(f"/api/student/students/{self.student.id}/matricules/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["data"]), 2)
 
@@ -556,7 +583,7 @@ class TestStudentMatriculeEndpoint(BaseInscriptionTestCase):
         )
         self._save_bypass_clean(insc)
 
-        response = self.client.get(f"/student/students/{self.student.id}/matricules/?status=Active")
+        response = self.client.get(f"/api/student/students/{self.student.id}/matricules/?status=Active")
         self.assertEqual(response.status_code, 200)
         codes = [m["type_formation_code"] for m in response.data["data"]]
         self.assertIn("F", codes)
@@ -618,7 +645,170 @@ class TestEmailMatricule(BaseInscriptionTestCase):
             _get_matricule_for_inscription,
         )
         # No StudentMatricule exists for this student/type combination
-        # The legacy student.matricule field no longer exists
-        insc = self._make_insc(self.class_i_l1)  # Institut — no StudentMatricule created
+        # Create a new student without any matricules
+        new_user = User.objects.create_user(email="marie@test.com", password="pass123", first_name="Marie", last_name="Curie")
+        new_student = Student.objects.create(user=new_user, colline=self.colline)
+        StudentHsInfo.objects.create(
+            student=new_student,
+            highschool=self.highschool,
+            certificate=self.certificate,
+            se_mark="75",
+            date_of_obtention=2024,
+        )
+        insc = Inscription(
+            student=new_student,
+            academic_year=self.academic_year,
+            class_fk=self.class_i_l1,
+            date_inscription=date.today(),
+            regist_status="Active",
+        )
+        from django.db.models import Model
+        Model.save(insc)
         matricule = _get_matricule_for_inscription(insc)
         self.assertEqual(matricule, "En attente")
+
+
+# ─────────────────────────────────────────────
+# 8. AUTO-ACTIVATION BY STUDENT SERVICE
+# ─────────────────────────────────────────────
+class TestAutoActivationByStudentService(BaseInscriptionTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.student_service_role = Role.objects.create(name="student_service")
+        self.student_service_user = User.objects.create_user(
+            email="svc.etudiant@test.com",
+            password="pass123",
+            first_name="Service",
+            last_name="Étudiant",
+            role=self.student_service_role,
+        )
+        self.normal_user = User.objects.create_user(
+            email="normal@test.com",
+            password="pass123",
+            first_name="Normal",
+            last_name="User",
+        )
+
+    def test_student_service_auto_activates_pending(self):
+        """Inscription Pending créée par student_service → Active."""
+        insc = Inscription(
+            student=self.student,
+            academic_year=self.academic_year,
+            class_fk=self.class_f_l1,
+            date_inscription=date.today(),
+            regist_status="Pending",
+        )
+        insc.save(user=self.student_service_user)
+        insc.refresh_from_db()
+        self.assertEqual(insc.regist_status, "Active")
+
+    def test_non_student_service_stays_pending(self):
+        """Inscription Pending créée par un user normal → reste Pending."""
+        insc = Inscription(
+            student=self.student,
+            academic_year=self.academic_year,
+            class_fk=self.class_f_l1,
+            date_inscription=date.today(),
+            regist_status="Pending",
+        )
+        insc.save(user=self.normal_user)
+        insc.refresh_from_db()
+        self.assertEqual(insc.regist_status, "Pending")
+
+    def test_student_service_auto_activates_on_update(self):
+        """Inscription Pending existante (créée sans user) mise à jour par student_service → Active."""
+        insc = Inscription(
+            student=self.student,
+            academic_year=self.academic_year,
+            class_fk=self.class_f_l1,
+            date_inscription=date.today(),
+            regist_status="Pending",
+        )
+        from django.db.models import Model
+        Model.save(insc)  # pas de user → created_by=None, statut=Pending
+
+        insc.regist_status = "Pending"
+        with patch.object(Inscription, 'has_verified_payment', return_value=True):
+            insc.save(user=self.student_service_user)
+        insc.refresh_from_db()
+        self.assertEqual(insc.regist_status, "Active")
+
+
+# ─────────────────────────────────────────────
+# 9. REGISTRATION ELIGIBILITY
+# ─────────────────────────────────────────────
+class TestRegistrationEligibility(BaseInscriptionTestCase):
+
+    def _create_student_with_se_mark(self, email, se_mark):
+        user = User.objects.create_user(email=email, password="pass123")
+        student = Student.objects.create(user=user, colline=self.colline)
+        StudentHsInfo.objects.create(
+            student=student,
+            highschool=self.highschool,
+            certificate=self.certificate,
+            se_mark=se_mark,
+            date_of_obtention=2024,
+        )
+        return student
+
+    def _create_student_without_hs_info(self, email):
+        user = User.objects.create_user(email=email, password="pass123")
+        student = Student.objects.create(user=user, colline=self.colline)
+        return student
+
+    def test_master_blocked_without_graduate_info(self):
+        """Master sans StudentGraduateInfo → ValidationError."""
+        insc = Inscription(
+            student=self.student,
+            academic_year=self.academic_year,
+            class_fk=self.class_m_l1,
+            date_inscription=date.today(),
+            regist_status="Pending",
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            insc.clean()
+        self.assertIn("Master", str(ctx.exception))
+
+    def test_bac_blocked_when_se_mark_below_50(self):
+        """Faculté avec se_mark=30 → ValidationError."""
+        student = self._create_student_with_se_mark("bac-low@test.com", "30")
+        insc = Inscription(
+            student=student,
+            academic_year=self.academic_year,
+            class_fk=self.class_f_l1,
+            date_inscription=date.today(),
+            regist_status="Pending",
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            insc.clean()
+        self.assertIn("50%", str(ctx.exception))
+
+    def test_institut_allowed_when_se_mark_below_50(self):
+        """Institut avec se_mark=30 → autorisé (exception)."""
+        student = self._create_student_with_se_mark("inst-low@test.com", "30")
+        insc = Inscription(
+            student=student,
+            academic_year=self.academic_year,
+            class_fk=self.class_i_l1,
+            date_inscription=date.today(),
+            regist_status="Pending",
+        )
+        try:
+            insc.clean()
+        except ValidationError as e:
+            self.fail(f"clean() a levé une ValidationError inattendue: {e}")
+
+    def test_blocked_when_se_mark_missing(self):
+        """Aucun StudentHsInfo → ValidationError."""
+        student = self._create_student_without_hs_info("no-hs@test.com")
+        insc = Inscription(
+            student=student,
+            academic_year=self.academic_year,
+            class_fk=self.class_f_l1,
+            date_inscription=date.today(),
+            regist_status="Pending",
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            insc.clean()
+        self.assertIn("lycée", str(ctx.exception).lower())

@@ -27,7 +27,6 @@ from services.dependent_service.dashboard_module.dashboard_academic_secretary_ap
     JurySession,
     TeacherPaymentClaim,
 )
-from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.serializers import ComplementRequirementSerializer
 from services.dependent_service.exam_module.exam_app.models import (
     Exam,
     ExamRoom,
@@ -52,6 +51,7 @@ from .models import SecretaryNote, TeacherWorkload, TeachingProgress
 from .serializers import (
     ActivityReportSerializer,
     AttendanceSerializer,
+    ComplementRequirementSerializer,
     BulkAttendanceSerializer,
     BulkResultEntrySerializer,
     ClassGroupSerializer,
@@ -1813,6 +1813,25 @@ class JuryDecisionViewSet(BaseViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ["jury_session", "student", "decision"]
 
+    def get_queryset(self):
+        queryset = JuryDecision.objects.prefetch_related("complement_requirements")
+        academic_year = self.request.query_params.get("academic_year")
+        class_fk = self.request.query_params.get("class_fk")
+        faculty_id = self.request.query_params.get("faculty_id")
+        if academic_year:
+            queryset = queryset.filter(
+                jury_session__class_group__academic_year_id=academic_year
+            )
+        if class_fk:
+            queryset = queryset.filter(
+                jury_session__class_group__class_fk_id=class_fk
+            )
+        if faculty_id:
+            queryset = queryset.filter(
+                jury_session__class_group__class_fk__department__faculty_id=faculty_id
+            )
+        return queryset
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         validation_error = validate_serializer(serializer)
@@ -1820,12 +1839,23 @@ class JuryDecisionViewSet(BaseViewSet):
             return validation_error
 
         try:
+            complement_data = None
+            if request.data.get("decision") == "AAC":
+                complement_data = {
+                    "course_ids": request.data.get("courses", []),
+                    "unit_price": request.data.get("unit_price"),
+                    "feesheet": request.data.get("feesheet"),
+                    "due_date": request.data.get("due_date"),
+                    "requirements": request.data.get("requirements"),
+                }
+
             decision, created = JuryDecisionService.validate_decision(
                 jury_session_id=request.data.get("jury_session"),
                 student_id=request.data.get("student"),
                 decision=request.data.get("decision"),
                 notes=request.data.get("notes"),
                 validated_by=request.user,
+                complement_data=complement_data,
             )
 
             return success_response(
@@ -1863,18 +1893,20 @@ class ComplementRequirementViewSet(BaseViewSet):
     serializer_class = ComplementRequirementSerializer
     permission_classes = [IsDean]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["status", "student", "inscription", "jury_decision"]
+    filterset_fields = ["status", "student", "inscription", "jury_decision", "course"]
     search_fields = [
         "student__user__first_name",
         "student__user__last_name",
         "requirements",
+        "course__course_name",
+        "course__course_code",
     ]
     ordering_fields = ["created_at", "due_date", "amount_due"]
     ordering = ["-created_at"]
 
     def get_queryset(self):
         return ComplementRequirement.objects.select_related(
-            "student", "student__user", "inscription", "jury_decision"
+            "student", "student__user", "inscription", "jury_decision", "course"
         )
 
     def perform_create(self, serializer):
@@ -1892,9 +1924,17 @@ class ComplementRequirementViewSet(BaseViewSet):
                 if inscription:
                     serializer.save(
                         created_by=self.request.user,
+                        jury_decision=jury_decision,
                         inscription=inscription,
                     )
                     return
+            except (JuryDecision.DoesNotExist, AttributeError):
+                pass
+        if jury_decision_id:
+            try:
+                jury_decision = JuryDecision.objects.get(id=jury_decision_id)
+                serializer.save(created_by=self.request.user, jury_decision=jury_decision)
+                return
             except (JuryDecision.DoesNotExist, AttributeError):
                 pass
         serializer.save(created_by=self.request.user)

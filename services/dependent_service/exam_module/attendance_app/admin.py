@@ -60,7 +60,7 @@ class ExamAttendanceAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = ExamAttendanceResource
     list_display = ("examroom", "card", "inscription", "attendance_time", "status")
     list_filter = ("status", "examroom")
-    search_fields = ("card__card_number", "inscription__student__matricule")
+    search_fields = ("card__card_number", "inscription__student__matricules__matricule")
     ordering = ("-attendance_time",)
 
     formfield_overrides = {

@@ -1769,29 +1769,30 @@ class JurySessionService:
 
             # Pre-create JuryDecision entries for all students linked to this class group
             try:
+                # Always resolve academic_year from the ClassGroup to avoid cross-year contamination
+                class_group = ClassGroup.objects.get(id=class_group_id)
+                resolved_year_id = academic_year_id or str(class_group.academic_year_id)
+
                 q = Inscription.objects.filter(
                     class_group_id=class_group_id,
+                    academic_year_id=resolved_year_id,
                     regist_status__in=["Active", "Pending", "Complement"],
                 )
-                if academic_year_id:
-                    q = q.filter(academic_year_id=academic_year_id)
-
                 student_ids = list(q.values_list("student_id", flat=True).distinct())
 
                 # Fallback: if no students found in the exact group, try by class_fk
+                # Always constrained to the resolved academic year
                 if not student_ids:
-                    class_group = ClassGroup.objects.get(id=class_group_id)
                     logger.info(
                         "No Active/Pending/Complement inscriptions found for "
-                        "class_group=%s, trying by class_fk_id=%s",
-                        class_group_id, class_group.class_fk_id,
+                        "class_group=%s, trying by class_fk_id=%s academic_year=%s",
+                        class_group_id, class_group.class_fk_id, resolved_year_id,
                     )
                     q2 = Inscription.objects.filter(
                         class_fk_id=class_group.class_fk_id,
+                        academic_year_id=resolved_year_id,
                         regist_status__in=["Active", "Pending", "Complement"],
                     )
-                    if academic_year_id:
-                        q2 = q2.filter(academic_year_id=academic_year_id)
                     student_ids = list(
                         q2.values_list("student_id", flat=True).distinct()
                     )
@@ -1989,8 +1990,9 @@ class JurySessionService:
 
 class JuryDecisionService:
     @staticmethod
-    def validate_decision(jury_session_id, student_id, decision, notes, validated_by):
+    def validate_decision(jury_session_id, student_id, decision, notes, validated_by, complement_data=None):
         from django.db import transaction
+        from services.core_service.student_module.inscription_app.models import Inscription
 
         jury_session = JurySession.objects.get(id=jury_session_id)
 
@@ -2012,7 +2014,46 @@ class JuryDecisionService:
                 },
             )
 
-            if decision != "AAC":
+            if decision == "AAC" and complement_data:
+                inscription = Inscription.objects.filter(
+                    student_id=student_id,
+                    academic_year_id=jury_session.class_group.academic_year_id,
+                    regist_status__in=["Active", "Pending", "Complement"],
+                ).first()
+
+                jury_decision.complement_requirements.all().delete()
+
+                course_ids = complement_data.get("course_ids") or []
+                unit_price = complement_data.get("unit_price", 0)
+                feesheet_id = complement_data.get("feesheet")
+                due_date = complement_data.get("due_date")
+
+                if course_ids:
+                    for course_id in course_ids:
+                        ComplementRequirement.objects.create(
+                            student_id=student_id,
+                            jury_decision=jury_decision,
+                            inscription=inscription,
+                            course_id=course_id,
+                            course_count=1,
+                            unit_price=unit_price,
+                            feesheet_id=feesheet_id,
+                            due_date=due_date,
+                            created_by=validated_by,
+                        )
+                else:
+                    ComplementRequirement.objects.create(
+                        student_id=student_id,
+                        jury_decision=jury_decision,
+                        inscription=inscription,
+                        requirements=complement_data.get("requirements"),
+                        course_count=1,
+                        unit_price=unit_price,
+                        feesheet_id=feesheet_id,
+                        due_date=due_date,
+                        created_by=validated_by,
+                    )
+            elif decision != "AAC":
                 ComplementRequirement.objects.filter(
                     jury_decision=jury_decision
                 ).delete()

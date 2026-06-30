@@ -338,6 +338,13 @@ class ComplementRequirement(models.Model):
     inscription = models.ForeignKey(
         "Inscription", on_delete=models.SET_NULL, null=True, blank=True, related_name="complement_requirements"
     )
+    course = models.ForeignKey(
+        "course_app.Course",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="complement_requirements",
+    )
     requirements = models.TextField(null=True, blank=True)
     course_count = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)

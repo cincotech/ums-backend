@@ -198,7 +198,7 @@ class PaymentInstallementAdmin(ImportExportModelAdmin, ModelAdmin):
     search_fields = (
         "student__user__first_name",
         "student__user__last_name",
-        "student__matricule",
+        "student__matricules__matricule",
     )
     ordering = ("-due_date",)
     readonly_fields = ("paid_amount", "status", "paid_date")
@@ -252,7 +252,7 @@ class PaymentReminderAdmin(ModelAdmin):
     search_fields = (
         "student__user__first_name",
         "student__user__last_name",
-        "student__matricule",
+        "student__matricules__matricule",
     )
     ordering = ("-sent_at",)
     readonly_fields = ("sent_at",)
@@ -301,7 +301,7 @@ class PaymentPromiseAdmin(ModelAdmin):
     search_fields = (
         "student__user__first_name",
         "student__user__last_name",
-        "student__matricule",
+        "student__matricules__matricule",
     )
     ordering = ("-promised_date",)
 
@@ -313,7 +313,7 @@ class CollectionCorrespondenceAdmin(ModelAdmin):
     search_fields = (
         "student__user__first_name",
         "student__user__last_name",
-        "student__matricule",
+        "student__matricules__matricule",
         "subject",
     )
     ordering = ("-sent_at",)

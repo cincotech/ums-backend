@@ -26,6 +26,18 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
 
+UNFOLD = {
+    "SITE_HEADER": "Administration",
+    "SITE_TITLE": "UMS",
+    "COMMAND": {
+        "search_models": True,
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "command_search": True,
+    },
+}
+
 
 INSTALLED_APPS = [
     "unfold",

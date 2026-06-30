@@ -10,7 +10,7 @@ from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.university_app.models import AcademicYear
 from services.core_service.student_module.student_profile_app.models import Student
 
-from .models import Inscription
+from .models import ComplementRequirement, Inscription
 
 
 # ----------------------------
@@ -118,3 +118,66 @@ class InscriptionAdmin(ImportExportModelAdmin, ModelAdmin):
             "widget": admin.widgets.AdminTextInputWidget(attrs={"class": "vTextField"})
         },
     }
+
+
+# ----------------------------
+# ComplementRequirement Admin
+# ----------------------------
+@admin.register(ComplementRequirement)
+class ComplementRequirementAdmin(ModelAdmin):
+    list_display = (
+        "student",
+        "course",
+        "status",
+        "amount_due",
+        "jury_decision",
+        "created_at",
+    )
+    search_fields = (
+        "student__user__email",
+        "student__user__first_name",
+        "student__user__last_name",
+        "course__course_name",
+        "course__course_code",
+        "requirements",
+    )
+    list_filter = ("status", "annual_renewal", "created_at")
+    ordering = ("-created_at",)
+    autocomplete_fields = ("course",)
+
+    fieldsets = (
+        (
+            "Étudiant & Décision",
+            {
+                "fields": (
+                    "student",
+                    "inscription",
+                    "jury_decision",
+                )
+            },
+        ),
+        (
+            "Compléments",
+            {
+                "fields": (
+                    "course",
+                    "requirements",
+                    "course_count",
+                )
+            },
+        ),
+        (
+            "Finance",
+            {
+                "fields": (
+                    "feesheet",
+                    "unit_price",
+                    "amount_due",
+                    "due_date",
+                    "annual_renewal",
+                    "status",
+                )
+            },
+        ),
+    )
+    readonly_fields = ("amount_due",)

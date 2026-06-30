@@ -748,6 +748,31 @@
           "null": true
         },
         {
+          "name": "inscription_created",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "inscription_modified",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "complement_created",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "inscription_drafts",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "inscription_drafts_modified",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
           "name": "students_users",
           "type": "OneToOneField",
           "null": true,
@@ -937,6 +962,11 @@
           "related_model": "JurySession"
         },
         {
+          "name": "jury_memberships",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
           "name": "jurydecision",
           "type": "ForeignKey",
           "null": true
@@ -1025,6 +1055,16 @@
         },
         {
           "name": "verified_guest_docs",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "surveys_created",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "survey_responses",
           "type": "ForeignKey",
           "null": true
         },
@@ -1377,6 +1417,15 @@
           "max_length": 50
         },
         {
+          "name": "level",
+          "type": "PositiveSmallIntegerField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
           "name": "department",
           "type": "ForeignKey",
           "null": false,
@@ -1492,6 +1541,11 @@
       "fields": [
         {
           "name": "attribution",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "complement_requirements",
           "type": "ForeignKey",
           "null": true
         },
@@ -1674,6 +1728,11 @@
       "fields": [
         {
           "name": "typeformation",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "student_matricules",
           "type": "ForeignKey",
           "null": true
         },
@@ -2382,6 +2441,11 @@
           "null": true
         },
         {
+          "name": "student_matricules",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
           "name": "exam",
           "type": "ForeignKey",
           "null": true
@@ -3026,6 +3090,11 @@
       "verbose_name": "inscription",
       "fields": [
         {
+          "name": "complement_requirements",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
           "name": "examattendance",
           "type": "ForeignKey",
           "null": true
@@ -3143,6 +3212,301 @@
           "primary_key": false,
           "unique": false,
           "max_length": null
+        },
+        {
+          "name": "created_by",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "User"
+        },
+        {
+          "name": "modified_by",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "User"
+        },
+        {
+          "name": "modified_at",
+          "type": "DateTimeField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        }
+      ]
+    },
+    "ComplementRequirement": {
+      "db_table": "complement_requirements",
+      "verbose_name": "complement requirement",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUIDField",
+          "null": false,
+          "blank": false,
+          "primary_key": true,
+          "unique": true,
+          "max_length": 32
+        },
+        {
+          "name": "student",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "Student"
+        },
+        {
+          "name": "inscription",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "Inscription"
+        },
+        {
+          "name": "course",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "Course"
+        },
+        {
+          "name": "requirements",
+          "type": "TextField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "course_count",
+          "type": "PositiveIntegerField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "unit_price",
+          "type": "DecimalField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "amount_due",
+          "type": "DecimalField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "annual_renewal",
+          "type": "BooleanField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "feesheet",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "FeesSheet"
+        },
+        {
+          "name": "due_date",
+          "type": "DateField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "status",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 20
+        },
+        {
+          "name": "jury_decision",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "JuryDecision"
+        },
+        {
+          "name": "created_by",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "User"
+        },
+        {
+          "name": "created_at",
+          "type": "DateTimeField",
+          "null": false,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        }
+      ]
+    }
+  },
+  "inscription_draft": {
+    "InscriptionDraft": {
+      "db_table": "inscription_draft_inscriptiondraft",
+      "verbose_name": "inscription draft",
+      "fields": [
+        {
+          "name": "id",
+          "type": "BigAutoField",
+          "null": false,
+          "blank": true,
+          "primary_key": true,
+          "unique": true,
+          "max_length": null
+        },
+        {
+          "name": "user",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "User"
+        },
+        {
+          "name": "modified_by",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "User"
+        },
+        {
+          "name": "session_id",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 100
+        },
+        {
+          "name": "current_step",
+          "type": "PositiveIntegerField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "form_data",
+          "type": "JSONField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "title",
+          "type": "CharField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 255
+        },
+        {
+          "name": "created_at",
+          "type": "DateTimeField",
+          "null": false,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTimeField",
+          "null": false,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "is_completed",
+          "type": "BooleanField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "status",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 20
         }
       ]
     }
@@ -3209,8 +3573,8 @@
         {
           "name": "parent_phone",
           "type": "CharField",
-          "null": false,
-          "blank": false,
+          "null": true,
+          "blank": true,
           "primary_key": false,
           "unique": false,
           "max_length": 15
@@ -3281,6 +3645,11 @@
           "null": true
         },
         {
+          "name": "complement_requirements",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
           "name": "files",
           "type": "ForeignKey",
           "null": true
@@ -3292,6 +3661,11 @@
         },
         {
           "name": "graduate_infos",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "matricules",
           "type": "ForeignKey",
           "null": true
         },
@@ -3405,15 +3779,6 @@
           "max_length": null,
           "relation_type": "OneToOne",
           "related_model": "User"
-        },
-        {
-          "name": "matricule",
-          "type": "CharField",
-          "null": true,
-          "blank": true,
-          "primary_key": false,
-          "unique": true,
-          "max_length": 120
         },
         {
           "name": "colline",
@@ -3739,6 +4104,63 @@
           "max_length": null,
           "relation_type": "ForeignKey",
           "related_model": "UniversityDegree"
+        }
+      ]
+    },
+    "StudentMatricule": {
+      "db_table": "student_matricules",
+      "verbose_name": "student matricule",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUIDField",
+          "null": false,
+          "blank": false,
+          "primary_key": true,
+          "unique": true,
+          "max_length": 32
+        },
+        {
+          "name": "student",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "Student"
+        },
+        {
+          "name": "type_formation",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "TypeFormation"
+        },
+        {
+          "name": "matricule",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": true,
+          "max_length": 120
+        },
+        {
+          "name": "academic_year",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "AcademicYear"
         }
       ]
     }
@@ -7427,6 +7849,11 @@
       "verbose_name": "fees sheet",
       "fields": [
         {
+          "name": "complement_requirements",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
           "name": "paymentplan_feessheet",
           "type": "ForeignKey",
           "null": true
@@ -8127,7 +8554,12 @@
       "verbose_name": "jury session",
       "fields": [
         {
-          "name": "jurydecision",
+          "name": "jury_member_records",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "jury_decisions",
           "type": "ForeignKey",
           "null": true
         },
@@ -8220,10 +8652,61 @@
         }
       ]
     },
+    "JuryMember": {
+      "db_table": "jury_members",
+      "verbose_name": "jury member",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUIDField",
+          "null": false,
+          "blank": false,
+          "primary_key": true,
+          "unique": true,
+          "max_length": 32
+        },
+        {
+          "name": "jury_session",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "JurySession"
+        },
+        {
+          "name": "user",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "User"
+        },
+        {
+          "name": "role",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 20
+        }
+      ]
+    },
     "JuryDecision": {
       "db_table": "jury_decisions",
       "verbose_name": "jury decision",
       "fields": [
+        {
+          "name": "complement_requirements",
+          "type": "ForeignKey",
+          "null": true
+        },
         {
           "name": "id",
           "type": "UUIDField",
@@ -8276,8 +8759,8 @@
         {
           "name": "validated_by",
           "type": "ForeignKey",
-          "null": false,
-          "blank": false,
+          "null": true,
+          "blank": true,
           "primary_key": false,
           "unique": false,
           "max_length": null,
@@ -8287,7 +8770,7 @@
         {
           "name": "validated_at",
           "type": "DateTimeField",
-          "null": false,
+          "null": true,
           "blank": true,
           "primary_key": false,
           "unique": false,
@@ -10328,6 +10811,11 @@
       "verbose_name": "program",
       "fields": [
         {
+          "name": "images",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
           "name": "id",
           "type": "UUIDField",
           "null": false,
@@ -10415,6 +10903,367 @@
           "type": "BooleanField",
           "null": false,
           "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        }
+      ]
+    },
+    "ProgramImage": {
+      "db_table": "program_images",
+      "verbose_name": "program image",
+      "fields": [
+        {
+          "name": "id",
+          "type": "BigAutoField",
+          "null": false,
+          "blank": true,
+          "primary_key": true,
+          "unique": true,
+          "max_length": null
+        },
+        {
+          "name": "program",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "Program"
+        },
+        {
+          "name": "image",
+          "type": "FileField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 100
+        },
+        {
+          "name": "title",
+          "type": "CharField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 255
+        },
+        {
+          "name": "description",
+          "type": "TextField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "is_cover",
+          "type": "BooleanField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "is_active",
+          "type": "BooleanField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "created_at",
+          "type": "DateTimeField",
+          "null": false,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        }
+      ]
+    }
+  },
+  "survey_app": {
+    "Survey": {
+      "db_table": "surveys",
+      "verbose_name": "survey",
+      "fields": [
+        {
+          "name": "questions",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "responses",
+          "type": "ForeignKey",
+          "null": true
+        },
+        {
+          "name": "id",
+          "type": "UUIDField",
+          "null": false,
+          "blank": false,
+          "primary_key": true,
+          "unique": true,
+          "max_length": 32
+        },
+        {
+          "name": "title",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 255
+        },
+        {
+          "name": "description",
+          "type": "TextField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "logo",
+          "type": "FileField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 100
+        },
+        {
+          "name": "multi_step",
+          "type": "BooleanField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "start_date",
+          "type": "DateTimeField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "end_date",
+          "type": "DateTimeField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "created_by",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "User"
+        },
+        {
+          "name": "created_at",
+          "type": "DateTimeField",
+          "null": false,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "updated_at",
+          "type": "DateTimeField",
+          "null": false,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        }
+      ]
+    },
+    "Question": {
+      "db_table": "survey_questions",
+      "verbose_name": "question",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUIDField",
+          "null": false,
+          "blank": false,
+          "primary_key": true,
+          "unique": true,
+          "max_length": 32
+        },
+        {
+          "name": "survey",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "Survey"
+        },
+        {
+          "name": "label",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 500
+        },
+        {
+          "name": "type",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 20
+        },
+        {
+          "name": "required",
+          "type": "BooleanField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "section",
+          "type": "CharField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 100
+        },
+        {
+          "name": "placeholder",
+          "type": "CharField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 255
+        },
+        {
+          "name": "options",
+          "type": "JSONField",
+          "null": false,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "max",
+          "type": "IntegerField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "order",
+          "type": "IntegerField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        }
+      ]
+    },
+    "SurveyResponse": {
+      "db_table": "survey_responses",
+      "verbose_name": "survey response",
+      "fields": [
+        {
+          "name": "id",
+          "type": "UUIDField",
+          "null": false,
+          "blank": false,
+          "primary_key": true,
+          "unique": true,
+          "max_length": 32
+        },
+        {
+          "name": "survey",
+          "type": "ForeignKey",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "Survey"
+        },
+        {
+          "name": "respondent_name",
+          "type": "CharField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 255
+        },
+        {
+          "name": "respondent_email",
+          "type": "CharField",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": 254
+        },
+        {
+          "name": "respondent",
+          "type": "ForeignKey",
+          "null": true,
+          "blank": true,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null,
+          "relation_type": "ForeignKey",
+          "related_model": "User"
+        },
+        {
+          "name": "responses",
+          "type": "JSONField",
+          "null": false,
+          "blank": false,
+          "primary_key": false,
+          "unique": false,
+          "max_length": null
+        },
+        {
+          "name": "submitted_at",
+          "type": "DateTimeField",
+          "null": false,
+          "blank": true,
           "primary_key": false,
           "unique": false,
           "max_length": null

@@ -32,7 +32,7 @@ class JuryMemberAdmin(admin.ModelAdmin):
 class JuryDecisionAdmin(admin.ModelAdmin):
     list_display = ["jury_session", "student", "decision", "validated_at"]
     list_filter = ["decision", "validated_at"]
-    search_fields = ["student__user__email", "student__matricule"]
+    search_fields = ["student__user__email", "student__matricules__matricule"]
 
 
 @admin.register(GradeComplaint)

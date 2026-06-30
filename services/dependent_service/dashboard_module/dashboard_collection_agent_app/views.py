@@ -26,6 +26,8 @@ from .filters import (
 )
 from .models import (
     Bank,
+    Bordereau,
+    BordereauLine,
     CollectionCorrespondence,
     FeesSheet,
     Payment,
@@ -37,6 +39,8 @@ from .models import (
 )
 from .serializers import (
     BankSerializer,
+    BordereauLineSerializer,
+    BordereauSerializer,
     CollectionCorrespondenceSerializer,
     FeesSheetSerializer,
     PaymentInstallementSerializer,
@@ -97,8 +101,13 @@ class FeesSheetViewSet(BaseViewSet):
         "wording",
     ).all()
     serializer_class = FeesSheetSerializer
-    permission_classes = [IsFinanceService]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve", "grouped_options"):
+            return [IsStudentOrFinance()]
+        return [IsFinanceService()]
+
     filterset_class = FeesSheetFilter
     filterset_fields = [
         "class_fk",
@@ -985,3 +994,147 @@ class FinanceDashboardAPIView(viewsets.ViewSet):
             date_to=date_to,
         )
         return success_response(data=data, message="Finance overview retrieved successfully")
+
+
+class BordereauViewSet(BaseViewSet):
+    queryset = Bordereau.objects.select_related(
+        "bank", "student__user", "created_by", "verified_by", "parent"
+    ).prefetch_related("lines__feessheet__wording", "lines__payment")
+    serializer_class = BordereauSerializer
+    parser_classes = [parsers.MultiPartParser, parsers.JSONParser]
+
+    def get_permissions(self):
+        if self.action in ("verify", "update", "partial_update", "destroy", "split"):
+            return [IsFinanceService()]
+        # list, retrieve, create → student_service + finance_service
+        return [IsStudentOrFinance()]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        role = getattr(getattr(user, "role", None), "name", None)
+        if role == "student":
+            qs = qs.filter(student__user=user)
+        student_id = self.request.query_params.get("student_id")
+        if student_id:
+            qs = qs.filter(student_id=student_id)
+        status = self.request.query_params.get("status")
+        if status:
+            qs = qs.filter(status=status)
+        return qs.order_by("-created_at")
+
+    @action(detail=True, methods=["post"], url_path="verify")
+    def verify(self, request, pk=None):
+        from core.response_handler import success_response, error_response
+
+        bordereau = self.get_object()
+        role = getattr(getattr(request.user, "role", None), "name", None)
+        if role != "finance_service":
+            return error_response(
+                message="Seul le service financier peut vérifier un bordereau.",
+                status_code=403,
+            )
+        bordereau.status = "verified"
+        bordereau.verified_by = request.user
+        bordereau.verified_at = timezone.now()
+        bordereau.save()
+        return success_response(
+            data=BordereauSerializer(bordereau, context={"request": request}).data,
+            message="Bordereau vérifié.",
+        )
+
+    @action(detail=True, methods=["post"], url_path="split")
+    def split(self, request, pk=None):
+        """Créer des bordereaux enfants à partir d'un bordereau parent."""
+        from core.response_handler import success_response, error_response
+
+        parent = self.get_object()
+        lines_data = request.data.get("splits", [])
+        if not lines_data:
+            return error_response(message="Aucune répartition fournie.", status_code=400)
+
+        total = sum(float(s.get("amount", 0)) for s in lines_data)
+        if round(total, 2) != round(float(parent.amount), 2):
+            return error_response(
+                message=f"La somme des fractions ({total}) ne correspond pas au montant du bordereau ({parent.amount}).",
+                status_code=400,
+            )
+
+        children = []
+        for s in lines_data:
+            child = Bordereau.objects.create(
+                numero=parent.numero,
+                amount=s["amount"],
+                bank=parent.bank,
+                student=parent.student,
+                payment_date=parent.payment_date,
+                payment_method=parent.payment_method,
+                status="pending",
+                parent=parent,
+                notes=s.get("notes"),
+                created_by=request.user,
+            )
+            children.append(child)
+
+        parent.status = "split"
+        parent.save()
+
+        return success_response(
+            data=BordereauSerializer(children, many=True, context={"request": request}).data,
+            message="Bordereau fractionné avec succès.",
+        )
+
+
+class BordereauLineViewSet(BaseViewSet):
+    queryset = BordereauLine.objects.select_related(
+        "bordereau", "feessheet__wording", "payment_plan", "payment"
+    )
+    serializer_class = BordereauLineSerializer
+
+    def get_permissions(self):
+        if self.action in ("destroy", "update", "partial_update"):
+            return [IsFinanceService()]
+        # list, retrieve, create → student_service + finance_service
+        return [IsStudentOrFinance()]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        bordereau_id = self.request.query_params.get("bordereau_id")
+        if bordereau_id:
+            qs = qs.filter(bordereau_id=bordereau_id)
+        return qs
+
+    def perform_create(self, serializer):
+        from django.db import transaction
+
+        line = serializer.save()
+        bordereau = line.bordereau
+
+        # Numéro de ligne : compte les lignes existantes de ce bordereau
+        line_number = BordereauLine.objects.filter(bordereau=bordereau).count()
+        transaction_code = f"{bordereau.numero}/{line_number:02d}"
+
+        # Inscription active de l'étudiant
+        inscription = (
+            bordereau.student.inscriptions.filter(
+                regist_status__in=["Active", "Pending", "Complement"]
+            )
+            .order_by("-date_inscription")
+            .first()
+        )
+
+        if inscription and line.payment_plan:
+            with transaction.atomic():
+                payment = Payment.objects.create(
+                    paymentplan=line.payment_plan,
+                    amount_paid=line.amount,
+                    payment_date=bordereau.payment_date,
+                    payment_method=bordereau.payment_method,
+                    bank=bordereau.bank,
+                    transaction_code=transaction_code,
+                    inscription=inscription,
+                    user=self.request.user,
+                    payment_status="unverified",
+                    description=f"Bordereau {bordereau.numero} — Ligne {line_number:02d}",
+                )
+                BordereauLine.objects.filter(pk=line.pk).update(payment=payment)

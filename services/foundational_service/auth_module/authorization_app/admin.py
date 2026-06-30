@@ -11,7 +11,7 @@ class ProfileAdmin(ModelAdmin):
     resource_class = ProfileResource
     list_display = ("user", "position", "start_date", "end_date")
     list_filter = ("position", "start_date")
-    search_fields = ("user__email", "user__username", "position")
+    search_fields = ("user__email", "user__first_name", "user__last_name", "position")
     autocomplete_fields = ("user", "room", "faculty", "university")
     ordering = ("user",)
     fieldsets = (
@@ -25,6 +25,6 @@ class ProfileAdmin(ModelAdmin):
 class SupervisorAdmin(ModelAdmin):
     list_display = ("user", "is_supervisor_active")
     list_filter = ("is_supervisor_active",)
-    search_fields = ("user__email", "user__username")
+    search_fields = ("user__email", "user__first_name", "user__last_name")
     autocomplete_fields = ("user",)
     ordering = ("user",)

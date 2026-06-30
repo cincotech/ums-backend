@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from .models import (
     Bank,
+    Bordereau,
+    BordereauLine,
     CollectionCorrespondence,
     FeesSheet,
     Payment,
@@ -553,3 +555,107 @@ class CollectionCorrespondenceSerializer(serializers.ModelSerializer):
             "sent_by",
             "sent_at",
         ]
+
+
+class BordereauLineSerializer(serializers.ModelSerializer):
+    feessheet_info = serializers.SerializerMethodField(read_only=True)
+    payment_info = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = BordereauLine
+        fields = [
+            "id",
+            "bordereau",
+            "feessheet",
+            "feessheet_info",
+            "payment_plan",
+            "amount",
+            "payment",
+            "payment_info",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at", "payment"]
+
+    def get_feessheet_info(self, obj):
+        fs = obj.feessheet
+        if not fs:
+            return None
+        return {
+            "id": str(fs.id),
+            "base_amount": str(fs.base_amount),
+            "wording_name": fs.wording.wording_name if fs.wording else None,
+        }
+
+    def get_payment_info(self, obj):
+        p = obj.payment
+        if not p:
+            return None
+        return {
+            "id": str(p.id),
+            "amount_paid": str(p.amount_paid),
+            "payment_status": p.payment_status,
+        }
+
+    def validate(self, data):
+        bordereau = data.get("bordereau") or (
+            self.instance.bordereau if self.instance else None
+        )
+        amount = data.get("amount") or (self.instance.amount if self.instance else 0)
+        if bordereau and amount > bordereau.remaining_amount + (
+            self.instance.amount if self.instance else 0
+        ):
+            raise serializers.ValidationError(
+                {"amount": "Le montant dépasse le solde restant du bordereau."}
+            )
+        return data
+
+
+class BordereauSerializer(serializers.ModelSerializer):
+    lines = BordereauLineSerializer(many=True, read_only=True)
+    bank_name = serializers.SerializerMethodField(read_only=True)
+    student_name = serializers.SerializerMethodField(read_only=True)
+    allocated_amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+    remaining_amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+
+    class Meta:
+        model = Bordereau
+        fields = [
+            "id",
+            "numero",
+            "amount",
+            "bank",
+            "bank_name",
+            "student",
+            "student_name",
+            "payment_date",
+            "payment_method",
+            "status",
+            "parent",
+            "slip_uri",
+            "notes",
+            "created_by",
+            "created_at",
+            "verified_by",
+            "verified_at",
+            "lines",
+            "allocated_amount",
+            "remaining_amount",
+        ]
+        read_only_fields = ["id", "created_at", "created_by", "verified_by", "verified_at"]
+
+    def get_bank_name(self, obj):
+        return obj.bank.bank_name if obj.bank else None
+
+    def get_student_name(self, obj):
+        if obj.student:
+            u = obj.student.user
+            return f"{u.first_name} {u.last_name}".strip() if u else str(obj.student)
+        return None
+
+    def create(self, validated_data):
+        validated_data["created_by"] = self.context["request"].user
+        return super().create(validated_data)

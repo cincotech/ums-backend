@@ -736,6 +736,111 @@ class PaymentPromise(models.Model):
         db_table = "payment_promises"
 
 
+class Bordereau(models.Model):
+    STATUS_CHOICES = (
+        ("pending", "En attente"),
+        ("verified", "Vérifié"),
+        ("split", "Fractionné"),
+        ("rejected", "Rejeté"),
+    )
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    numero = models.CharField(max_length=50)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    bank = models.ForeignKey(
+        Bank,
+        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        related_name="bordereaux_bank",
+    )
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name="bordereaux_student",
+    )
+    payment_date = models.DateField()
+    payment_method = models.CharField(
+        max_length=20,
+        choices=Payment.METHOD,
+        default="bank_deposit",
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="splits",
+    )
+    slip_uri = models.ImageField(upload_to="bordereau_slips/", null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.RESTRICT, related_name="bordereaux_created"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified_by = models.ForeignKey(
+        User,
+        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        related_name="bordereaux_verified",
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "bordereaux"
+
+    def __str__(self):
+        return f"Bordereau {self.numero} — {self.student} ({self.amount})"
+
+    @property
+    def allocated_amount(self):
+        from django.db.models import Sum
+        return self.lines.aggregate(total=Sum("amount"))["total"] or 0
+
+    @property
+    def remaining_amount(self):
+        return self.amount - self.allocated_amount
+
+
+class BordereauLine(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    bordereau = models.ForeignKey(
+        Bordereau, on_delete=models.CASCADE, related_name="lines"
+    )
+    feessheet = models.ForeignKey(
+        FeesSheet,
+        on_delete=models.RESTRICT,
+        related_name="bordereau_lines",
+    )
+    payment_plan = models.ForeignKey(
+        PaymentPlan,
+        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        related_name="bordereau_lines",
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    payment = models.OneToOneField(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bordereau_line",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "bordereau_lines"
+
+    def __str__(self):
+        return (
+            f"Ligne {self.feessheet} — {self.amount} BIF "
+            f"(Bordereau {self.bordereau.numero})"
+        )
+
+
 class CollectionCorrespondence(models.Model):
     CORRESPONDENCE_TYPES = (
         ("email", "Email"),

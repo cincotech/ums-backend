@@ -260,6 +260,7 @@ class ComplementRequirementSerializer(serializers.ModelSerializer):
             "id",
             "student",
             "student_name",
+            "jury_decision",
             "inscription",
             "inscription_id",
             "requirements",

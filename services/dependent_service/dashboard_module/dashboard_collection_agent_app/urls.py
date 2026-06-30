@@ -3,6 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     BankViewSet,
+    BordereauLineViewSet,
+    BordereauViewSet,
     CollectionCorrespondenceViewSet,
     FinanceDashboardAPIView,
     FeesSheetViewSet,
@@ -24,6 +26,8 @@ router.register(r"payment-plans", PaymentPlanViewSet)
 router.register(r"payment-promises", PaymentPromiseViewSet)
 router.register(r"payments", PaymentViewSet)
 router.register(r"collection-correspondence", CollectionCorrespondenceViewSet)
+router.register(r"bordereaux", BordereauViewSet)
+router.register(r"bordereau-lines", BordereauLineViewSet)
 
 urlpatterns = [
     path(
