@@ -115,6 +115,14 @@ from .utils import get_faculty_for_request
 User = get_user_model()
 
 
+def _get_ay(request):
+    """Read academic year from query params.
+    Frontend sends 'academic_year'; some legacy callers send 'academic_year_id'.
+    Accept either so both paths work without duplicating logic everywhere.
+    """
+    return request.query_params.get("academic_year") or request.query_params.get("academic_year_id")
+
+
 class TeachingProgressViewSet(BaseViewSet):
     queryset = TeachingProgress.objects.all()
     serializer_class = TeachingProgressSerializer
@@ -230,7 +238,7 @@ class TeacherWorkloadViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def summary(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -296,7 +304,7 @@ class DeanDashboardStatsView(APIView):
 
     def get(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -322,7 +330,7 @@ class TimetableOverviewView(APIView):
 
     def get(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -348,7 +356,7 @@ class TeachingProgressReportView(APIView):
 
     def get(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -373,7 +381,7 @@ class AttributionStatisticsView(APIView):
 
     def get(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -398,7 +406,7 @@ class RoomUtilizationReportView(APIView):
 
     def get(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -419,7 +427,6 @@ class RoomUtilizationReportView(APIView):
 
 
 class CourseAttributionViewSet(BaseViewSet):
-    queryset = Attribution.objects.all()
     serializer_class = CourseAttributionSerializer
     permission_classes = [IsDean]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -432,10 +439,35 @@ class CourseAttributionViewSet(BaseViewSet):
     search_fields = ["course__course_name", "course__course_code"]
     ordering_fields = ["date_attribution", "status_principal_teacher"]
 
+    def get_queryset(self):
+        try:
+            faculty = get_faculty_for_request(self.request)
+        except PermissionDenied:
+            return Attribution.objects.none()
+
+        qs = (
+            Attribution.objects.filter(
+                course__module__class_fk__department__faculty=faculty
+            )
+            .select_related(
+                "course",
+                "course__module",
+                "course__module__class_fk",
+                "course__module__class_fk__department",
+                "principal_teacher",
+                "principal_teacher__user",
+                "academic_year",
+            )
+        )
+        academic_year = _get_ay(self.request)
+        if academic_year:
+            qs = qs.filter(academic_year_id=academic_year)
+        return qs
+
     @action(detail=False, methods=["get"])
     def by_teacher(self, request):
         teacher_id = request.query_params.get("teacher_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not teacher_id:
             return error_response(message="Teacher ID is required")
@@ -455,7 +487,7 @@ class CourseAttributionViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_course(self, request):
         course_id = request.query_params.get("course_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not course_id:
             return error_response(message="Course ID is required")
@@ -475,7 +507,7 @@ class CourseAttributionViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_class(self, request):
         class_id = request.query_params.get("class_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not class_id:
             return error_response(message="Class ID is required")
@@ -526,7 +558,7 @@ class DepartmentViewSet(BaseViewSet):
 
     @action(detail=True, methods=["get"])
     def overview(self, request, pk=None):
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         try:
             overview = DepartmentManagementService.get_department_overview(
@@ -575,7 +607,7 @@ class ClassViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def statistics(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -597,46 +629,47 @@ class ClassViewSet(BaseViewSet):
 
 
 class ClassGroupViewSet(BaseViewSet):
-    queryset = ClassGroup.objects.all()
     serializer_class = ClassGroupSerializer
     permission_classes = [IsDean]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["class_fk", "academic_year"]
-    search_fields = ["group_name", 
-                     "class_fk__class_name",
-                     "class_fk__department__department_name",
-                      "class_fk__department__abreviation",
-                      "class_fk__department__faculty__faculty_name",
-                      "class_fk__department__faculty__faculty_abreviation",
-
-                     ]
+    search_fields = [
+        "group_name",
+        "class_fk__class_name",
+        "class_fk__department__department_name",
+        "class_fk__department__abreviation",
+        "class_fk__department__faculty__faculty_name",
+        "class_fk__department__faculty__faculty_abreviation",
+    ]
     ordering_fields = ["group_name", "created_date"]
 
     def get_queryset(self):
-            user = self.request.user
-            
-            # 1. On extrait les IDs des facultés associées aux profils de l'utilisateur.
-            # Puisque Dean est abstrait, la colonne "faculty" est directement sur Profile.
-            faculty_ids = user.profiles.filter(
-                faculty__isnull=False
-            ).values_list('faculty_id', flat=True)
+        try:
+            faculty = get_faculty_for_request(self.request)
+        except PermissionDenied:
+            return ClassGroup.objects.none()
 
-            # 2. Sécurité : Si l'utilisateur n'a aucun profil avec une faculté rattachée
-            if not faculty_ids:
-                raise PermissionDenied(
-                    "Accès refusé. Vous n'êtes assigné à aucune faculté dans vos profils."
-                )
-
-            # 3. On filtre et on retourne les groupes de cette (ou ces) faculté(s)
-            # Relation : ClassGroup -> Class -> Department -> Faculty
-            return ClassGroup.objects.filter(
-                class_fk__department__faculty_id__in=faculty_ids
-            ).distinct()
+        qs = (
+            ClassGroup.objects.filter(
+                class_fk__department__faculty=faculty
+            )
+            .select_related(
+                "class_fk",
+                "class_fk__department",
+                "class_fk__department__faculty",
+                "academic_year",
+            )
+            .distinct()
+        )
+        academic_year = _get_ay(self.request)
+        if academic_year:
+            qs = qs.filter(academic_year_id=academic_year)
+        return qs
 
     @action(detail=False, methods=["get"])
     def by_class(self, request):
         class_id = request.query_params.get("class_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not class_id:
             return error_response(message="Class ID is required")
@@ -751,7 +784,7 @@ class StudentViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -775,7 +808,7 @@ class StudentViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_class(self, request):
         class_id = request.query_params.get("class_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not class_id:
             return error_response(message="Class ID is required")
@@ -799,7 +832,7 @@ class StudentViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def statistics(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -836,7 +869,7 @@ class InscriptionViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty ID is required")
@@ -862,7 +895,7 @@ class FacultyOverviewView(APIView):
 
     def get(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty  is required")
@@ -913,7 +946,7 @@ class TimetableViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def stats(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty is required")
@@ -1016,7 +1049,7 @@ class TimetableViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_class_group(self, request):
         class_group_id = request.query_params.get("class_group_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not class_group_id:
             return error_response(message="Class group ID is required")
@@ -1037,7 +1070,7 @@ class TimetableViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_class(self, request):
         class_id = request.query_params.get("class_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not class_id:
             return error_response(message="Class ID is required")
@@ -1059,7 +1092,7 @@ class TimetableViewSet(BaseViewSet):
     def by_day(self, request):
         faculty = get_faculty_for_request(request)
         day_of_week = request.query_params.get("day_of_week")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty is required")
@@ -1206,7 +1239,7 @@ class AttendanceViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_student(self, request):
         student_id = request.query_params.get("student_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not student_id:
             return error_response(message="Student ID is required")
@@ -1229,7 +1262,7 @@ class AttendanceViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def statistics(self, request):
         class_group_id = request.query_params.get("class_group_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not class_group_id:
             return error_response(message="Class group ID is required")
@@ -1308,7 +1341,7 @@ class ActivityReportViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty is required")
@@ -1542,7 +1575,7 @@ class CompiledResultViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def promotion_statistics(self, request):
         class_id = request.query_params.get("class_id")
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
         level = request.query_params.get(
             "level", "class"
         )  # university, faculty, department, class, class_group
@@ -1663,7 +1696,7 @@ class JurySessionViewSet(BaseViewSet):
             queryset = queryset.none()
 
         # Filter by academic_year_id if provided
-        academic_year_id = self.request.query_params.get("academic_year_id")
+        academic_year_id = self._get_ay(request)
         if academic_year_id:
             queryset = queryset.filter(class_group__academic_year_id=academic_year_id)
 
@@ -1786,7 +1819,7 @@ class JurySessionViewSet(BaseViewSet):
     @action(detail=False, methods=["get"])
     def statistics(self, request):
         faculty = get_faculty_for_request(request)
-        academic_year_id = request.query_params.get("academic_year_id")
+        academic_year_id = _get_ay(request)
 
         if not faculty:
             return error_response(message="Faculty is required")

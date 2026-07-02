@@ -2,6 +2,11 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .course_management_views import CourseByTeacherView, CourseViewSet
+from .timetable_v2_views import (
+    CourseSessionViewSet,
+    TemplateEntryViewSet,
+    TimetableTemplateViewSet,
+)
 from .views import (
     ActivityReportViewSet,
     AttendanceViewSet,
@@ -44,7 +49,7 @@ router = DefaultRouter()
 router.register(r"teaching-progress", TeachingProgressViewSet)
 router.register(r"teacher-workload", TeacherWorkloadViewSet)
 router.register(r"secretary-notes", SecretaryNoteViewSet)
-router.register(r"course-attributions", CourseAttributionViewSet)
+router.register(r"course-attributions", CourseAttributionViewSet, basename="course-attribution")
 
 # Course Management
 router.register(r"courses", CourseViewSet)
@@ -52,16 +57,21 @@ router.register(r"courses", CourseViewSet)
 # Academic Structure
 router.register(r"departments", DepartmentViewSet)
 router.register(r"classes", ClassViewSet)
-router.register(r"class-groups", ClassGroupViewSet)
+router.register(r"class-groups", ClassGroupViewSet, basename="class-group")
 router.register(r"students", StudentViewSet)
 router.register(r"inscriptions", InscriptionViewSet)
 
-# Timetable & Attendance
+# Timetable & Attendance (legacy)
 router.register(r"schedule-slots", ScheduleSlotViewSet)
 router.register(r"timetables", TimetableViewSet)
 router.register(r"attendances", AttendanceViewSet)
 router.register(r"activity-reports", ActivityReportViewSet)
 router.register(r"timetable-merges", TimetableMergeViewSet)
+
+# Timetable v2 — grilles + séances réelles
+router.register(r"timetable-templates", TimetableTemplateViewSet, basename="timetable-template")
+router.register(r"template-entries", TemplateEntryViewSet, basename="template-entry")
+router.register(r"course-sessions", CourseSessionViewSet, basename="course-session")
 
 # Exam Management
 router.register(r"exam-types", ExamTypeViewSet)
