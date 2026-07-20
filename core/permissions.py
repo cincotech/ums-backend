@@ -41,6 +41,8 @@ class IsDean(RolePermission):
     allowed_roles = ["dean"]
 
 
+class IsDeanOrStudentService(RolePermission):
+    allowed_roles = ["dean", "student_service"]
 class IsStudentService(RolePermission):
     allowed_roles = ["student_service"]
 

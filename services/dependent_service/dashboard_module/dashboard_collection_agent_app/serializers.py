@@ -656,6 +656,22 @@ class BordereauSerializer(serializers.ModelSerializer):
             return f"{u.first_name} {u.last_name}".strip() if u else str(obj.student)
         return None
 
+    def validate_numero(self, value):
+        """
+        Check that the bordereau is unique.
+        """
+        if self.instance and self.instance.numero == value:
+            # No change in numero, so no validation needed
+            return value
+
+        if Bordereau.objects.filter(numero=value).exists():
+            raise serializers.ValidationError(
+                "Un bordereau avec ce numéro existe déjà. "
+                "Si vous essayez de faire un paiement pour cet étudiant, "
+                "veuillez le sélectionner pour continuer au lieu de créer un nouveau."
+            )
+        return value
+
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)

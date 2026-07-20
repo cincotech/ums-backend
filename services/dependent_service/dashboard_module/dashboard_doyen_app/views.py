@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView, PermissionDenied
 
-from core.permissions import IsDean
+from core.permissions import IsDean, IsDeanOrStudentService
 from core.response_handler import error_response, success_response, validate_serializer
 from core.views import BaseViewSet
 from services.core_service.academic_module.class_app.models import Class, ClassGroup
@@ -1924,7 +1924,7 @@ class FeesSheetListView(APIView):
 class ComplementRequirementViewSet(BaseViewSet):
     queryset = ComplementRequirement.objects.all()
     serializer_class = ComplementRequirementSerializer
-    permission_classes = [IsDean]
+    permission_classes = [IsDeanOrStudentService]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["status", "student", "inscription", "jury_decision", "course"]
     search_fields = [
