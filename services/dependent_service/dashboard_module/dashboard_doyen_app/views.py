@@ -1696,7 +1696,7 @@ class JurySessionViewSet(BaseViewSet):
             queryset = queryset.none()
 
         # Filter by academic_year_id if provided
-        academic_year_id = self._get_ay(request)
+        academic_year_id = _get_ay(request)
         if academic_year_id:
             queryset = queryset.filter(class_group__academic_year_id=academic_year_id)
 

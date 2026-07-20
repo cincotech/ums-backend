@@ -72,3 +72,20 @@ repos:
         entry: python manage.py check
         language: system
         pass_filenames: false
+
+      # Check for missing migrations
+      - id: django-makemigrations-check
+        name: Django makemigrations check
+        entry: python manage.py makemigrations --check --dry-run
+        language: system
+        pass_filenames: false
+        types: [python]
+
+      # Run Django tests
+      - id: django-test
+        name: Django tests
+        entry: python manage.py test --settings=ums.settings.test
+        language: system
+        pass_filenames: false
+        types: [python]
+        always_run: false
