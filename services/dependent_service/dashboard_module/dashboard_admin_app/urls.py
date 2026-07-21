@@ -25,7 +25,11 @@ router.register(r"roles", RoleViewSet, basename="role")
 router.register(r"role-profiles", RoleProfileViewSet, basename="role_profile")
 
 urlpatterns = [
-    # Include router URLs
+    path(
+        "users/bulk-delete/",
+        UserViewSet.as_view({"post": "bulk_delete"}),
+        name="user-bulk-delete",
+    ),
     path("", include(router.urls)),
     # Dashboard overview - special case as it doesn't follow REST pattern
     path(
