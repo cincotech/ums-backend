@@ -89,7 +89,7 @@ class AuditLog(models.Model):
     action = models.CharField(max_length=50, choices=ACTION_TYPES)
     severity = models.CharField(max_length=20, choices=SEVERITY_LEVELS, default="info")
     entity_type = models.CharField(max_length=100, null=True, blank=True)
-    entity_id = models.CharField(max_length=255, null=True, blank=True)
+    entity_id = models.CharField(max_length=2048, null=True, blank=True)
     description = models.TextField()
     changes = models.JSONField(default=dict)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
