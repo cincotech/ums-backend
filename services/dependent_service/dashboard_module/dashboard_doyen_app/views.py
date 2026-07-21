@@ -1,5 +1,3 @@
-import logging
-
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
@@ -51,13 +49,13 @@ from .models import SecretaryNote, TeacherWorkload, TeachingProgress
 from .serializers import (
     ActivityReportSerializer,
     AttendanceSerializer,
-    ComplementRequirementSerializer,
     BulkAttendanceSerializer,
     BulkResultEntrySerializer,
     ClassGroupSerializer,
     ClassSerializer,
     ClassStatisticsSerializer,
     CompiledResultSerializer,
+    ComplementRequirementSerializer,
     CourseAttributionSerializer,
     DeanDashboardStatsSerializer,
     DepartmentSerializer,
@@ -120,7 +118,9 @@ def _get_ay(request):
     Frontend sends 'academic_year'; some legacy callers send 'academic_year_id'.
     Accept either so both paths work without duplicating logic everywhere.
     """
-    return request.query_params.get("academic_year") or request.query_params.get("academic_year_id")
+    return request.query_params.get("academic_year") or request.query_params.get(
+        "academic_year_id"
+    )
 
 
 class TeachingProgressViewSet(BaseViewSet):
@@ -445,19 +445,16 @@ class CourseAttributionViewSet(BaseViewSet):
         except PermissionDenied:
             return Attribution.objects.none()
 
-        qs = (
-            Attribution.objects.filter(
-                course__module__class_fk__department__faculty=faculty
-            )
-            .select_related(
-                "course",
-                "course__module",
-                "course__module__class_fk",
-                "course__module__class_fk__department",
-                "principal_teacher",
-                "principal_teacher__user",
-                "academic_year",
-            )
+        qs = Attribution.objects.filter(
+            course__module__class_fk__department__faculty=faculty
+        ).select_related(
+            "course",
+            "course__module",
+            "course__module__class_fk",
+            "course__module__class_fk__department",
+            "principal_teacher",
+            "principal_teacher__user",
+            "academic_year",
         )
         academic_year = _get_ay(self.request)
         if academic_year:
@@ -650,9 +647,7 @@ class ClassGroupViewSet(BaseViewSet):
             return ClassGroup.objects.none()
 
         qs = (
-            ClassGroup.objects.filter(
-                class_fk__department__faculty=faculty
-            )
+            ClassGroup.objects.filter(class_fk__department__faculty=faculty)
             .select_related(
                 "class_fk",
                 "class_fk__department",
@@ -1685,18 +1680,20 @@ class JurySessionViewSet(BaseViewSet):
 
     def get_queryset(self):
         from rest_framework.exceptions import PermissionDenied
-        
+
         queryset = JurySession.objects.all()
 
         # Filter by faculty (doyen's faculty)
         try:
             faculty = get_faculty_for_request(self.request)
-            queryset = queryset.filter(class_group__class_fk__department__faculty=faculty)
+            queryset = queryset.filter(
+                class_group__class_fk__department__faculty=faculty
+            )
         except PermissionDenied:
             queryset = queryset.none()
 
         # Filter by academic_year_id if provided
-        academic_year_id = _get_ay(request)
+        academic_year_id = _get_ay(self.request)
         if academic_year_id:
             queryset = queryset.filter(class_group__academic_year_id=academic_year_id)
 
@@ -1856,9 +1853,7 @@ class JuryDecisionViewSet(BaseViewSet):
                 jury_session__class_group__academic_year_id=academic_year
             )
         if class_fk:
-            queryset = queryset.filter(
-                jury_session__class_group__class_fk_id=class_fk
-            )
+            queryset = queryset.filter(jury_session__class_group__class_fk_id=class_fk)
         if faculty_id:
             queryset = queryset.filter(
                 jury_session__class_group__class_fk__department__faculty_id=faculty_id
@@ -1908,15 +1903,21 @@ class FeesSheetListView(APIView):
     permission_classes = [IsDean]
 
     def get(self, request):
-        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import FeesSheet
-        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.serializers import FeesSheetSerializer
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+            FeesSheet,
+        )
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.serializers import (
+            FeesSheetSerializer,
+        )
 
         faculty = get_faculty_for_request(request)
         feesheets = FeesSheet.objects.filter(
             Q(class_fk__department__faculty=faculty)
             | Q(department__faculty=faculty)
             | Q(faculty=faculty)
-        ).select_related("wording", "class_fk", "department", "faculty", "academic_year")
+        ).select_related(
+            "wording", "class_fk", "department", "faculty", "academic_year"
+        )
         serializer = FeesSheetSerializer(feesheets, many=True)
         return success_response(data=serializer.data)
 
@@ -1949,11 +1950,15 @@ class ComplementRequirementViewSet(BaseViewSet):
             try:
                 jury_decision = JuryDecision.objects.get(id=jury_decision_id)
                 class_group_id = jury_decision.jury_session.class_group_id
-                inscription = Inscription.objects.filter(
-                    student_id=student_id,
-                    class_group_id=class_group_id,
-                    regist_status__in=["Active", "Pending", "Complement"],
-                ).order_by("-academic_year_id").first()
+                inscription = (
+                    Inscription.objects.filter(
+                        student_id=student_id,
+                        class_group_id=class_group_id,
+                        regist_status__in=["Active", "Pending", "Complement"],
+                    )
+                    .order_by("-academic_year_id")
+                    .first()
+                )
                 if inscription:
                     serializer.save(
                         created_by=self.request.user,
@@ -1966,7 +1971,9 @@ class ComplementRequirementViewSet(BaseViewSet):
         if jury_decision_id:
             try:
                 jury_decision = JuryDecision.objects.get(id=jury_decision_id)
-                serializer.save(created_by=self.request.user, jury_decision=jury_decision)
+                serializer.save(
+                    created_by=self.request.user, jury_decision=jury_decision
+                )
                 return
             except (JuryDecision.DoesNotExist, AttributeError):
                 pass

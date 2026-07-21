@@ -21,14 +21,22 @@ class ProfileViewSet(BaseViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        role_name = getattr(user.role, "name", "").lower() if getattr(user, "role", None) else ""
+        role_name = (
+            getattr(user.role, "name", "").lower()
+            if getattr(user, "role", None)
+            else ""
+        )
 
         # STAFF / SUPERUSER / admin role → voir tous les profils
         if user.is_staff or user.is_superuser or role_name in {"admin", "super_admin"}:
-            return Profile.objects.select_related("user")
+            return Profile.objects.select_related("user").order_by(
+                "user__first_name", "user__last_name"
+            )
 
         # NORMAL USER → only his profile
-        return Profile.objects.filter(user=user)
+        return Profile.objects.filter(user=user).order_by(
+            "user__first_name", "user__last_name"
+        )
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -40,9 +48,7 @@ class ProfileViewSet(BaseViewSet):
         )
 
         is_admin = (
-            user.is_staff
-            or user.is_superuser
-            or role_name in {"admin", "super_admin"}
+            user.is_staff or user.is_superuser or role_name in {"admin", "super_admin"}
         )
 
         if not is_admin:

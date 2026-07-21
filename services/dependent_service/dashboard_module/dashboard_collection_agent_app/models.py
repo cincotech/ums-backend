@@ -745,7 +745,7 @@ class Bordereau(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    numero = models.CharField(max_length=50)
+    numero = models.CharField(max_length=50, unique=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     bank = models.ForeignKey(
         Bank,
@@ -797,6 +797,7 @@ class Bordereau(models.Model):
     @property
     def allocated_amount(self):
         from django.db.models import Sum
+
         return self.lines.aggregate(total=Sum("amount"))["total"] or 0
 
     @property

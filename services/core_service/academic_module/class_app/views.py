@@ -82,7 +82,7 @@ class ClassGroupViewSet(BaseViewSet):
         if academic_year_id:
             queryset = queryset.filter(academic_year_id=academic_year_id)
 
-        return queryset
+        return queryset.order_by("group_name")
 
     @action(detail=False, methods=["get"])
     def by_class(self, request):

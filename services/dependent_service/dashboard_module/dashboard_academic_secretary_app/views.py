@@ -8,6 +8,9 @@ from rest_framework.response import Response
 
 from core.permissions import IsAcademicSecretary
 from core.response_handler import error_response, success_response
+from services.core_service.student_module.inscription_app.models import (
+    ComplementRequirement,
+)
 
 from .filters import (
     ExamFilter,
@@ -16,7 +19,6 @@ from .filters import (
     OfficialDocumentFilter,
     PaymentClaimFilter,
 )
-from services.core_service.student_module.inscription_app.models import ComplementRequirement
 from .serializers import (
     AcademicSecretaryStatsSerializer,
     CompilationStatusSerializer,
@@ -219,7 +221,9 @@ class JurySessionViewSet(viewsets.ModelViewSet):
             filters["date_from"] = self.request.query_params.get("date_from")
         if self.request.query_params.get("date_to"):
             filters["date_to"] = self.request.query_params.get("date_to")
-        return AcademicSecretaryService.get_jury_sessions(filters if filters else None)
+        return AcademicSecretaryService.get_jury_sessions(
+            filters if filters else None
+        ).order_by("-session_date")
 
     def destroy(self, request, *args, **kwargs):
         """Force delete jury session and all related records."""
@@ -242,9 +246,7 @@ class JurySessionViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(jury)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except ValueError as e:
-            return Response(
-                {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
