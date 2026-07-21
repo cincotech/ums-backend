@@ -850,8 +850,44 @@ class UserViewSet(BaseViewSet):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    # ============== Student User Management ==============
+    @action(detail=False, methods=["post"], url_path="bulk-delete")
+    def bulk_delete(self, request):
+        """Delete multiple users by IDs."""
+        ids = request.data.get("ids", [])
+        if not ids:
+            return error_response(
+                message="Aucun ID fourni.", status_code=status.HTTP_400_BAD_REQUEST
+            )
 
-# ============== Student User Management ==============
+        try:
+            users = User.objects.filter(id__in=ids)
+            deleted_count, _ = users.delete()
+            log_user_action(
+                request,
+                "bulk_delete",
+                f"Bulk deleted {deleted_count} user(s)",
+                "User",
+                ",".join(str(i) for i in ids),
+            )
+            return success_response(
+                data={"deleted_count": deleted_count},
+                message=f"{deleted_count} utilisateur(s) supprimé(s).",
+            )
+        except Exception as e:
+            log_security_event(
+                request,
+                "bulk_delete",
+                f"Bulk delete failed: {str(e)}",
+                severity="error",
+                success=False,
+            )
+            return error_response(
+                message=f"Error: {str(e)}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class StudentUserViewSet(BaseViewSet):
     """Professional ViewSet for student user management with academic year filtering"""
 
@@ -1148,42 +1184,6 @@ class RoleProfileViewSet(viewsets.ViewSet):
                 request,
                 "delete",
                 f"Profile delete failed: {str(e)}",
-                severity="error",
-                success=False,
-            )
-            return error_response(
-                message=f"Error: {str(e)}",
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-    @action(detail=False, methods=["post"], url_path="bulk-delete")
-    def bulk_delete(self, request):
-        """Delete multiple users by IDs."""
-        ids = request.data.get("ids", [])
-        if not ids:
-            return error_response(
-                message="Aucun ID fourni.", status_code=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            users = User.objects.filter(id__in=ids)
-            deleted_count, _ = users.delete()
-            log_user_action(
-                request,
-                "bulk_delete",
-                f"Bulk deleted {deleted_count} user(s)",
-                "User",
-                ",".join(str(i) for i in ids),
-            )
-            return success_response(
-                data={"deleted_count": deleted_count},
-                message=f"{deleted_count} utilisateur(s) supprimé(s).",
-            )
-        except Exception as e:
-            log_security_event(
-                request,
-                "bulk_delete",
-                f"Bulk delete failed: {str(e)}",
                 severity="error",
                 success=False,
             )
