@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dashboard_academic_secretary_app', '0008_make_validated_at_nullable'),
+        ("dashboard_academic_secretary_app", "0008_make_validated_at_nullable"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='jurydecision',
-            options={'ordering': ['-validated_at', 'id']},
+            name="jurydecision",
+            options={"ordering": ["-validated_at", "id"]},
         ),
     ]

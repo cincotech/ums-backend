@@ -13,8 +13,8 @@ from .views import (
     AttributionStatisticsView,
     ClassGroupViewSet,
     ClassViewSet,
-    ComplementRequirementViewSet,
     CompiledResultViewSet,
+    ComplementRequirementViewSet,
     CourseAttributionViewSet,
     DeanDashboardStatsView,
     DepartmentViewSet,
@@ -49,7 +49,9 @@ router = DefaultRouter()
 router.register(r"teaching-progress", TeachingProgressViewSet)
 router.register(r"teacher-workload", TeacherWorkloadViewSet)
 router.register(r"secretary-notes", SecretaryNoteViewSet)
-router.register(r"course-attributions", CourseAttributionViewSet, basename="course-attribution")
+router.register(
+    r"course-attributions", CourseAttributionViewSet, basename="course-attribution"
+)
 
 # Course Management
 router.register(r"courses", CourseViewSet)
@@ -69,7 +71,9 @@ router.register(r"activity-reports", ActivityReportViewSet)
 router.register(r"timetable-merges", TimetableMergeViewSet)
 
 # Timetable v2 — grilles + séances réelles
-router.register(r"timetable-templates", TimetableTemplateViewSet, basename="timetable-template")
+router.register(
+    r"timetable-templates", TimetableTemplateViewSet, basename="timetable-template"
+)
 router.register(r"template-entries", TemplateEntryViewSet, basename="template-entry")
 router.register(r"course-sessions", CourseSessionViewSet, basename="course-session")
 

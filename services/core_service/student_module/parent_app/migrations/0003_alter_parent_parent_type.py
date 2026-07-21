@@ -6,13 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parent_app', '0002_alter_parent_parent_phone'),
+        ("parent_app", "0002_alter_parent_parent_phone"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='parent',
-            name='parent_type',
-            field=models.CharField(choices=[('F', 'Father'), ('M', 'Mother'), ('G', 'Guardian'), ('T', 'Tuteur')], max_length=1),
+            model_name="parent",
+            name="parent_type",
+            field=models.CharField(
+                choices=[
+                    ("F", "Father"),
+                    ("M", "Mother"),
+                    ("G", "Guardian"),
+                    ("T", "Tuteur"),
+                ],
+                max_length=1,
+            ),
         ),
     ]

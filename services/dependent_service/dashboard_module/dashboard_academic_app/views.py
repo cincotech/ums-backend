@@ -1,5 +1,4 @@
-from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
@@ -132,43 +131,30 @@ def visiting_professors_attributions(request):
 
     data = []
     for attr in attributions:
-        data.append({
-            "attribution_id": str(attr.id),
-            "course": (
-            f"{attr.course.course_code} - {attr.course.course_name}"
-           if attr.course and attr.course.course_code
-          else attr.course.course_name if attr.course else None
-            ),
-            "principal_teacher": str(attr.principal_teacher),
-            "academic_year": str(attr.academic_year),
-            "status": attr.status_principal_teacher,
-        })
+        data.append(
+            {
+                "attribution_id": str(attr.id),
+                "course": (
+                    f"{attr.course.course_code} - {attr.course.course_name}"
+                    if attr.course and attr.course.course_code
+                    else attr.course.course_name if attr.course else None
+                ),
+                "principal_teacher": str(attr.principal_teacher),
+                "academic_year": str(attr.academic_year),
+                "status": attr.status_principal_teacher,
+            }
+        )
 
-    return Response(
-        {
-            "count": len(data),
-            "results": data
-        },
-        status=status.HTTP_200_OK
-    )
+    return Response({"count": len(data), "results": data}, status=status.HTTP_200_OK)
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsDean])
 def academic_performance_report(request):
-    by_year = (
-        Attribution.objects
-        .values("academic_year")
-        .annotate(
-            total=Count("id"),
-            accepted=Count(
-                "id",
-                filter=Q(status_principal_teacher="Accepted")
-            ),
-            refused=Count(
-                "id",
-                filter=Q(status_principal_teacher="Refused")
-            ),
-        )
+    by_year = Attribution.objects.values("academic_year").annotate(
+        total=Count("id"),
+        accepted=Count("id", filter=Q(status_principal_teacher="Accepted")),
+        refused=Count("id", filter=Q(status_principal_teacher="Refused")),
     )
 
     return Response(
@@ -191,12 +177,8 @@ def generate_quality_report(request):
     )
 
     total = attributions.count()
-    accepted = attributions.filter(
-        status_principal_teacher="Accepted"
-    ).count()
-    refused = attributions.filter(
-        status_principal_teacher="Refused"
-    ).count()
+    accepted = attributions.filter(status_principal_teacher="Accepted").count()
+    refused = attributions.filter(status_principal_teacher="Refused").count()
 
     report_data = {
         "academic_year": academic_year,
@@ -225,15 +207,14 @@ def generate_quality_report(request):
             "report_id": str(report.id),
             "title": report.title,
         },
-        status=status.HTTP_201_CREATED
+        status=status.HTTP_201_CREATED,
     )
-
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsDean])
 def quality_reports_list(request):
-   
+
     reports = QualityReport.objects.all().order_by("-generated_date")
 
     serializer = QualityReportSerializer(reports, many=True)

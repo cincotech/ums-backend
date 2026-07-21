@@ -1,10 +1,11 @@
 """
 Mixin for inscription status transition methods.
 """
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from django.db import models
+    pass
 
 
 class InscriptionStatusMixin:
@@ -16,12 +17,12 @@ class InscriptionStatusMixin:
     def activate(self, skip_payment_check=False):
         """
         Activate the inscription.
-        
+
         Args:
             skip_payment_check: If True, skips payment verification (used by student_service)
         """
         from django.core.exceptions import ValidationError
-        
+
         if self.regist_status in ["Pending", "Suspended"]:
             # Check payment before activation (skip if created by student_service)
             if not skip_payment_check and not self.has_verified_payment():
@@ -85,7 +86,7 @@ class InscriptionStatusMixin:
         """
         from django.core.exceptions import ValidationError
         from django.db import transaction
-        
+
         if self.regist_status not in ["Active", "Pending"]:
             raise ValidationError(
                 "Only Active or Pending inscriptions can be replaced."
@@ -111,7 +112,7 @@ class InscriptionStatusMixin:
                 date_inscription=self.date_inscription,
             )
             new_inscription.save()
-             
+
             # Transfer payment reference if needed
             # Note: In multi-inscription context, each inscription should have its own payment
             # The payment system should be updated to handle this properly
@@ -121,4 +122,5 @@ class InscriptionStatusMixin:
     def _get_current_date(self):
         """Helper to get current date."""
         from django.utils import timezone
+
         return timezone.now().date()

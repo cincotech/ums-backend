@@ -5,10 +5,16 @@ from unittest.mock import patch
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from services.core_service.academic_module.class_app.models import Class, ClassGroup
+from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.department_app.models import Department
-from services.core_service.academic_module.faculty_app.models import Faculty, TypeFormation
-from services.core_service.academic_module.university_app.models import AcademicYear, University
+from services.core_service.academic_module.faculty_app.models import (
+    Faculty,
+    TypeFormation,
+)
+from services.core_service.academic_module.university_app.models import (
+    AcademicYear,
+    University,
+)
 from services.core_service.student_module.highschool_info_app.models import (
     Certificate,
     Highschool,
@@ -20,7 +26,6 @@ from services.core_service.student_module.student_profile_app.models import (
     StudentGraduateInfo,
     StudentHsInfo,
     StudentMatricule,
-    Training,
 )
 from services.foundational_service.auth_module.user_app.models import Role, User
 from services.foundational_service.geo_module.colline_app.models import Colline
@@ -44,8 +49,12 @@ class BaseInscriptionTestCase(TestCase):
 
         # Geo
         self.country = Country.objects.create(country_name="Burundi")
-        self.province = Province.objects.create(province_name="Gitega", country=self.country)
-        self.commune = Commune.objects.create(commune_name="Gitega", province=self.province)
+        self.province = Province.objects.create(
+            province_name="Gitega", country=self.country
+        )
+        self.commune = Commune.objects.create(
+            commune_name="Gitega", province=self.province
+        )
         self.zone = Zone.objects.create(zone_name="Zone1", commune=self.commune)
         self.colline = Colline.objects.create(colline_name="Colline1", zone=self.zone)
 
@@ -64,39 +73,82 @@ class BaseInscriptionTestCase(TestCase):
         self.type_faculte = TypeFormation.objects.create(name="Faculté", code="F")
         self.type_master = TypeFormation.objects.create(name="Master", code="M")
         self.type_institut = TypeFormation.objects.create(name="Institut", code="I")
-        logger.info(f"TypeFormations: F, M, I")
+        logger.info("TypeFormations: F, M, I")
 
         # Faculties
-        self.faculty_f = Faculty.objects.create(faculty_name="Sciences", types=self.type_faculte, university=self.university)
-        self.faculty_m = Faculty.objects.create(faculty_name="Master Sciences", types=self.type_master, university=self.university)
-        self.faculty_i = Faculty.objects.create(faculty_name="Institut Tech", types=self.type_institut, university=self.university)
+        self.faculty_f = Faculty.objects.create(
+            faculty_name="Sciences", types=self.type_faculte, university=self.university
+        )
+        self.faculty_m = Faculty.objects.create(
+            faculty_name="Master Sciences",
+            types=self.type_master,
+            university=self.university,
+        )
+        self.faculty_i = Faculty.objects.create(
+            faculty_name="Institut Tech",
+            types=self.type_institut,
+            university=self.university,
+        )
 
         # Departments
-        self.dept_info = Department.objects.create(department_name="Informatique", abreviation="INFO", faculty=self.faculty_f)
-        self.dept_maths = Department.objects.create(department_name="Mathématiques", abreviation="MATH", faculty=self.faculty_f)
-        self.dept_master = Department.objects.create(department_name="Dev Master", abreviation="DEV", faculty=self.faculty_m)
-        self.dept_institut = Department.objects.create(department_name="Génie Civil", abreviation="GC", faculty=self.faculty_i)
+        self.dept_info = Department.objects.create(
+            department_name="Informatique", abreviation="INFO", faculty=self.faculty_f
+        )
+        self.dept_maths = Department.objects.create(
+            department_name="Mathématiques", abreviation="MATH", faculty=self.faculty_f
+        )
+        self.dept_master = Department.objects.create(
+            department_name="Dev Master", abreviation="DEV", faculty=self.faculty_m
+        )
+        self.dept_institut = Department.objects.create(
+            department_name="Génie Civil", abreviation="GC", faculty=self.faculty_i
+        )
 
         # Classes with levels
-        self.class_f_l1 = Class.objects.create(class_name="L1 Info", level=1, department=self.dept_info)
-        self.class_f_l2 = Class.objects.create(class_name="L2 Info", level=2, department=self.dept_info)
-        self.class_f_l3 = Class.objects.create(class_name="L3 Info", level=3, department=self.dept_info)
-        self.class_f_l1_maths = Class.objects.create(class_name="L1 Maths", level=1, department=self.dept_maths)
-        self.class_f_l2_maths = Class.objects.create(class_name="L2 Maths", level=2, department=self.dept_maths)
-        self.class_m_l1 = Class.objects.create(class_name="M1 Dev", level=1, department=self.dept_master)
-        self.class_i_l1 = Class.objects.create(class_name="G1 GC", level=1, department=self.dept_institut)
-        self.class_i_l2 = Class.objects.create(class_name="G2 GC", level=2, department=self.dept_institut)
-        logger.info(f"Classes created: L1/L2/L3 Info, L1/L2 Maths, M1 Dev, G1/G2 GC")
+        self.class_f_l1 = Class.objects.create(
+            class_name="L1 Info", level=1, department=self.dept_info
+        )
+        self.class_f_l2 = Class.objects.create(
+            class_name="L2 Info", level=2, department=self.dept_info
+        )
+        self.class_f_l3 = Class.objects.create(
+            class_name="L3 Info", level=3, department=self.dept_info
+        )
+        self.class_f_l1_maths = Class.objects.create(
+            class_name="L1 Maths", level=1, department=self.dept_maths
+        )
+        self.class_f_l2_maths = Class.objects.create(
+            class_name="L2 Maths", level=2, department=self.dept_maths
+        )
+        self.class_m_l1 = Class.objects.create(
+            class_name="M1 Dev", level=1, department=self.dept_master
+        )
+        self.class_i_l1 = Class.objects.create(
+            class_name="G1 GC", level=1, department=self.dept_institut
+        )
+        self.class_i_l2 = Class.objects.create(
+            class_name="G2 GC", level=2, department=self.dept_institut
+        )
+        logger.info("Classes created: L1/L2/L3 Info, L1/L2 Maths, M1 Dev, G1/G2 GC")
 
         # User & Student
-        self.user = User.objects.create_user(email="jean@test.com", password="pass123", first_name="Jean", last_name="Dupont")
+        self.user = User.objects.create_user(
+            email="jean@test.com",
+            password="pass123",
+            first_name="Jean",
+            last_name="Dupont",
+        )
         self.student = Student.objects.create(user=self.user, colline=self.colline)
         logger.info(f"Student created: {self.student}")
 
         # Highschool Info (required for registration eligibility validation)
         section = Section.objects.create(section_name="Scientifique")
-        self.highschool = Highschool.objects.create(hs_name="Lycee de Gitega", zone=self.zone)
-        self.certificate = Certificate.objects.create(certificate_name="Diplome d'Etat", section=section)
+        self.highschool = Highschool.objects.create(
+            hs_name="Lycee de Gitega", zone=self.zone
+        )
+        self.certificate = Certificate.objects.create(
+            certificate_name="Diplome d'Etat", section=section
+        )
         StudentHsInfo.objects.create(
             student=self.student,
             highschool=self.highschool,
@@ -109,7 +161,10 @@ class BaseInscriptionTestCase(TestCase):
     def _save_bypass_clean(self, insc):
         """Save inscription bypassing clean() but still triggering StudentMatricule generation."""
         from django.db.models import Model
-        logger.debug(f"  _save_bypass_clean: student={insc.student}, class={insc.class_fk}, status={insc.regist_status}")
+
+        logger.debug(
+            f"  _save_bypass_clean: student={insc.student}, class={insc.class_fk}, status={insc.regist_status}"
+        )
         Model.save(insc)
 
         if insc.class_fk:
@@ -117,8 +172,12 @@ class BaseInscriptionTestCase(TestCase):
                 type_formation = insc.class_fk.department.faculty.types
                 type_code = type_formation.code
                 year = insc.academic_year.civil_year
-                if not StudentMatricule.objects.filter(student=insc.student, type_formation=type_formation).exists():
-                    count = StudentMatricule.objects.filter(matricule__startswith=f"{type_code}{year}").count()
+                if not StudentMatricule.objects.filter(
+                    student=insc.student, type_formation=type_formation
+                ).exists():
+                    count = StudentMatricule.objects.filter(
+                        matricule__startswith=f"{type_code}{year}"
+                    ).count()
                     StudentMatricule.objects.create(
                         student=insc.student,
                         type_formation=type_formation,
@@ -161,7 +220,9 @@ class TestMatriculeGeneration(BaseInscriptionTestCase):
         Inscription.objects.filter(pk=insc.pk).delete()
         self._save_bypass_clean(insc)
 
-        sm = StudentMatricule.objects.filter(student=self.student, type_formation=self.type_faculte).first()
+        sm = StudentMatricule.objects.filter(
+            student=self.student, type_formation=self.type_faculte
+        ).first()
         self.assertIsNotNone(sm)
         self.assertTrue(sm.matricule.startswith("F2025"))
 
@@ -185,7 +246,9 @@ class TestMatriculeGeneration(BaseInscriptionTestCase):
         )
         self._save_bypass_clean(insc2)
 
-        count = StudentMatricule.objects.filter(student=self.student, type_formation=self.type_faculte).count()
+        count = StudentMatricule.objects.filter(
+            student=self.student, type_formation=self.type_faculte
+        ).count()
         self.assertEqual(count, 1)
 
     def test_different_matricule_per_type_formation(self):
@@ -207,15 +270,18 @@ class TestMatriculeGeneration(BaseInscriptionTestCase):
         self._save_bypass_clean(insc_f)
         self._save_bypass_clean(insc_m)
 
-        sm_f = StudentMatricule.objects.filter(student=self.student, type_formation=self.type_faculte).first()
-        sm_m = StudentMatricule.objects.filter(student=self.student, type_formation=self.type_master).first()
+        sm_f = StudentMatricule.objects.filter(
+            student=self.student, type_formation=self.type_faculte
+        ).first()
+        sm_m = StudentMatricule.objects.filter(
+            student=self.student, type_formation=self.type_master
+        ).first()
 
         self.assertIsNotNone(sm_f)
         self.assertIsNotNone(sm_m)
         self.assertTrue(sm_f.matricule.startswith("F"))
         self.assertTrue(sm_m.matricule.startswith("M"))
         self.assertNotEqual(sm_f.matricule, sm_m.matricule)
-
 
     def test_generate_matricule_returns_existing(self):
         """generate_matricule() returns existing matricule without creating a new one."""
@@ -226,14 +292,19 @@ class TestMatriculeGeneration(BaseInscriptionTestCase):
             date_inscription=date.today(),
             regist_status="Pending",
         )
-        from django.db.models import Model
+
         self._save_bypass_clean(insc)
 
         matricule_first = insc.generate_matricule()
         matricule_second = insc.generate_matricule()
 
         self.assertEqual(matricule_first, matricule_second)
-        self.assertEqual(StudentMatricule.objects.filter(student=self.student, type_formation=self.type_faculte).count(), 1)
+        self.assertEqual(
+            StudentMatricule.objects.filter(
+                student=self.student, type_formation=self.type_faculte
+            ).count(),
+            1,
+        )
 
 
 # ─────────────────────────────────────────────
@@ -315,7 +386,10 @@ class TestNoHigherLevelSameYear(BaseInscriptionTestCase):
 
     def test_different_type_formation_same_year_allowed(self):
         """Can enroll in Master L1 while enrolled in Faculté L1 same year (with university background)."""
-        from services.core_service.academic_module.university_app.models import UniversityDegree
+        from services.core_service.academic_module.university_app.models import (
+            UniversityDegree,
+        )
+
         degree = UniversityDegree.objects.create(degree_name="Licence", description="L")
         StudentGraduateInfo.objects.create(
             student=self.student,
@@ -365,7 +439,9 @@ class TestNoLevelSkip(BaseInscriptionTestCase):
 
     def test_level_skip_allowed_with_graduate_infos_same_type(self):
         """Can enroll in L2 if StudentGraduateInfo exists for same TypeFormation."""
-        from services.core_service.academic_module.university_app.models import UniversityDegree
+        from services.core_service.academic_module.university_app.models import (
+            UniversityDegree,
+        )
 
         degree = UniversityDegree.objects.create(degree_name="Licence", description="L")
         StudentGraduateInfo.objects.create(
@@ -387,10 +463,12 @@ class TestNoLevelSkip(BaseInscriptionTestCase):
         except ValidationError as e:
             self.fail(f"clean() raised ValidationError unexpectedly: {e}")
 
-
     def test_level_skip_blocked_with_graduate_infos_different_type(self):
         """Graduate infos for Institut does NOT allow skipping levels in Faculté."""
-        from services.core_service.academic_module.university_app.models import UniversityDegree
+        from services.core_service.academic_module.university_app.models import (
+            UniversityDegree,
+        )
+
         degree = UniversityDegree.objects.create(degree_name="Graduat", description="G")
         StudentGraduateInfo.objects.create(
             student=self.student,
@@ -475,7 +553,9 @@ class TestReplace(BaseInscriptionTestCase):
         self._save_bypass_clean(insc)
 
         type_formation = class_fk.department.faculty.types
-        if not StudentMatricule.objects.filter(student=self.student, type_formation=type_formation).exists():
+        if not StudentMatricule.objects.filter(
+            student=self.student, type_formation=type_formation
+        ).exists():
             StudentMatricule.objects.create(
                 student=self.student,
                 type_formation=type_formation,
@@ -487,11 +567,15 @@ class TestReplace(BaseInscriptionTestCase):
     def test_replace_preserves_original_matricule(self):
         """After replace(), original TypeFormation matricule is preserved."""
         insc = self._create_inscription_with_matricule(self.class_f_l1)
-        original_matricule = StudentMatricule.objects.get(student=self.student, type_formation=self.type_faculte).matricule
+        original_matricule = StudentMatricule.objects.get(
+            student=self.student, type_formation=self.type_faculte
+        ).matricule
 
         insc.replace(self.class_i_l1)
 
-        sm_f = StudentMatricule.objects.filter(student=self.student, type_formation=self.type_faculte).first()
+        sm_f = StudentMatricule.objects.filter(
+            student=self.student, type_formation=self.type_faculte
+        ).first()
         self.assertIsNotNone(sm_f)
         self.assertEqual(sm_f.matricule, original_matricule)
 
@@ -501,7 +585,9 @@ class TestReplace(BaseInscriptionTestCase):
 
         insc.replace(self.class_i_l1)
 
-        sm_i = StudentMatricule.objects.filter(student=self.student, type_formation=self.type_institut).first()
+        sm_i = StudentMatricule.objects.filter(
+            student=self.student, type_formation=self.type_institut
+        ).first()
         self.assertIsNotNone(sm_i)
         self.assertTrue(sm_i.matricule.startswith("I"))
 
@@ -529,9 +615,10 @@ class TestReplace(BaseInscriptionTestCase):
         # Replace back to Faculté but different class (L1 Maths) — same TypeFormation
         new_insc.replace(self.class_f_l1_maths)
 
-        count = StudentMatricule.objects.filter(student=self.student, type_formation=self.type_faculte).count()
+        count = StudentMatricule.objects.filter(
+            student=self.student, type_formation=self.type_faculte
+        ).count()
         self.assertEqual(count, 1)
-
 
 
 # ─────────────────────────────────────────────
@@ -542,8 +629,11 @@ class TestStudentMatriculeEndpoint(BaseInscriptionTestCase):
     def setUp(self):
         super().setUp()
         from rest_framework.test import APIClient
+
         self.client = APIClient()
-        admin_user = User.objects.create_superuser(email="admin@test.com", password="admin123")
+        admin_user = User.objects.create_superuser(
+            email="admin@test.com", password="admin123"
+        )
         self.client.force_authenticate(user=admin_user)
 
     def _url(self, suffix=""):
@@ -566,7 +656,9 @@ class TestStudentMatriculeEndpoint(BaseInscriptionTestCase):
     def test_get_all_matricules(self):
         """GET /students/{id}/matricules/ returns all matricules."""
         self._setup_matricules()
-        response = self.client.get(f"/api/student/students/{self.student.id}/matricules/")
+        response = self.client.get(
+            f"/api/student/students/{self.student.id}/matricules/"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["data"]), 2)
 
@@ -583,7 +675,9 @@ class TestStudentMatriculeEndpoint(BaseInscriptionTestCase):
         )
         self._save_bypass_clean(insc)
 
-        response = self.client.get(f"/api/student/students/{self.student.id}/matricules/?status=Active")
+        response = self.client.get(
+            f"/api/student/students/{self.student.id}/matricules/?status=Active"
+        )
         self.assertEqual(response.status_code, 200)
         codes = [m["type_formation_code"] for m in response.data["data"]]
         self.assertIn("F", codes)
@@ -626,6 +720,7 @@ class TestEmailMatricule(BaseInscriptionTestCase):
         from services.core_service.student_module.inscription_app.email_utils import (
             _get_matricule_for_inscription,
         )
+
         insc = self._make_insc(self.class_f_l1)
         matricule = _get_matricule_for_inscription(insc)
         self.assertEqual(matricule, "F2025/00001")
@@ -635,6 +730,7 @@ class TestEmailMatricule(BaseInscriptionTestCase):
         from services.core_service.student_module.inscription_app.email_utils import (
             _get_matricule_for_inscription,
         )
+
         insc = self._make_insc(self.class_m_l1)
         matricule = _get_matricule_for_inscription(insc)
         self.assertEqual(matricule, "M2025/00001")
@@ -644,9 +740,15 @@ class TestEmailMatricule(BaseInscriptionTestCase):
         from services.core_service.student_module.inscription_app.email_utils import (
             _get_matricule_for_inscription,
         )
+
         # No StudentMatricule exists for this student/type combination
         # Create a new student without any matricules
-        new_user = User.objects.create_user(email="marie@test.com", password="pass123", first_name="Marie", last_name="Curie")
+        new_user = User.objects.create_user(
+            email="marie@test.com",
+            password="pass123",
+            first_name="Marie",
+            last_name="Curie",
+        )
         new_student = Student.objects.create(user=new_user, colline=self.colline)
         StudentHsInfo.objects.create(
             student=new_student,
@@ -663,6 +765,7 @@ class TestEmailMatricule(BaseInscriptionTestCase):
             regist_status="Active",
         )
         from django.db.models import Model
+
         Model.save(insc)
         matricule = _get_matricule_for_inscription(insc)
         self.assertEqual(matricule, "En attente")
@@ -726,10 +829,11 @@ class TestAutoActivationByStudentService(BaseInscriptionTestCase):
             regist_status="Pending",
         )
         from django.db.models import Model
+
         Model.save(insc)  # pas de user → created_by=None, statut=Pending
 
         insc.regist_status = "Pending"
-        with patch.object(Inscription, 'has_verified_payment', return_value=True):
+        with patch.object(Inscription, "has_verified_payment", return_value=True):
             insc.save(user=self.student_service_user)
         insc.refresh_from_db()
         self.assertEqual(insc.regist_status, "Active")

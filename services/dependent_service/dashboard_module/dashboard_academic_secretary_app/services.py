@@ -1,5 +1,4 @@
 import logging
-
 from datetime import timedelta
 
 from django.db import transaction
@@ -263,15 +262,22 @@ class AcademicSecretaryService:
 
     @staticmethod
     @transaction.atomic
-    def create_jury_session(session_name, session_date, jury_member_ids, class_group_id, created_by, academic_year_id=None):
+    def create_jury_session(
+        session_name,
+        session_date,
+        jury_member_ids,
+        class_group_id,
+        created_by,
+        academic_year_id=None,
+    ):
         """Create jury session for deliberations with role-based members"""
         from services.core_service.academic_module.class_app.models import ClassGroup
-        
+
         try:
             class_group = ClassGroup.objects.get(id=class_group_id)
         except ClassGroup.DoesNotExist:
             raise ValueError(f"ClassGroup {class_group_id} not found")
-        
+
         jury = JurySession.objects.create(
             session_name=session_name,
             session_date=session_date,
@@ -283,13 +289,23 @@ class AcademicSecretaryService:
         for member_data in jury_member_ids:
             JuryMember.objects.create(
                 jury_session=jury,
-                user_id=member_data.get("user_id") if isinstance(member_data, dict) else member_data,
-                role=member_data.get("role", "member") if isinstance(member_data, dict) else "member",
+                user_id=(
+                    member_data.get("user_id")
+                    if isinstance(member_data, dict)
+                    else member_data
+                ),
+                role=(
+                    member_data.get("role", "member")
+                    if isinstance(member_data, dict)
+                    else "member"
+                ),
             )
 
         # Pre-create JuryDecision entries for all students linked to this class group.
         try:
-            from services.core_service.student_module.inscription_app.models import Inscription
+            from services.core_service.student_module.inscription_app.models import (
+                Inscription,
+            )
 
             q = Inscription.objects.filter(
                 class_group=class_group,
@@ -305,7 +321,8 @@ class AcademicSecretaryService:
                 logger.info(
                     "No Active/Pending/Complement inscriptions found for "
                     "class_group=%s, trying by class_fk_id=%s",
-                    class_group.id, class_group.class_fk_id,
+                    class_group.id,
+                    class_group.class_fk_id,
                 )
                 q2 = Inscription.objects.filter(
                     class_fk_id=class_group.class_fk_id,
@@ -313,13 +330,12 @@ class AcademicSecretaryService:
                 )
                 if academic_year_id:
                     q2 = q2.filter(academic_year_id=academic_year_id)
-                student_ids = list(
-                    q2.values_list("student_id", flat=True).distinct()
-                )
+                student_ids = list(q2.values_list("student_id", flat=True).distinct())
 
             logger.info(
                 "Pre-creating %d JuryDecision(s) for jury_session=%s",
-                len(student_ids), jury.id,
+                len(student_ids),
+                jury.id,
             )
 
             for sid in student_ids:
@@ -333,7 +349,9 @@ class AcademicSecretaryService:
                     logger.exception(
                         "Failed to create JuryDecision for "
                         "jury_session=%s student_id=%s: %s",
-                        jury.id, sid, e,
+                        jury.id,
+                        sid,
+                        e,
                     )
         except Exception as e:
             logger.exception("JuryDecision pre-creation block failed: %s", e)
@@ -357,11 +375,12 @@ class AcademicSecretaryService:
 
         if status in ["in_progress", "completed"]:
             has_president = JuryMember.objects.filter(
-                jury_session=jury,
-                role="president"
+                jury_session=jury, role="president"
             ).exists()
             if not has_president:
-                raise ValueError("Cannot transition to this status: session must have a president")
+                raise ValueError(
+                    "Cannot transition to this status: session must have a president"
+                )
 
         jury.status = status
         if minutes_document:
@@ -460,7 +479,9 @@ class AcademicSecretaryService:
 
                 # mark the inscription as 'Complement' so it appears in registries
                 if inscription:
-                    Inscription.objects.filter(pk=inscription.pk).update(regist_status="Complement")
+                    Inscription.objects.filter(pk=inscription.pk).update(
+                        regist_status="Complement"
+                    )
 
                 Notification.objects.create(
                     recipient=student.user,

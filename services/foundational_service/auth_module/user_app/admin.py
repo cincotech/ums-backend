@@ -6,9 +6,11 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
 from unfold.admin import ModelAdmin
 
+from services.foundational_service.auth_module.authentication_app.services import (
+    UserService,
+)
 from services.foundational_service.geo_module.colline_app.models import Colline
 from services.foundational_service.geo_module.country_app.models import Country
-from services.foundational_service.auth_module.authentication_app.services import UserService
 
 from .models import Role, User
 
@@ -123,6 +125,7 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
                     service.setup_email_2fa(obj)
                 else:
                     from django_otp.plugins.otp_email.models import EmailDevice
+
                     EmailDevice.objects.filter(user=obj).delete()
 
             # Sync TOTPDevice when requires_2fa_qr changes
@@ -131,6 +134,7 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
                     service.setup_totp_2fa(obj)
                 else:
                     from django_otp.plugins.otp_totp.models import TOTPDevice
+
                     TOTPDevice.objects.filter(user=obj).delete()
                     obj.totp_secret_key = None
 
@@ -140,13 +144,15 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
                     service.setup_static_2fa(obj)
                 else:
                     from django_otp.plugins.otp_static.models import StaticDevice
+
                     StaticDevice.objects.filter(user=obj).delete()
 
             # If master 2FA disabled, clean everything
             if old.requires_2fa and not obj.requires_2fa:
                 from django_otp.plugins.otp_email.models import EmailDevice
-                from django_otp.plugins.otp_totp.models import TOTPDevice
                 from django_otp.plugins.otp_static.models import StaticDevice
+                from django_otp.plugins.otp_totp.models import TOTPDevice
+
                 EmailDevice.objects.filter(user=obj).delete()
                 TOTPDevice.objects.filter(user=obj).delete()
                 StaticDevice.objects.filter(user=obj).delete()
@@ -156,7 +162,9 @@ class UserAdmin(ImportExportModelAdmin, ModelAdmin):
                 obj.totp_secret_key = None
 
             # Ensure requires_2fa is consistent with sub-flags
-            obj.requires_2fa = obj.requires_2fa_email or obj.requires_2fa_qr or obj.requires_2fa_static
+            obj.requires_2fa = (
+                obj.requires_2fa_email or obj.requires_2fa_qr or obj.requires_2fa_static
+            )
 
             # Ensure spoken_languages is never None (MySQL JSONField strict mode)
             if obj.spoken_languages is None:

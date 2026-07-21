@@ -8,19 +8,35 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dashboard_academic_secretary_app', '0006_populate_jury_session_fks'),
+        ("dashboard_academic_secretary_app", "0006_populate_jury_session_fks"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='jurydecision',
-            name='decision',
-            field=models.CharField(choices=[('AAC', 'Avance avec complément'), ('AAA', 'Assimilé aux ajournés'), ('R1S', 'Réussite 1ère session'), ('R2S', 'Réussite 2ème session'), ('ND', 'Non décision'), ('EXC', 'Exclusion')], default='ND', max_length=20),
+            model_name="jurydecision",
+            name="decision",
+            field=models.CharField(
+                choices=[
+                    ("AAC", "Avance avec complément"),
+                    ("AAA", "Assimilé aux ajournés"),
+                    ("R1S", "Réussite 1ère session"),
+                    ("R2S", "Réussite 2ème session"),
+                    ("ND", "Non décision"),
+                    ("EXC", "Exclusion"),
+                ],
+                default="ND",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='jurydecision',
-            name='validated_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.RESTRICT, to=settings.AUTH_USER_MODEL),
+            model_name="jurydecision",
+            name="validated_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.RESTRICT,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

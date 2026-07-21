@@ -1,5 +1,7 @@
 # Create your views here.
 import logging
+import secrets
+import string
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
@@ -37,9 +39,6 @@ from .serializers import (
 )
 from .services import UserService
 from .utils import send_otp_email, send_register_otp
-import secrets
-import string
-
 
 logger = logging.getLogger(__name__)
 
@@ -798,11 +797,10 @@ class UserViewSet(BaseViewSet):
         if permission_error:
             return permission_error
 
-      
         user = self.get_object()
         # Générer un mot de passe sécurisé de 12 caractères
         alphabet = string.ascii_letters + string.digits + string.punctuation
-        new_password = ''.join(secrets.choice(alphabet) for _ in range(12))
+        new_password = "".join(secrets.choice(alphabet) for _ in range(12))
         user.set_password(new_password)
         user.save()
         log_security_event(
@@ -815,7 +813,6 @@ class UserViewSet(BaseViewSet):
             message="Mot de passe réinitialisé avec succès.",
             data={"email": user.email, "new_password": new_password},
         )
-
 
     def get_queryset(self):
         user = self.request.user
@@ -940,6 +937,7 @@ class UserViewSet(BaseViewSet):
 
         user = self.get_object()
         from django_otp.plugins.otp_totp.models import TOTPDevice
+
         TOTPDevice.objects.filter(user=user).delete()
         user.requires_2fa_qr = False
         user.totp_secret_key = None
@@ -955,11 +953,14 @@ class UserViewSet(BaseViewSet):
 
         user = self.get_object()
         from django_otp.plugins.otp_email.models import EmailDevice
+
         EmailDevice.objects.filter(user=user).delete()
         user.requires_2fa_email = False
         user.requires_2fa = user.requires_2fa_qr or user.requires_2fa_static
         user.save()
-        return success_response(message="Email 2FA disabled", data={"email": user.email})
+        return success_response(
+            message="Email 2FA disabled", data={"email": user.email}
+        )
 
     @action(detail=True, methods=["post"], url_path="admin-2fa/static/disable")
     def admin_disable_static(self, request, pk=None):
@@ -969,11 +970,14 @@ class UserViewSet(BaseViewSet):
 
         user = self.get_object()
         from django_otp.plugins.otp_static.models import StaticDevice
+
         StaticDevice.objects.filter(user=user).delete()
         user.requires_2fa_static = False
         user.requires_2fa = user.requires_2fa_email or user.requires_2fa_qr
         user.save()
-        return success_response(message="Static 2FA disabled", data={"email": user.email})
+        return success_response(
+            message="Static 2FA disabled", data={"email": user.email}
+        )
 
     @action(detail=True, methods=["post"], url_path="admin-2fa/disable-all")
     def admin_disable_all_2fa(self, request, pk=None):
@@ -983,8 +987,9 @@ class UserViewSet(BaseViewSet):
 
         user = self.get_object()
         from django_otp.plugins.otp_email.models import EmailDevice
-        from django_otp.plugins.otp_totp.models import TOTPDevice
         from django_otp.plugins.otp_static.models import StaticDevice
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
         EmailDevice.objects.filter(user=user).delete()
         TOTPDevice.objects.filter(user=user).delete()
         StaticDevice.objects.filter(user=user).delete()
@@ -1091,4 +1096,3 @@ class LogoutAPIView(APIView):
 
         except Exception:
             return error_response(message="Something went wrong")
-

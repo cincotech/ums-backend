@@ -10,8 +10,10 @@ from services.core_service.academic_module.faculty_app.views import (
     FacultyViewSet,
     TypeFormationViewSet,
 )
-from services.core_service.academic_module.module_app.views import ModuleViewSet
-from services.core_service.academic_module.module_app.views import SemesterViewSet
+from services.core_service.academic_module.module_app.views import (
+    ModuleViewSet,
+    SemesterViewSet,
+)
 from services.core_service.academic_module.public_app.views import (
     AcademicTeamViewSet,
     ProgramViewSet,

@@ -1,21 +1,21 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.response import Response
-from rest_framework import status
 
 from core.response_handler import error_response, success_response, validate_serializer
 from core.views import BaseViewSet
 from services.core_service.academic_module.university_app.models import AcademicYear
 
+from .annual_registration_service import AnnualRegistrationService
 from .email_utils import send_inscription_email
 from .filters import InscriptionFilter
+from .inscription_template_service import generate_inscription_template
 from .models import Class, Inscription
 from .serializers import InscriptionSerializer
-from .inscription_template_service import generate_inscription_template
-from .annual_registration_service import AnnualRegistrationService
 
 
 class InscriptionViewSet(BaseViewSet):
@@ -79,8 +79,6 @@ class InscriptionViewSet(BaseViewSet):
         except AcademicYear.DoesNotExist:
             return queryset.none()
 
-
-
     @action(detail=True, methods=["post"])
     def activate(self, request, pk=None):
         inscription = self.get_object()
@@ -108,19 +106,14 @@ class InscriptionViewSet(BaseViewSet):
             with transaction.atomic():
 
                 # Activate inscription
-                inscription.activate(
-                    skip_payment_check=skip_payment
-                )
+                inscription.activate(skip_payment_check=skip_payment)
 
                 # Generate matricule if missing
                 matricule = inscription.generate_matricule()
 
                 # Send email only after successful transaction
                 transaction.on_commit(
-                    lambda: send_inscription_email(
-                        inscription,
-                        "Active"
-                    )
+                    lambda: send_inscription_email(inscription, "Active")
                 )
 
             return success_response(
@@ -149,8 +142,7 @@ class InscriptionViewSet(BaseViewSet):
 
             return error_response(
                 message=(
-                    "An unexpected error occurred while activating "
-                    "the inscription."
+                    "An unexpected error occurred while activating " "the inscription."
                 ),
                 errors=str(e),
             )
@@ -335,7 +327,7 @@ class InscriptionViewSet(BaseViewSet):
         if send_inscription_email(inscription, email_type):
             return success_response(message="Email envoyé avec succès")
         return error_response(message="Erreur lors de l'envoi de l'email")
-    
+
     @action(detail=False, methods=["post"])
     def generate_inscription_template(self, request):
         inscription_id = request.data.get("inscription_id")
@@ -343,26 +335,29 @@ class InscriptionViewSet(BaseViewSet):
 
         if not inscription_id:
             return error_response(
-                message="inscription_id is required",  
+                message="inscription_id is required",
             )
 
         try:
             # On va chercher l'inscription et récupérer user_id
-            inscription = Inscription.objects.filter(id=inscription_id).select_related("student__user").first()
+            inscription = (
+                Inscription.objects.filter(id=inscription_id)
+                .select_related("student__user")
+                .first()
+            )
             if not inscription:
                 return error_response(
                     message="Inscription not found",
                 )
             user_id = str(inscription.student.user.id)
             # Passer l'inscription_id au service
-            data = generate_inscription_template(user_id, academic_year_id, inscription_id)
+            data = generate_inscription_template(
+                user_id, academic_year_id, inscription_id
+            )
             return success_response(
-                message="Template generated successfully",
-                data=data
+                message="Template generated successfully", data=data
             )
         except Exception as e:
             return error_response(
                 message=str(e),
             )
-        
-       

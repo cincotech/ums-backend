@@ -14,7 +14,7 @@ class ClassFilter(django_filters.FilterSet):
 
     class Meta:
         model = Class
-        fields =  ["type_formation"]
+        fields = ["type_formation"]
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(

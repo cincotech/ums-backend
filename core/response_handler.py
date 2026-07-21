@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import date, datetime
 
@@ -39,9 +38,7 @@ def success_response(
     }
 
     if extra and isinstance(extra, dict):
-        safe_data.update(
-            {k: _safe_json_value(v) for k, v in extra.items()}
-        )
+        safe_data.update({k: _safe_json_value(v) for k, v in extra.items()})
 
     return Response(safe_data, status=status_code)
 

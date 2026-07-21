@@ -4,7 +4,10 @@ from django.db import models
 
 from services.core_service.academic_module.department_app.models import Department
 from services.core_service.academic_module.faculty_app.models import TypeFormation
-from services.core_service.academic_module.university_app.models import AcademicYear, UniversityDegree
+from services.core_service.academic_module.university_app.models import (
+    AcademicYear,
+    UniversityDegree,
+)
 from services.core_service.student_module.highschool_info_app.models import (
     Certificate,
     Highschool,
@@ -13,10 +16,6 @@ from services.core_service.student_module.highschool_info_app.models import (
 from services.core_service.student_module.parent_app.models import Parent
 from services.foundational_service.auth_module.user_app.models import User
 from services.foundational_service.geo_module.colline_app.models import Colline
-
-
-
-
 
 
 class Student(models.Model):
@@ -35,7 +34,11 @@ class Student(models.Model):
 
     def get_active_matricule(self):
         """Retourne le StudentMatricule le plus récent (par année civile décroissante)."""
-        return self.matricules.select_related('academic_year').order_by('-academic_year__civil_year', '-id').first()
+        return (
+            self.matricules.select_related("academic_year")
+            .order_by("-academic_year__civil_year", "-id")
+            .first()
+        )
 
     def __str__(self):
         active_sm = self.get_active_matricule()
@@ -130,6 +133,7 @@ class StudentGraduateInfo(models.Model):
 
 class StudentMatricule(models.Model):
     """One matricule per student per TypeFormation (F, M, I, D)"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(
         Student, on_delete=models.RESTRICT, related_name="matricules"

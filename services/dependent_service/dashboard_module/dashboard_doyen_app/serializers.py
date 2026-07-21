@@ -620,8 +620,12 @@ class JurySessionSerializer(serializers.ModelSerializer):
 class ComplementRequirementSerializer(serializers.ModelSerializer):
     student_info = serializers.SerializerMethodField()
     inscription_info = serializers.SerializerMethodField()
-    course_name = serializers.CharField(source="course.course_name", read_only=True, default=None)
-    course_code = serializers.CharField(source="course.course_code", read_only=True, default=None)
+    course_name = serializers.CharField(
+        source="course.course_name", read_only=True, default=None
+    )
+    course_code = serializers.CharField(
+        source="course.course_code", read_only=True, default=None
+    )
 
     class Meta:
         model = ComplementRequirement
@@ -644,7 +648,13 @@ class ComplementRequirementSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
         ]
-        read_only_fields = ["id", "amount_due", "created_at", "course_name", "course_code"]
+        read_only_fields = [
+            "id",
+            "amount_due",
+            "created_at",
+            "course_name",
+            "course_code",
+        ]
 
     def get_student_info(self, obj):
         return {
@@ -656,7 +666,10 @@ class ComplementRequirementSerializer(serializers.ModelSerializer):
     def get_inscription_info(self, obj):
         if not obj.inscription:
             return None
-        return {"id": str(obj.inscription.id), "regist_status": obj.inscription.regist_status}
+        return {
+            "id": str(obj.inscription.id),
+            "regist_status": obj.inscription.regist_status,
+        }
 
     def validate(self, data):
         if not data.get("course"):
@@ -671,9 +684,7 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
     average_score = serializers.SerializerMethodField()
     total_credits_obtained = serializers.SerializerMethodField()
     complement_count = serializers.SerializerMethodField()
-    complement_requirements = ComplementRequirementSerializer(
-        many=True, read_only=True
-    )
+    complement_requirements = ComplementRequirementSerializer(many=True, read_only=True)
 
     class Meta:
         model = JuryDecision
@@ -712,7 +723,11 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
             "session_date": obj.jury_session.session_date,
             "status": obj.jury_session.status,
             "class_group_id": str(class_group.id) if class_group else None,
-            "class_id": str(class_group.class_fk.id) if class_group and class_group.class_fk else None,
+            "class_id": (
+                str(class_group.class_fk.id)
+                if class_group and class_group.class_fk
+                else None
+            ),
         }
 
     def get_validated_by_info(self, obj):
@@ -734,9 +749,7 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
             ).first()
             if not inscription:
                 return None
-            compiled = CompiledResult.objects.filter(
-                inscription=inscription
-            ).first()
+            compiled = CompiledResult.objects.filter(inscription=inscription).first()
             return float(compiled.average_mark) if compiled else None
         except Exception:
             return None
@@ -751,7 +764,9 @@ class JuryDecisionSerializer(serializers.ModelSerializer):
                 return None
             total = Result.objects.filter(
                 inscription=inscription,
-            ).aggregate(total=models.Sum("course__credits"))["total"]
+            ).aggregate(
+                total=models.Sum("course__credits")
+            )["total"]
             return total or 0
         except Exception:
             return None

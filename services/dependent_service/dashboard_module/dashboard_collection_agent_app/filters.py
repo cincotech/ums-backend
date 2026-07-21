@@ -181,7 +181,9 @@ class PaymentFilter(django_filters.FilterSet):
     inscription = django_filters.UUIDFilter(field_name="inscription")
     bank = django_filters.UUIDFilter(field_name="bank")
     user = django_filters.UUIDFilter(field_name="user")
-    academic_year_id = django_filters.UUIDFilter(field_name="inscription__academic_year")
+    academic_year_id = django_filters.UUIDFilter(
+        field_name="inscription__academic_year"
+    )
 
     class Meta:
         model = Payment

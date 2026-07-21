@@ -24,9 +24,7 @@ class AcademicYearLockMiddleware:
         # Query params
         print("GET PARAMS:", request.GET.dict())
 
-        academic_year_id = request.GET.get(
-            "academic_year_id"
-        )
+        academic_year_id = request.GET.get("academic_year_id")
 
         # Debug raw body
         print("RAW BODY:", request.body)
@@ -38,9 +36,7 @@ class AcademicYearLockMiddleware:
 
                 print("PARSED BODY:", body)
 
-                academic_year_id = body.get(
-                    "academic_year_id"
-                )
+                academic_year_id = body.get("academic_year_id")
 
             except Exception as e:
                 print("JSON ERROR:", str(e))
@@ -51,9 +47,7 @@ class AcademicYearLockMiddleware:
             print("NO ACADEMIC YEAR FOUND")
             return self.get_response(request)
 
-        academic_year = AcademicYear.objects.filter(
-            id=academic_year_id
-        ).first()
+        academic_year = AcademicYear.objects.filter(id=academic_year_id).first()
 
         print("ACADEMIC_YEAR:", academic_year)
 
@@ -64,11 +58,7 @@ class AcademicYearLockMiddleware:
             print("BLOCKED REQUEST")
 
             return JsonResponse(
-                {
-                    "detail": (
-                        "Cette année académique est fermée."
-                    )
-                },
+                {"detail": ("Cette année académique est fermée.")},
                 status=403,
             )
 

@@ -46,7 +46,10 @@ STATUS_EMAIL_CONFIG = {
 
 def _get_matricule_for_inscription(inscription):
     """Returns the correct matricule for this inscription's TypeFormation."""
-    from services.core_service.student_module.student_profile_app.models import StudentMatricule
+    from services.core_service.student_module.student_profile_app.models import (
+        StudentMatricule,
+    )
+
     if not inscription.class_fk:
         active_sm = inscription.student.get_active_matricule()
         return active_sm.matricule if active_sm else "En attente"

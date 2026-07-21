@@ -106,7 +106,7 @@ class TeacherCourseStudentSerializer(serializers.Serializer):
 
     def get_matricule(self, obj):
         """Retourne le matricule correspondant à l'inscription de l'étudiant."""
-        if hasattr(obj, 'inscription') and obj.inscription:
+        if hasattr(obj, "inscription") and obj.inscription:
             matricule = obj.inscription.get_matricule_for_type()
             if matricule:
                 return matricule

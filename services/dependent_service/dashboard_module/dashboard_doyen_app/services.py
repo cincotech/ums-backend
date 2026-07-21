@@ -1736,10 +1736,18 @@ class SupplementService:
 class JurySessionService:
     @staticmethod
     def create_jury_session(
-        session_name, session_date, class_group_id, jury_member_ids, created_by, academic_year_id=None
+        session_name,
+        session_date,
+        class_group_id,
+        jury_member_ids,
+        created_by,
+        academic_year_id=None,
     ):
         from django.db import transaction
-        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import JuryMember
+
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+            JuryMember,
+        )
 
         with transaction.atomic():
             jury_session = JurySession.objects.create(
@@ -1786,7 +1794,9 @@ class JurySessionService:
                     logger.info(
                         "No Active/Pending/Complement inscriptions found for "
                         "class_group=%s, trying by class_fk_id=%s academic_year=%s",
-                        class_group_id, class_group.class_fk_id, resolved_year_id,
+                        class_group_id,
+                        class_group.class_fk_id,
+                        resolved_year_id,
                     )
                     q2 = Inscription.objects.filter(
                         class_fk_id=class_group.class_fk_id,
@@ -1799,7 +1809,8 @@ class JurySessionService:
 
                 logger.info(
                     "Pre-creating %d JuryDecision(s) for jury_session=%s",
-                    len(student_ids), jury_session.id,
+                    len(student_ids),
+                    jury_session.id,
                 )
 
                 for sid in student_ids:
@@ -1807,13 +1818,19 @@ class JurySessionService:
                         JuryDecision.objects.get_or_create(
                             jury_session=jury_session,
                             student_id=sid,
-                            defaults={"decision": "ND", "notes": "", "validated_by": None},
+                            defaults={
+                                "decision": "ND",
+                                "notes": "",
+                                "validated_by": None,
+                            },
                         )
                     except Exception as e:
                         logger.exception(
                             "Failed to create JuryDecision for "
                             "jury_session=%s student_id=%s: %s",
-                            jury_session.id, sid, e,
+                            jury_session.id,
+                            sid,
+                            e,
                         )
             except Exception as e:
                 logger.exception("JuryDecision pre-creation block failed: %s", e)
@@ -1848,7 +1865,10 @@ class JurySessionService:
     @staticmethod
     def add_jury_member(jury_session_id, user_id, role="member"):
         from django.db import transaction
-        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import JuryMember
+
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+            JuryMember,
+        )
 
         jury_session = JurySession.objects.get(id=jury_session_id)
 
@@ -1870,12 +1890,17 @@ class JurySessionService:
     @staticmethod
     def update_jury_members(jury_session_id, member_data_list):
         from django.db import transaction
-        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import JuryMember
+
+        from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
+            JuryMember,
+        )
 
         jury_session = JurySession.objects.get(id=jury_session_id)
 
         if jury_session.status != "scheduled":
-            raise ValueError("Les membres du jury ne peuvent être modifiés qu'une fois la session planifiée.")
+            raise ValueError(
+                "Les membres du jury ne peuvent être modifiés qu'une fois la session planifiée."
+            )
 
         if not isinstance(member_data_list, list):
             raise ValueError("Le format des membres du jury est invalide.")
@@ -1901,7 +1926,9 @@ class JurySessionService:
 
             for member_data in member_data_list:
                 if not isinstance(member_data, dict):
-                    raise ValueError("Chaque membre doit être un objet contenant user_id et role.")
+                    raise ValueError(
+                        "Chaque membre doit être un objet contenant user_id et role."
+                    )
 
                 user_id = member_data.get("user_id")
                 role = member_data.get("role")
@@ -1930,7 +1957,9 @@ class JurySessionService:
                             # If the existing president is the same user we're adding,
                             # allow role change; otherwise reject to avoid duplicate presidents.
                             if str(existing_president.user_id) != user_key:
-                                raise ValueError("Only one president allowed per jury session")
+                                raise ValueError(
+                                    "Only one president allowed per jury session"
+                                )
 
                     # Create new membership (user_key will be converted by ORM)
                     JuryMember.objects.create(
@@ -1990,9 +2019,14 @@ class JurySessionService:
 
 class JuryDecisionService:
     @staticmethod
-    def validate_decision(jury_session_id, student_id, decision, notes, validated_by, complement_data=None):
+    def validate_decision(
+        jury_session_id, student_id, decision, notes, validated_by, complement_data=None
+    ):
         from django.db import transaction
-        from services.core_service.student_module.inscription_app.models import Inscription
+
+        from services.core_service.student_module.inscription_app.models import (
+            Inscription,
+        )
 
         jury_session = JurySession.objects.get(id=jury_session_id)
 

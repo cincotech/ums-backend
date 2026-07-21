@@ -124,13 +124,13 @@ class Command(BaseCommand):
             lines.append("")
 
             for field in fk_fields:
-                fk_name = self._resolve_fk_name(
-                    field, model._meta.db_table, fk_names
-                )
+                fk_name = self._resolve_fk_name(field, model._meta.db_table, fk_names)
                 ref_table = field.remote_field.model._meta.db_table
                 ref_col = _field_column(field.remote_field.target_field)
                 local_col = _field_column(field)
-                refs.append((fk_name, ref_table, ref_col, model._meta.db_table, local_col))
+                refs.append(
+                    (fk_name, ref_table, ref_col, model._meta.db_table, local_col)
+                )
 
         for fk_name, ref_table, ref_col, table, col in refs:
             lines.append(

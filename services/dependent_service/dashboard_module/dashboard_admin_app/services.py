@@ -505,7 +505,9 @@ class RoleProfileService:
             data = {
                 "id": str(profile.id),
                 "position": profile.position,
-                "start_date": profile.start_date.isoformat() if profile.start_date else None,
+                "start_date": (
+                    profile.start_date.isoformat() if profile.start_date else None
+                ),
                 "end_date": profile.end_date.isoformat() if profile.end_date else None,
                 "room": str(profile.room.id) if profile.room else None,
             }

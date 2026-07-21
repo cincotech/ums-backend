@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('inscription_app', '0003_inscription_created_by_inscription_modified_by'),
+        ("inscription_app", "0003_inscription_created_by_inscription_modified_by"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inscription',
-            name='modified_at',
+            model_name="inscription",
+            name="modified_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

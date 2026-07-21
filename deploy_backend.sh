@@ -8,7 +8,7 @@
 # Variables
 TARGET_DIR="/var/www/ums/backend"
 # Corrigé : le venv est dans /var/www/ums/venv
-VENV_PATH="/var/www/ums/venv" 
+VENV_PATH="/var/www/ums/venv"
 LOG_FILE="$HOME/deploy_backend.log"
 DATE=$(date '+%Y-%m-%d_%H-%M-%S')
 EMAILS="ndabubahajanvier@gmail.com ferdinand.niragira2@gmail.com"
@@ -57,7 +57,7 @@ sudo chown -R www-data:www-data "$TARGET_DIR"
 
 # 6. Redémarrage du service (Django/Gunicorn)
 echo "🔁 Redémarrage du service..." | tee -a "$LOG_FILE"
-sudo systemctl restart django.service 
+sudo systemctl restart django.service
 
 if [ $? -eq 0 ]; then
     echo "✅ Succès !" | tee -a "$LOG_FILE"

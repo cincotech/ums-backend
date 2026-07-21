@@ -1,11 +1,13 @@
-from django.shortcuts import render
 from rest_framework import permissions, status
 from rest_framework.response import Response
+
 from core.views import BaseViewSet
+
 from .models import InscriptionDraft
 from .serializers import InscriptionDraftSerializer
 
 # Create your views here.
+
 
 class InscriptionDraftViewSet(BaseViewSet):
     serializer_class = InscriptionDraftSerializer
@@ -33,4 +35,6 @@ class InscriptionDraftViewSet(BaseViewSet):
         draft.status = "deleted"
         draft.modified_by = request.user
         draft.save()
-        return Response({"message": "Draft marked as deleted."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Draft marked as deleted."}, status=status.HTTP_200_OK
+        )

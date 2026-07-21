@@ -172,9 +172,7 @@ class FinanceDashboardService:
             payments_qs = payments_qs.filter(payment_date__lte=date_to)
             installments_qs = installments_qs.filter(due_date__lte=date_to)
 
-        total_expected = (
-            installments_qs.aggregate(total=Sum("amount"))["total"] or 0
-        )
+        total_expected = installments_qs.aggregate(total=Sum("amount"))["total"] or 0
         total_collected = (
             payments_qs.filter(payment_status="verified").aggregate(
                 total=Sum("amount_paid")
@@ -182,7 +180,9 @@ class FinanceDashboardService:
             or 0
         )
         outstanding = max(total_expected - total_collected, 0)
-        recovery_rate = round((total_collected / total_expected) * 100, 2) if total_expected else 0
+        recovery_rate = (
+            round((total_collected / total_expected) * 100, 2) if total_expected else 0
+        )
 
         pending_payments_amount = (
             payments_qs.filter(payment_status="unverified").aggregate(
@@ -191,9 +191,7 @@ class FinanceDashboardService:
             or 0
         )
 
-        verified_payments_count = payments_qs.filter(
-            payment_status="verified"
-        ).count()
+        verified_payments_count = payments_qs.filter(payment_status="verified").count()
         unverified_payments_count = payments_qs.filter(
             payment_status="unverified"
         ).count()
@@ -290,31 +288,40 @@ class FinanceDashboardService:
             for row in by_payment_method
         ]
 
-        faculty_expected = installments_qs.values(
-            faculty_id=Coalesce(
-                "payment_plan__feessheet__faculty__id",
-                "payment_plan__feessheet__department__faculty__id",
-                "payment_plan__feessheet__class_fk__department__faculty__id",
-            ),
-            faculty_name=Coalesce(
-                "payment_plan__feessheet__faculty__faculty_name",
-                "payment_plan__feessheet__department__faculty__faculty_name",
-                "payment_plan__feessheet__class_fk__department__faculty__faculty_name",
-            ),
-        ).annotate(expected=Sum("amount")).filter(faculty_id__isnull=False)
+        faculty_expected = (
+            installments_qs.values(
+                faculty_id=Coalesce(
+                    "payment_plan__feessheet__faculty__id",
+                    "payment_plan__feessheet__department__faculty__id",
+                    "payment_plan__feessheet__class_fk__department__faculty__id",
+                ),
+                faculty_name=Coalesce(
+                    "payment_plan__feessheet__faculty__faculty_name",
+                    "payment_plan__feessheet__department__faculty__faculty_name",
+                    "payment_plan__feessheet__class_fk__department__faculty__faculty_name",
+                ),
+            )
+            .annotate(expected=Sum("amount"))
+            .filter(faculty_id__isnull=False)
+        )
 
-        faculty_collected = payments_qs.filter(payment_status="verified").values(
-            faculty_id=Coalesce(
-                "paymentplan__feessheet__faculty__id",
-                "paymentplan__feessheet__department__faculty__id",
-                "paymentplan__feessheet__class_fk__department__faculty__id",
-            ),
-            faculty_name=Coalesce(
-                "paymentplan__feessheet__faculty__faculty_name",
-                "paymentplan__feessheet__department__faculty__faculty_name",
-                "paymentplan__feessheet__class_fk__department__faculty__faculty_name",
-            ),
-        ).annotate(collected=Sum("amount_paid")).filter(faculty_id__isnull=False)
+        faculty_collected = (
+            payments_qs.filter(payment_status="verified")
+            .values(
+                faculty_id=Coalesce(
+                    "paymentplan__feessheet__faculty__id",
+                    "paymentplan__feessheet__department__faculty__id",
+                    "paymentplan__feessheet__class_fk__department__faculty__id",
+                ),
+                faculty_name=Coalesce(
+                    "paymentplan__feessheet__faculty__faculty_name",
+                    "paymentplan__feessheet__department__faculty__faculty_name",
+                    "paymentplan__feessheet__class_fk__department__faculty__faculty_name",
+                ),
+            )
+            .annotate(collected=Sum("amount_paid"))
+            .filter(faculty_id__isnull=False)
+        )
 
         faculty_map = {}
         for row in faculty_expected:
@@ -370,9 +377,9 @@ class FinanceDashboardService:
             recent_payments.append(
                 {
                     "id": str(p.id),
-                    "student_name": f"{user.first_name} {user.last_name}".strip()
-                    if user
-                    else "N/A",
+                    "student_name": (
+                        f"{user.first_name} {user.last_name}".strip() if user else "N/A"
+                    ),
                     "matricule": matricule_display,
                     "amount": p.amount_paid,
                     "method": p.payment_method,
@@ -388,18 +395,14 @@ class FinanceDashboardService:
         ).distinct()
 
         rooms_by_type = (
-            rooms_qs.values("room_type")
-            .annotate(count=Count("id"))
-            .order_by("-count")
+            rooms_qs.values("room_type").annotate(count=Count("id")).order_by("-count")
         )
         rooms_by_type = [
             {"type": row["room_type"], "count": row["count"]} for row in rooms_by_type
         ]
 
         equipment_by_status = (
-            equipment_qs.values("status")
-            .annotate(count=Count("id"))
-            .order_by("-count")
+            equipment_qs.values("status").annotate(count=Count("id")).order_by("-count")
         )
         equipment_by_status = [
             {"status": row["status"], "count": row["count"]}

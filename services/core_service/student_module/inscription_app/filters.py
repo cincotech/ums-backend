@@ -1,6 +1,7 @@
+from datetime import date
+
 import django_filters
 from django.db.models import Q
-from datetime import date
 
 from .models import Inscription
 
@@ -26,9 +27,7 @@ class InscriptionFilter(django_filters.FilterSet):
     department = django_filters.UUIDFilter(
         field_name="class_fk__department_id", lookup_expr="exact"
     )
-    className = django_filters.UUIDFilter(
-        field_name="class_fk_id", lookup_expr="exact"
-    )
+    className = django_filters.UUIDFilter(field_name="class_fk_id", lookup_expr="exact")
     sexe = django_filters.CharFilter(
         field_name="student__user__gender", lookup_expr="exact"
     )
@@ -51,11 +50,13 @@ class InscriptionFilter(django_filters.FilterSet):
         field_name="class_fk__class_name", lookup_expr="icontains"
     )
     payment_status = django_filters.CharFilter(
-       field_name="payments_inscription__payment_status",
-       lookup_expr="exact"  # Use exact match for payment status to avoid partial matches
+        field_name="payments_inscription__payment_status",
+        lookup_expr="exact",  # Use exact match for payment status to avoid partial matches
     )
-    modified_at = django_filters.DateFilter( field_name="modified_at", lookup_expr="date")
-    created_at = django_filters.DateFilter( field_name="created_at", lookup_expr="date")
+    modified_at = django_filters.DateFilter(
+        field_name="modified_at", lookup_expr="date"
+    )
+    created_at = django_filters.DateFilter(field_name="created_at", lookup_expr="date")
     # Q search - searches across multiple fields
     search = django_filters.CharFilter(method="filter_search")
 
@@ -83,6 +84,7 @@ class InscriptionFilter(django_filters.FilterSet):
             return queryset
 
         import re
+
         clean_value = re.sub(r"[\/]", "", value)
 
         return queryset.filter(
@@ -103,24 +105,25 @@ class InscriptionFilter(django_filters.FilterSet):
         """
         age_range = value
         today = date.today()
-        
+
         # Build age filters using annotations would be more efficient,
         # but we'll use a subquery approach for correctness
-        from django.db.models import Subquery, OuterRef
-        
+
         # Get all distinct student IDs in the queryset
-        student_ids = queryset.values_list('student_id', flat=True).distinct()
-        
+        student_ids = queryset.values_list("student_id", flat=True).distinct()
+
         # Filter students by age range
         valid_student_ids = []
-        for student in Inscription.objects.filter(student_id__in=student_ids).select_related('student__user'):
+        for student in Inscription.objects.filter(
+            student_id__in=student_ids
+        ).select_related("student__user"):
             birth_date = student.student.user.birth_date
             if not birth_date:
                 continue
             age = today.year - birth_date.year
             if (today.month, today.day) < (birth_date.month, birth_date.day):
                 age -= 1
-            
+
             if age_range == "less_than_nineteen" and age < 19:
                 valid_student_ids.append(student.student_id)
             elif age_range == "nineteen_to_twenty_two" and 19 <= age <= 22:
@@ -131,5 +134,5 @@ class InscriptionFilter(django_filters.FilterSet):
                 valid_student_ids.append(student.student_id)
             elif age_range == "greater_than_thirty" and age > 30:
                 valid_student_ids.append(student.student_id)
-        
+
         return queryset.filter(student_id__in=valid_student_ids)

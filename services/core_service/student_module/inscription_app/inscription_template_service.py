@@ -1,13 +1,18 @@
 # services/inscription_template_service.py
 
 from django.contrib.auth import get_user_model
-from services.core_service.student_module.student_profile_app.models import Student, StudentMatricule
 
+from services.core_service.student_module.student_profile_app.models import (
+    Student,
+    StudentMatricule,
+)
 
 User = get_user_model()
 
 
-def generate_inscription_template(user_id: str, academic_year_id: str, inscription_id: str = None):
+def generate_inscription_template(
+    user_id: str, academic_year_id: str, inscription_id: str = None
+):
     user = User.objects.filter(id=user_id).first()
     if not user:
         raise Exception("User not found")
@@ -33,18 +38,20 @@ def generate_inscription_template(user_id: str, academic_year_id: str, inscripti
         province = commune.province
         country = province.country
 
-        step1.update({
-            "colline_id": str(colline.id),
-            "colline_name": colline.colline_name,
-            "zone_id": str(zone.id),
-            "zone_name": zone.zone_name,
-            "commune_id": str(commune.id),
-            "commune_name": commune.commune_name,
-            "province_id": str(province.id),
-            "province_name": province.province_name,
-            "country_id": str(country.id),
-            "country_name": country.country_name,
-        })
+        step1.update(
+            {
+                "colline_id": str(colline.id),
+                "colline_name": colline.colline_name,
+                "zone_id": str(zone.id),
+                "zone_name": zone.zone_name,
+                "commune_id": str(commune.id),
+                "commune_name": commune.commune_name,
+                "province_id": str(province.id),
+                "province_name": province.province_name,
+                "country_id": str(country.id),
+                "country_name": country.country_name,
+            }
+        )
 
     # -------------------
     # STEP 2 (Parents)
@@ -65,7 +72,7 @@ def generate_inscription_template(user_id: str, academic_year_id: str, inscripti
                 "is_contact_person": p.is_contact_person,
             }
             for p in parents_qs
-        ]
+        ],
     }
 
     # -------------------
@@ -73,7 +80,6 @@ def generate_inscription_template(user_id: str, academic_year_id: str, inscripti
     # -------------------
 
     hs = student.hs_infos.first()
-    
 
     step3 = None
 
@@ -102,11 +108,9 @@ def generate_inscription_template(user_id: str, academic_year_id: str, inscripti
             "university_id": str(uni.department.faculty.university.id),
             "faculty_id": str(uni.department.faculty.id),
             "department_id": str(uni.department.id),
-
             "option": uni.option,
             "mention": uni.mention,
             "degree_id": str(uni.degree_id),
-
             # ❗ this only works if field exists in model
             "year_obtained": None,
         }
@@ -119,23 +123,32 @@ def generate_inscription_template(user_id: str, academic_year_id: str, inscripti
     # -------------------
     existing_matricules = []
     if student:
-        for sm in StudentMatricule.objects.filter(
-            student=student
-        ).select_related("type_formation", "academic_year"):
+        for sm in StudentMatricule.objects.filter(student=student).select_related(
+            "type_formation", "academic_year"
+        ):
             # Get latest inscription status for this type
-            from services.core_service.student_module.inscription_app.models import Inscription
-            latest = Inscription.objects.filter(
-                student=student,
-                class_fk__department__faculty__types=sm.type_formation,
-            ).order_by("-date_inscription").first()
+            from services.core_service.student_module.inscription_app.models import (
+                Inscription,
+            )
 
-            existing_matricules.append({
-                "matricule": sm.matricule,
-                "type_formation_code": sm.type_formation.code,
-                "type_formation_name": sm.type_formation.name,
-                "academic_year_label": sm.academic_year.academic_year,
-                "inscription_status": latest.regist_status if latest else None,
-            })
+            latest = (
+                Inscription.objects.filter(
+                    student=student,
+                    class_fk__department__faculty__types=sm.type_formation,
+                )
+                .order_by("-date_inscription")
+                .first()
+            )
+
+            existing_matricules.append(
+                {
+                    "matricule": sm.matricule,
+                    "type_formation_code": sm.type_formation.code,
+                    "type_formation_name": sm.type_formation.name,
+                    "academic_year_label": sm.academic_year.academic_year,
+                    "inscription_status": latest.regist_status if latest else None,
+                }
+            )
 
     step5 = {
         "academic_year_id": academic_year_id,
@@ -165,6 +178,7 @@ def generate_inscription_template(user_id: str, academic_year_id: str, inscripti
 
 # helpers
 from datetime import date
+
 
 def today_iso():
     today = date.today()

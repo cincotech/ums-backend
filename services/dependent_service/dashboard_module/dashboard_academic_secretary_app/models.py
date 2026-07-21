@@ -38,6 +38,7 @@ class JurySession(models.Model):
         Date : 15/07/2026
         Membres : Doyen, Chef de département, Enseignants
     """
+
     STATUS_CHOICES = (
         ("scheduled", "Planifié"),
         ("in_progress", "En Cours"),
@@ -70,11 +71,11 @@ class JurySession(models.Model):
 
     def clean(self):
         from django.core.exceptions import ValidationError
+
         if self.status in ["in_progress", "completed"]:
             if not self._state.adding:
                 has_president = JuryMember.objects.filter(
-                    jury_session=self,
-                    role="president"
+                    jury_session=self, role="president"
                 ).exists()
                 if not has_president:
                     raise ValidationError(
@@ -119,6 +120,7 @@ class JuryMember(models.Model):
         Dr. Dupont - Membre
         Mme. Durand - Secrétaire
     """
+
     ROLE_CHOICES = (
         ("president", "Président"),
         ("member", "Membre"),
@@ -144,11 +146,15 @@ class JuryMember(models.Model):
 
     def clean(self):
         from django.core.exceptions import ValidationError
+
         if self.role == "president":
-            existing_president = JuryMember.objects.filter(
-                jury_session=self.jury_session,
-                role="president"
-            ).exclude(pk=self.pk).exists()
+            existing_president = (
+                JuryMember.objects.filter(
+                    jury_session=self.jury_session, role="president"
+                )
+                .exclude(pk=self.pk)
+                .exists()
+            )
             if existing_president:
                 raise ValidationError("Only one president allowed per jury session")
 
@@ -158,6 +164,8 @@ class JuryMember(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.get_role_display()}"
+
+
 class JuryDecision(models.Model):
     """
     Représente la décision académique finale prise par le jury
@@ -191,6 +199,7 @@ class JuryDecision(models.Model):
     officielle pour les opérations de promotion et de
     réinscription annuelle.
     """
+
     DECISION_TYPES = (
         ("AAC", "Avance avec complément"),
         ("AAA", "Assimilé aux ajournés"),
@@ -201,12 +210,16 @@ class JuryDecision(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    jury_session = models.ForeignKey(JurySession, on_delete=models.CASCADE, related_name="jury_decisions")
+    jury_session = models.ForeignKey(
+        JurySession, on_delete=models.CASCADE, related_name="jury_decisions"
+    )
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     decision = models.CharField(max_length=20, choices=DECISION_TYPES, default="ND")
     notes = models.TextField(null=True, blank=True)
     # allow temporary decisions without a validator; will be set when decision is validated
-    validated_by = models.ForeignKey(User, on_delete=models.RESTRICT, null=True, blank=True)
+    validated_by = models.ForeignKey(
+        User, on_delete=models.RESTRICT, null=True, blank=True
+    )
     validated_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -262,6 +275,7 @@ class GradeComplaint(models.Model):
         Motif :
             Erreur de totalisation des points.
     """
+
     STATUS_CHOICES = (
         ("submitted", "Soumise"),
         ("assigned", "Attribuée"),
@@ -338,6 +352,7 @@ class OfficialDocument(models.Model):
         Garantir l'authenticité et la conservation
         des documents institutionnels.
     """
+
     DOCUMENT_TYPES = (
         ("transcript", "Relevé de Notes"),
         ("certificate", "Certificat"),
@@ -434,6 +449,7 @@ class TeacherPaymentClaim(models.Model):
         Montant :
             1125 USD
     """
+
     STATUS_CHOICES = (
         ("submitted", "Soumise"),
         ("verified", "Vérifiée"),

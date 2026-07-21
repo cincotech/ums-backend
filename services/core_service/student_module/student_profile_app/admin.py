@@ -17,7 +17,15 @@ from services.core_service.student_module.parent_app.models import Parent
 from services.foundational_service.auth_module.user_app.models import User
 from services.foundational_service.geo_module.colline_app.models import Colline
 
-from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, StudentMatricule, Training
+from .models import (
+    Student,
+    StudentFile,
+    StudentGraduateInfo,
+    StudentHsInfo,
+    StudentMatricule,
+    Training,
+)
+
 
 # ----------------------------
 # StudentMatricule Inline
@@ -50,16 +58,12 @@ class StudentMatriculeResource(resources.ModelResource):
     type_formation_code = fields.Field(
         column_name="type_formation_code",
         attribute="type_formation",
-        widget=ForeignKeyWidget(
-            "faculty_app.TypeFormation", "code"
-        ),
+        widget=ForeignKeyWidget("faculty_app.TypeFormation", "code"),
     )
     academic_year_label = fields.Field(
         column_name="academic_year",
         attribute="academic_year",
-        widget=ForeignKeyWidget(
-            "university_app.AcademicYear", "academic_year"
-        ),
+        widget=ForeignKeyWidget("university_app.AcademicYear", "academic_year"),
     )
 
     class Meta:
@@ -182,7 +186,13 @@ class StudentResource(resources.ModelResource):
 @admin.register(Student)
 class StudentAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = StudentResource
-    list_display = ("get_primary_matricule", "user", "colline", "cam", "get_all_matricules")
+    list_display = (
+        "get_primary_matricule",
+        "user",
+        "colline",
+        "cam",
+        "get_all_matricules",
+    )
     search_fields = ("matricules__matricule", "user__email", "colline__colline_name")
     list_filter = ("colline",)
     ordering = ("id",)
@@ -191,12 +201,13 @@ class StudentAdmin(ImportExportModelAdmin, ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         # Précharger les matricules et leurs types pour éviter N+1
-        return qs.prefetch_related('matricules__type_formation')
+        return qs.prefetch_related("matricules__type_formation")
 
     def get_primary_matricule(self, obj):
         """Affiche le matricule principal (le plus récent) de l'étudiant."""
         active_sm = obj.get_active_matricule()
         return active_sm.matricule if active_sm else "-"
+
     get_primary_matricule.short_description = "Matricule"
 
     def get_all_matricules(self, obj):
@@ -205,7 +216,10 @@ class StudentAdmin(ImportExportModelAdmin, ModelAdmin):
         matricules = obj.matricules.all()
         if not matricules:
             return "-"
-        return ", ".join([f"{sm.type_formation.code}: {sm.matricule}" for sm in matricules])
+        return ", ".join(
+            [f"{sm.type_formation.code}: {sm.matricule}" for sm in matricules]
+        )
+
     get_all_matricules.short_description = "Matricules (par type)"
 
     formfield_overrides = {

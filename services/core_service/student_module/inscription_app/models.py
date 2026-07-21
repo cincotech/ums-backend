@@ -1,18 +1,21 @@
-import uuid
 import logging
+import uuid
+from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from typing import TYPE_CHECKING
-
-from .mixins.inscription_status import InscriptionStatusMixin
-from .services.matricule_service import MatriculeService
-from .services.inscription_automation import InscriptionAutomation
-from .validators.inscription_validator import InscriptionValidator
 
 from services.core_service.academic_module.class_app.models import Class, ClassGroup
 from services.core_service.academic_module.university_app.models import AcademicYear
-from services.core_service.student_module.student_profile_app.models import Student, StudentMatricule
+from services.core_service.student_module.student_profile_app.models import (
+    Student,
+    StudentMatricule,
+)
+
+from .mixins.inscription_status import InscriptionStatusMixin
+from .services.inscription_automation import InscriptionAutomation
+from .services.matricule_service import MatriculeService
+from .validators.inscription_validator import InscriptionValidator
 
 if TYPE_CHECKING:
     pass  # No need for TYPE_CHECKING imports since we're importing everything above
@@ -58,18 +61,18 @@ class Inscription(InscriptionStatusMixin, models.Model):
     withdrawal_date = models.DateField(null=True, blank=True)
     is_year_close = models.BooleanField(default=False)
     created_by = models.ForeignKey(
-        'user_app.User',
+        "user_app.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='inscription_created'
+        related_name="inscription_created",
     )
     modified_by = models.ForeignKey(
-        'user_app.User',
+        "user_app.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='inscription_modified'
+        related_name="inscription_modified",
     )
     modified_at = models.DateTimeField(null=True, blank=True)
 
@@ -88,7 +91,9 @@ class Inscription(InscriptionStatusMixin, models.Model):
         """Check if THIS SPECIFIC inscription has verified payment for inscription fees.
         Updated for multi-inscription support: checks only payments for this specific inscription.
         """
-        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import Payment
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+            Payment,
+        )
 
         # Check payments specifically for THIS inscription only
         # Utiliser 'inscription' au lieu de 'inscription_id' car c'est une ForeignKey
@@ -97,12 +102,14 @@ class Inscription(InscriptionStatusMixin, models.Model):
             paymentplan__feessheet__wording__wording_name__icontains="inscription",
             payment_status="verified",
         ).exists()
-    
+
     def has_any_verified_payment_in_year(self):
         """Check if student has ANY verified payment for inscription fees in this academic year.
         Useful for replace() scenarios where payment from previous inscription should be considered.
         """
-        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import Payment
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+            Payment,
+        )
 
         # All inscription IDs of this student in this academic year (including Replaced)
         inscription_ids = Inscription.objects.filter(
@@ -162,7 +169,10 @@ class Inscription(InscriptionStatusMixin, models.Model):
                 "Veuillez d'abord compléter vos informations de lycée."
             )
 
-        if target_type_code not in baseline_type_codes and not has_university_background:
+        if (
+            target_type_code not in baseline_type_codes
+            and not has_university_background
+        ):
             raise ValidationError(
                 "Impossible de s'inscrire en Master ou Doctorat sans parcours universitaire. "
                 "Les informations de lycée donnent seulement accès à l'Institut ou à la Faculté."
@@ -174,7 +184,11 @@ class Inscription(InscriptionStatusMixin, models.Model):
                 f"est de {se_mark}%. Avec un score inférieur à 50%, l'inscription est limitée à l'Institut."
             )
 
-        if se_mark >= 50 and target_type_code not in baseline_type_codes and not has_university_background:
+        if (
+            se_mark >= 50
+            and target_type_code not in baseline_type_codes
+            and not has_university_background
+        ):
             raise ValidationError(
                 "Impossible de s'inscrire à ce programme avec seulement les informations de lycée. "
                 "Un parcours universitaire est requis pour le Master ou le Doctorat."
@@ -226,6 +240,7 @@ class Inscription(InscriptionStatusMixin, models.Model):
         Delegates to MatriculeService for implementation.
         """
         MatriculeService._transfer_matricule_year_if_needed(self, old_academic_year)
+
     def get_or_create_default_group(self):
         """
         Returns the default class group (G1) for this inscription's class and academic year.
@@ -245,23 +260,27 @@ class Inscription(InscriptionStatusMixin, models.Model):
         """
         Save method delegating to InscriptionAutomation service.
         """
-        user = kwargs.pop('user', None)
-        
+        user = kwargs.pop("user", None)
+
         is_create = self._state.adding
         old_status = None
         if not is_create and self.pk:
             try:
-                old = self.__class__.objects.filter(pk=self.pk).only('regist_status').first()
+                old = (
+                    self.__class__.objects.filter(pk=self.pk)
+                    .only("regist_status")
+                    .first()
+                )
                 old_status = old.regist_status if old else None
             except Exception:
                 old_status = None
-        
+
         # Pre-save preparation
         InscriptionAutomation.prepare(self, user)
-        
+
         # Run validation
         self.clean()
-        
+
         # Persist to database
         super().save(*args, **kwargs)
 
@@ -275,8 +294,8 @@ class Inscription(InscriptionStatusMixin, models.Model):
         # is created or when an inscription becomes active (validated).
         try:
             from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
-                JurySession,
                 JuryDecision,
+                JurySession,
             )
 
             should_populate = False
@@ -285,7 +304,11 @@ class Inscription(InscriptionStatusMixin, models.Model):
             elif old_status != self.regist_status and self.regist_status == "Active":
                 should_populate = True
 
-            if should_populate and self.regist_status in ["Active", "Pending", "Complement"]:
+            if should_populate and self.regist_status in [
+                "Active",
+                "Pending",
+                "Complement",
+            ]:
                 if self.class_fk_id:
                     jury_sessions = JurySession.objects.filter(
                         class_group__class_fk_id=self.class_fk_id
@@ -304,13 +327,19 @@ class Inscription(InscriptionStatusMixin, models.Model):
                         JuryDecision.objects.get_or_create(
                             jury_session=js,
                             student_id=self.student_id,
-                            defaults={"decision": "ND", "notes": "", "validated_by": None},
+                            defaults={
+                                "decision": "ND",
+                                "notes": "",
+                                "validated_by": None,
+                            },
                         )
                     except Exception as e:
                         logger.exception(
                             "JuryDecision.get_or_create failed for "
                             "jury_session=%s student_id=%s: %s",
-                            js.id, self.student_id, e,
+                            js.id,
+                            self.student_id,
+                            e,
                         )
         except Exception as e:
             logger.exception("JuryDecision populating block failed: %s", e)
@@ -334,9 +363,15 @@ class ComplementRequirement(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="complement_requirements")
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name="complement_requirements"
+    )
     inscription = models.ForeignKey(
-        "Inscription", on_delete=models.SET_NULL, null=True, blank=True, related_name="complement_requirements"
+        "Inscription",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="complement_requirements",
     )
     course = models.ForeignKey(
         "course_app.Course",
@@ -367,7 +402,11 @@ class ComplementRequirement(models.Model):
         related_name="complement_requirements",
     )
     created_by = models.ForeignKey(
-        'user_app.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='complement_created'
+        "user_app.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="complement_created",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

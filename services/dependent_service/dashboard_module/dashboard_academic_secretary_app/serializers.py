@@ -1,8 +1,8 @@
 from rest_framework import serializers
 
 from services.core_service.student_module.inscription_app.models import (
-    Inscription,
     ComplementRequirement,
+    Inscription,
 )
 from services.dependent_service.exam_module.exam_app.models import (
     Exam,

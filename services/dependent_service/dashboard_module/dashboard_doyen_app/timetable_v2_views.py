@@ -24,7 +24,9 @@ from .utils import get_faculty_for_request
 
 
 def _get_ay(request):
-    return request.query_params.get("academic_year") or request.query_params.get("academic_year_id")
+    return request.query_params.get("academic_year") or request.query_params.get(
+        "academic_year_id"
+    )
 
 
 class TimetableTemplateViewSet(BaseViewSet):
@@ -123,18 +125,27 @@ class TimetableTemplateViewSet(BaseViewSet):
                 start_date = datetime.strptime(start_str, "%Y-%m-%d").date()
                 end_date = datetime.strptime(end_str, "%Y-%m-%d").date()
             except ValueError:
-                return error_response(message="Format de date invalide (YYYY-MM-DD attendu)")
+                return error_response(
+                    message="Format de date invalide (YYYY-MM-DD attendu)"
+                )
         else:
             ay = template.class_group.academic_year
             start_date = ay.start_date
             end_date = ay.end_date
 
         if start_date > end_date:
-            return error_response(message="La date de début doit être antérieure à la date de fin")
+            return error_response(
+                message="La date de début doit être antérieure à la date de fin"
+            )
 
         DAY_TO_WEEKDAY = {
-            "Monday": 0, "Tuesday": 1, "Wednesday": 2,
-            "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6,
+            "Monday": 0,
+            "Tuesday": 1,
+            "Wednesday": 2,
+            "Thursday": 3,
+            "Friday": 4,
+            "Saturday": 5,
+            "Sunday": 6,
         }
 
         entries = list(template.entries.select_related("attribution", "room"))
@@ -151,7 +162,7 @@ class TimetableTemplateViewSet(BaseViewSet):
         while current <= end_date:
             current_weekday = current.weekday()
             week_offset = (current - ay_start).days // 7
-            is_week_a = (week_offset % 2 == 0)
+            is_week_a = week_offset % 2 == 0
 
             for entry in entries:
                 if DAY_TO_WEEKDAY.get(entry.day_of_week) != current_weekday:
@@ -199,23 +210,27 @@ class TemplateEntryViewSet(BaseViewSet):
     permission_classes = [IsDean]
     serializer_class = TemplateEntrySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["template", "day_of_week", "session_type", "week_type", "attribution", "room"]
+    filterset_fields = [
+        "template",
+        "day_of_week",
+        "session_type",
+        "week_type",
+        "attribution",
+        "room",
+    ]
     search_fields = ["title", "attribution__course__course_name"]
     ordering_fields = ["day_of_week", "start_time"]
 
     def get_queryset(self):
         faculty = get_faculty_for_request(self.request)
-        qs = (
-            TemplateEntry.objects.filter(
-                template__class_group__class_fk__department__faculty=faculty
-            )
-            .select_related(
-                "template",
-                "attribution",
-                "attribution__principal_teacher__user",
-                "attribution__course",
-                "room",
-            )
+        qs = TemplateEntry.objects.filter(
+            template__class_group__class_fk__department__faculty=faculty
+        ).select_related(
+            "template",
+            "attribution",
+            "attribution__principal_teacher__user",
+            "attribution__course",
+            "room",
         )
         academic_year = _get_ay(self.request)
         if academic_year:
@@ -232,29 +247,32 @@ class CourseSessionViewSet(BaseViewSet):
     serializer_class = CourseSessionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = [
-        "template", "class_group", "date", "status",
-        "session_type", "attribution", "room", "is_makeup",
+        "template",
+        "class_group",
+        "date",
+        "status",
+        "session_type",
+        "attribution",
+        "room",
+        "is_makeup",
     ]
     search_fields = ["title", "attribution__course__course_name", "notes"]
     ordering_fields = ["date", "start_time", "status"]
 
     def get_queryset(self):
         faculty = get_faculty_for_request(self.request)
-        qs = (
-            CourseSession.objects.filter(
-                class_group__class_fk__department__faculty=faculty
-            )
-            .select_related(
-                "class_group",
-                "class_group__class_fk",
-                "class_group__class_fk__department",
-                "template",
-                "template_entry",
-                "attribution",
-                "attribution__principal_teacher__user",
-                "attribution__course",
-                "room",
-            )
+        qs = CourseSession.objects.filter(
+            class_group__class_fk__department__faculty=faculty
+        ).select_related(
+            "class_group",
+            "class_group__class_fk",
+            "class_group__class_fk__department",
+            "template",
+            "template_entry",
+            "attribution",
+            "attribution__principal_teacher__user",
+            "attribution__course",
+            "room",
         )
 
         # Academic year scope
@@ -378,8 +396,8 @@ class CourseSessionViewSet(BaseViewSet):
         """
         Détecte les conflits de salle et d'enseignant sur une plage de dates.
         """
-        date_from = request.query_params.get("date_from")
-        date_to = request.query_params.get("date_to")
+        request.query_params.get("date_from")
+        request.query_params.get("date_to")
 
         qs = self.get_queryset().filter(status=CourseSession.STATUS_SCHEDULED)
 
@@ -389,7 +407,7 @@ class CourseSessionViewSet(BaseViewSet):
         teacher_conflicts = []
 
         for i, s1 in enumerate(sessions):
-            for s2 in sessions[i + 1:]:
+            for s2 in sessions[i + 1 :]:
                 if s1.date != s2.date:
                     continue
                 overlap = s1.start_time < s2.end_time and s2.start_time < s1.end_time
@@ -399,24 +417,28 @@ class CourseSessionViewSet(BaseViewSet):
 
                 # Room conflict
                 if s1.room_id and s1.room_id == s2.room_id:
-                    room_conflicts.append({
-                        "type": "room",
-                        "room_name": s1.room.room_name if s1.room else None,
-                        "date": str(s1.date),
-                        "time": f"{s1.start_time}–{s1.end_time}",
-                        "session_a": str(s1.id),
-                        "session_b": str(s2.id),
-                    })
+                    room_conflicts.append(
+                        {
+                            "type": "room",
+                            "room_name": s1.room.room_name if s1.room else None,
+                            "date": str(s1.date),
+                            "time": f"{s1.start_time}–{s1.end_time}",
+                            "session_a": str(s1.id),
+                            "session_b": str(s2.id),
+                        }
+                    )
 
                 # Teacher conflict
                 if s1.attribution_id and s1.attribution_id == s2.attribution_id:
-                    teacher_conflicts.append({
-                        "type": "teacher",
-                        "date": str(s1.date),
-                        "time": f"{s1.start_time}–{s1.end_time}",
-                        "session_a": str(s1.id),
-                        "session_b": str(s2.id),
-                    })
+                    teacher_conflicts.append(
+                        {
+                            "type": "teacher",
+                            "date": str(s1.date),
+                            "time": f"{s1.start_time}–{s1.end_time}",
+                            "session_a": str(s1.id),
+                            "session_b": str(s2.id),
+                        }
+                    )
 
         total = len(room_conflicts) + len(teacher_conflicts)
         return success_response(
@@ -444,16 +466,16 @@ class CourseSessionViewSet(BaseViewSet):
         exclude_id = request.query_params.get("exclude")
 
         if not all([date, start_time, end_time]):
-            return error_response(message="Paramètres date, start_time et end_time requis")
+            return error_response(
+                message="Paramètres date, start_time et end_time requis"
+            )
 
         # Sessions that overlap the requested slot and are not cancelled
         overlap_qs = CourseSession.objects.filter(
             date=date,
             start_time__lt=end_time,
             end_time__gt=start_time,
-        ).exclude(
-            status=CourseSession.STATUS_CANCELLED
-        )
+        ).exclude(status=CourseSession.STATUS_CANCELLED)
         if exclude_id:
             overlap_qs = overlap_qs.exclude(id=exclude_id)
 
@@ -465,7 +487,9 @@ class CourseSessionViewSet(BaseViewSet):
         }
 
         if room_id:
-            conflict = overlap_qs.filter(room_id=room_id).select_related("attribution").first()
+            conflict = (
+                overlap_qs.filter(room_id=room_id).select_related("attribution").first()
+            )
             if conflict:
                 result["room_available"] = False
                 result["room_conflict"] = (
@@ -478,9 +502,6 @@ class CourseSessionViewSet(BaseViewSet):
             conflict = overlap_qs.filter(attribution_id=attribution_id).first()
             if conflict:
                 result["teacher_available"] = False
-                result["teacher_conflict"] = (
-                    conflict.title
-                    or str(conflict.date)
-                )
+                result["teacher_conflict"] = conflict.title or str(conflict.date)
 
         return success_response(data=result, message="Disponibilité vérifiée")

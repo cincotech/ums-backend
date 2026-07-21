@@ -6,13 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dashboard_academic_secretary_app', '0002_initial'),
+        ("dashboard_academic_secretary_app", "0002_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='jurydecision',
-            name='decision',
-            field=models.CharField(choices=[('AAC', 'Avance avec complément'), ('AAA', 'Assimilé aux ajournés'), ('R1S', 'Réussite 1ère session'), ('R2S', 'Réussite 2ème session'), ('ND', 'Non décision'), ('EXC', 'Exclusion')], max_length=20),
+            model_name="jurydecision",
+            name="decision",
+            field=models.CharField(
+                choices=[
+                    ("AAC", "Avance avec complément"),
+                    ("AAA", "Assimilé aux ajournés"),
+                    ("R1S", "Réussite 1ère session"),
+                    ("R2S", "Réussite 2ème session"),
+                    ("ND", "Non décision"),
+                    ("EXC", "Exclusion"),
+                ],
+                max_length=20,
+            ),
         ),
     ]

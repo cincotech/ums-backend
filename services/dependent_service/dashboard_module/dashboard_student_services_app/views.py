@@ -87,8 +87,9 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
 
             filters = {k: v for k, v in filters.items() if v}
 
-            queryset = PopulationDataService.get_population_data(filters,request.query_params.get("academic_year_id"))
-           
+            queryset = PopulationDataService.get_population_data(
+                filters, request.query_params.get("academic_year_id")
+            )
 
             if (
                 not self.pagination_enabled

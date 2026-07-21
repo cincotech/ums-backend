@@ -269,7 +269,15 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "last_login",
             "profile_picture",
         ]
-        read_only_fields = ["id", "created_at", "last_login", "requires_2fa", "requires_2fa_qr", "requires_2fa_email", "requires_2fa_static"]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "last_login",
+            "requires_2fa",
+            "requires_2fa_qr",
+            "requires_2fa_email",
+            "requires_2fa_static",
+        ]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -324,9 +332,13 @@ class TeacherDataSerializer(serializers.Serializer):
     teacher_grade = serializers.CharField(max_length=255)
     degree_id = serializers.UUIDField()
     university_id = serializers.UUIDField()
-    speciality = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    speciality = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
     url_cv = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    url_diploma = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    url_diploma = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True
+    )
 
 
 class AssignRoleSerializer(serializers.Serializer):

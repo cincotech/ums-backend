@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from services.core_service.academic_module.faculty_app.models import Faculty
+from services.core_service.academic_module.university_app.models import University
 from services.dependent_service.infrastructure_module.room_app.models import Room
 from services.dependent_service.infrastructure_module.room_app.serializers import (
     RoomSerializer,
@@ -8,8 +10,6 @@ from services.foundational_service.auth_module.authentication_app.serializers im
     RoleSerializer,
 )
 from services.foundational_service.auth_module.user_app.models import User
-from services.core_service.academic_module.faculty_app.models import Faculty
-from services.core_service.academic_module.university_app.models import University
 
 from .models import Profile, Supervisor
 

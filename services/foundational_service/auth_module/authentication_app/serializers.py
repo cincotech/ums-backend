@@ -9,11 +9,11 @@ from drf_spectacular.utils import OpenApiExample, extend_schema_serializer
 from rest_framework import serializers
 
 from services.core_service.academic_module.university_app.models import University
-from services.foundational_service.auth_module.user_app.models import Role, User
-from services.foundational_service.geo_module.serializers import CollineSerializer
 from services.foundational_service.auth_module.authentication_app.services import (
     UserService,
 )
+from services.foundational_service.auth_module.user_app.models import Role, User
+from services.foundational_service.geo_module.serializers import CollineSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +135,15 @@ class UserSerializer(serializers.ModelSerializer):
         # Email verification flag
         if "email_verified" in security_updates:
             instance.email_verified = bool(security_updates["email_verified"])
-            if not any(k in security_updates for k in ("requires_2fa", "requires_2fa_email", "requires_2fa_qr", "requires_2fa_static")):
+            if not any(
+                k in security_updates
+                for k in (
+                    "requires_2fa",
+                    "requires_2fa_email",
+                    "requires_2fa_qr",
+                    "requires_2fa_static",
+                )
+            ):
                 instance.save()
                 return instance
 
@@ -158,9 +166,7 @@ class UserSerializer(serializers.ModelSerializer):
                 user_service.setup_email_2fa(instance)
                 instance.requires_2fa_email = True
             else:
-                EmailDevice.objects.filter(
-                    user=instance, email=instance.email
-                ).delete()
+                EmailDevice.objects.filter(user=instance, email=instance.email).delete()
                 instance.requires_2fa_email = False
 
         # TOTP 2FA
@@ -306,9 +312,3 @@ class LoginSerializer(serializers.Serializer):
         if not value.strip():
             raise serializers.ValidationError("Password is required.")
         return value
-
-
-
-
-
-

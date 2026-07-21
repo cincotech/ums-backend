@@ -4,14 +4,16 @@ from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
 from unfold.admin import ModelAdmin
+
 from .models import InscriptionDraft
+
 
 class InscriptionDraftResource(resources.ModelResource):
     user_name = fields.Field(
         column_name="user_name",
         attribute="user",
         widget=ForeignKeyWidget(
-            InscriptionDraft._meta.get_field('user').related_model, "username"
+            InscriptionDraft._meta.get_field("user").related_model, "username"
         ),
     )
 
@@ -41,6 +43,7 @@ class InscriptionDraftResource(resources.ModelResource):
             "created_at",
             "updated_at",
         )
+
 
 @admin.register(InscriptionDraft)
 class InscriptionDraftAdmin(ImportExportModelAdmin, ModelAdmin):

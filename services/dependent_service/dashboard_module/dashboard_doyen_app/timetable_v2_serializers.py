@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from rest_framework import serializers
 
 from services.dependent_service.scheduling_module.scheduling_app.models import (
@@ -18,12 +16,23 @@ class TemplateEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = TemplateEntry
         fields = [
-            "id", "template",
-            "day_of_week", "start_time", "end_time",
-            "attribution", "attribution_name", "course_name",
-            "room", "room_name", "room_building",
-            "session_type", "week_type", "title", "notes",
-            "created_at", "updated_at",
+            "id",
+            "template",
+            "day_of_week",
+            "start_time",
+            "end_time",
+            "attribution",
+            "attribution_name",
+            "course_name",
+            "room",
+            "room_name",
+            "room_building",
+            "session_type",
+            "week_type",
+            "title",
+            "notes",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
@@ -76,12 +85,23 @@ class TimetableTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimetableTemplate
         fields = [
-            "id", "name",
-            "class_group", "class_group_name", "class_name", "class_level",
-            "department_name", "faculty_name",
-            "academic_year_id", "academic_year_label",
-            "status", "entries", "entry_count", "session_count",
-            "created_at", "updated_at", "published_at",
+            "id",
+            "name",
+            "class_group",
+            "class_group_name",
+            "class_name",
+            "class_level",
+            "department_name",
+            "faculty_name",
+            "academic_year_id",
+            "academic_year_label",
+            "status",
+            "entries",
+            "entry_count",
+            "session_count",
+            "created_at",
+            "updated_at",
+            "published_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at", "published_at"]
 
@@ -114,13 +134,30 @@ class CourseSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseSession
         fields = [
-            "id", "template", "template_name", "template_entry",
-            "class_group", "class_group_name", "class_name", "department_name",
-            "date", "start_time", "end_time",
-            "attribution", "attribution_name", "course_name",
-            "room", "room_name", "room_building",
-            "session_type", "title", "status", "is_makeup", "notes",
-            "created_at", "updated_at",
+            "id",
+            "template",
+            "template_name",
+            "template_entry",
+            "class_group",
+            "class_group_name",
+            "class_name",
+            "department_name",
+            "date",
+            "start_time",
+            "end_time",
+            "attribution",
+            "attribution_name",
+            "course_name",
+            "room",
+            "room_name",
+            "room_building",
+            "session_type",
+            "title",
+            "status",
+            "is_makeup",
+            "notes",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
@@ -146,6 +183,7 @@ class CourseSessionSerializer(serializers.ModelSerializer):
 
 class BulkUpsertSessionSerializer(serializers.Serializer):
     """Used by the bulk_upsert action — accepts a list of session payloads."""
+
     sessions = CourseSessionSerializer(many=True)
 
 

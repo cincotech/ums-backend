@@ -7,13 +7,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dashboard_academic_secretary_app', '0003_alter_jurydecision_decision'),
+        ("dashboard_academic_secretary_app", "0003_alter_jurydecision_decision"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='jurydecision',
-            name='jury_session',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='jury_decisions', to='dashboard_academic_secretary_app.jurysession'),
+            model_name="jurydecision",
+            name="jury_session",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="jury_decisions",
+                to="dashboard_academic_secretary_app.jurysession",
+            ),
         ),
     ]

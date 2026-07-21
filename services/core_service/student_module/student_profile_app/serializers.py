@@ -6,7 +6,14 @@ from services.foundational_service.auth_module.authentication_app.serializers im
 )
 from services.foundational_service.auth_module.user_app.models import User
 
-from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, StudentMatricule, Training
+from .models import (
+    Student,
+    StudentFile,
+    StudentGraduateInfo,
+    StudentHsInfo,
+    StudentMatricule,
+    Training,
+)
 
 
 class TrainingSerializer(serializers.ModelSerializer):
@@ -16,9 +23,15 @@ class TrainingSerializer(serializers.ModelSerializer):
 
 
 class StudentMatriculeSerializer(serializers.ModelSerializer):
-    type_formation_code = serializers.CharField(source="type_formation.code", read_only=True)
-    type_formation_name = serializers.CharField(source="type_formation.name", read_only=True)
-    academic_year_label = serializers.CharField(source="academic_year.academic_year", read_only=True)
+    type_formation_code = serializers.CharField(
+        source="type_formation.code", read_only=True
+    )
+    type_formation_name = serializers.CharField(
+        source="type_formation.name", read_only=True
+    )
+    academic_year_label = serializers.CharField(
+        source="academic_year.academic_year", read_only=True
+    )
     inscription_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -34,11 +47,18 @@ class StudentMatriculeSerializer(serializers.ModelSerializer):
 
     def get_inscription_status(self, obj):
         """Returns the current inscription status for this matricule's TypeFormation."""
-        from services.core_service.student_module.inscription_app.models import Inscription
-        inscription = Inscription.objects.filter(
-            student=obj.student,
-            class_fk__department__faculty__types=obj.type_formation,
-        ).order_by("-date_inscription").first()
+        from services.core_service.student_module.inscription_app.models import (
+            Inscription,
+        )
+
+        inscription = (
+            Inscription.objects.filter(
+                student=obj.student,
+                class_fk__department__faculty__types=obj.type_formation,
+            )
+            .order_by("-date_inscription")
+            .first()
+        )
         if not inscription:
             return None
         return inscription.regist_status

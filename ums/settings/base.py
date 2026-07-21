@@ -74,7 +74,7 @@ INSTALLED_APPS = [
     "services.core_service.student_module.card_app",
     "services.core_service.student_module.highschool_info_app",
     "services.core_service.student_module.inscription_app",
-    'services.core_service.student_module.inscription_draft',
+    "services.core_service.student_module.inscription_draft",
     "services.core_service.student_module.parent_app",
     "services.core_service.student_module.student_profile_app",
     "services.dependent_service.document_module.document_app",

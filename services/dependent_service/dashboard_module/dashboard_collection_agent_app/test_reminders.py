@@ -17,9 +17,15 @@ class PaymentReminderTest(TestCase):
         self.student = Student.objects.create(user=self.user)
 
         # Créer un StudentMatricule pour l'étudiant
-        from services.core_service.student_module.student_profile_app.models import StudentMatricule
-        from services.core_service.academic_module.faculty_app.models import TypeFormation
-        from services.core_service.academic_module.university_app.models import AcademicYear
+        from services.core_service.academic_module.faculty_app.models import (
+            TypeFormation,
+        )
+        from services.core_service.academic_module.university_app.models import (
+            AcademicYear,
+        )
+        from services.core_service.student_module.student_profile_app.models import (
+            StudentMatricule,
+        )
 
         # Créer les objets nécessaires
         type_formation = TypeFormation.objects.create(name="Faculté", code="F")
@@ -27,7 +33,7 @@ class PaymentReminderTest(TestCase):
             academic_year="2024-2025",
             civil_year="2025",
             start_date="2024-09-01",
-            end_date="2025-07-31"
+            end_date="2025-07-31",
         )
         StudentMatricule.objects.create(
             student=self.student,

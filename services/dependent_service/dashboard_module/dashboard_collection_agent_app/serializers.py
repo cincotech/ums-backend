@@ -456,7 +456,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         user_role = user.role.name
         validated_data["user"] = user
-            # Forcer le statut à 'unverified' à la création
+        # Forcer le statut à 'unverified' à la création
         validated_data["payment_status"] = "unverified"
 
         # inscription est déjà un objet après validate_inscription
@@ -611,6 +611,7 @@ class BordereauLineSerializer(serializers.ModelSerializer):
 
 
 class BordereauSerializer(serializers.ModelSerializer):
+    numero = serializers.CharField(max_length=50)
     lines = BordereauLineSerializer(many=True, read_only=True)
     bank_name = serializers.SerializerMethodField(read_only=True)
     student_name = serializers.SerializerMethodField(read_only=True)
@@ -645,7 +646,13 @@ class BordereauSerializer(serializers.ModelSerializer):
             "allocated_amount",
             "remaining_amount",
         ]
-        read_only_fields = ["id", "created_at", "created_by", "verified_by", "verified_at"]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "created_by",
+            "verified_by",
+            "verified_at",
+        ]
 
     def get_bank_name(self, obj):
         return obj.bank.bank_name if obj.bank else None

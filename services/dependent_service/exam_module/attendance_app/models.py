@@ -10,9 +10,7 @@ from services.foundational_service.auth_module.user_app.models import User
 
 # Create your models here.
 class ExamAttendance(models.Model):
-    """Représente la présence d'un étudiant à une session d'examen.
-    
-    """
+    """Représente la présence d'un étudiant à une session d'examen."""
 
     STATUS = (
         ("present", "Present"),

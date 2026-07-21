@@ -12,7 +12,14 @@ from core.response_handler import error_response, success_response, validate_ser
 from core.views import BaseViewSet
 
 from .filters import StudentFilter
-from .models import Student, StudentFile, StudentGraduateInfo, StudentHsInfo, StudentMatricule, Training
+from .models import (
+    Student,
+    StudentFile,
+    StudentGraduateInfo,
+    StudentHsInfo,
+    StudentMatricule,
+    Training,
+)
 from .serializers import (
     StudentFileSerializer,
     StudentGraduateInfoSerializer,
@@ -28,7 +35,12 @@ class StudentViewSet(BaseViewSet):
     serializer_class = StudentSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = StudentFilter
-    search_fields = ["user__first_name", "user__last_name", "user__email", "matricules__matricule"]
+    search_fields = [
+        "user__first_name",
+        "user__last_name",
+        "user__email",
+        "matricules__matricule",
+    ]
     ordering_fields = ["user__last_name", "user__first_name"]
     ordering = ["user__last_name", "user__first_name"]
 
@@ -39,19 +51,28 @@ class StudentViewSet(BaseViewSet):
     def matricules(self, request, pk=None):
         """Returns all matricules of a student grouped by formation type with inscription status."""
         student = self.get_object()
-        status_filter = request.query_params.get("status")  # Active, Replaced, Completed, etc.
+        status_filter = request.query_params.get(
+            "status"
+        )  # Active, Replaced, Completed, etc.
 
-        matricules_qs = StudentMatricule.objects.filter(
-            student=student
-        ).select_related("type_formation", "academic_year")
+        matricules_qs = StudentMatricule.objects.filter(student=student).select_related(
+            "type_formation", "academic_year"
+        )
 
         # Filter by inscription status if provided
         if status_filter:
-            from services.core_service.student_module.inscription_app.models import Inscription
-            matching_types = Inscription.objects.filter(
-                student=student,
-                regist_status__iexact=status_filter,
-            ).values_list("class_fk__department__faculty__types", flat=True).distinct()
+            from services.core_service.student_module.inscription_app.models import (
+                Inscription,
+            )
+
+            matching_types = (
+                Inscription.objects.filter(
+                    student=student,
+                    regist_status__iexact=status_filter,
+                )
+                .values_list("class_fk__department__faculty__types", flat=True)
+                .distinct()
+            )
             matricules_qs = matricules_qs.filter(type_formation__in=matching_types)
 
         serializer = StudentMatriculeSerializer(matricules_qs, many=True)
@@ -98,7 +119,9 @@ class StudentSiblingsAPIView(APIView):
     def get(self, request, matricule):
         try:
             # Chercher l'étudiant via StudentMatricule (source de vérité)
-            student_matricule = StudentMatricule.objects.filter(matricule=matricule).first()
+            student_matricule = StudentMatricule.objects.filter(
+                matricule=matricule
+            ).first()
             if not student_matricule:
                 raise Student.DoesNotExist
             student = student_matricule.student

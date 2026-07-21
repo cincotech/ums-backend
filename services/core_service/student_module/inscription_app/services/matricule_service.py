@@ -1,13 +1,12 @@
 """
 Service class for matricule generation and management.
 """
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .models import Inscription
-    from services.core_service.academic_module.class_app.models import ClassGroup
-    from services.core_service.student_module.student_profile_app.models import Student, StudentMatricule
 
+    from .models import Inscription
 
 
 class MatriculeService:
@@ -22,7 +21,10 @@ class MatriculeService:
         Returns the existing one if already generated for this type.
         Format: {TypeCode}{civil_year}/{00001}
         """
-        from services.core_service.student_module.student_profile_app.models import StudentMatricule
+        from services.core_service.student_module.student_profile_app.models import (
+            StudentMatricule,
+        )
+
         try:
             type_formation = inscription.class_fk.department.faculty.types
             type_code = type_formation.code
@@ -38,9 +40,10 @@ class MatriculeService:
             return existing.matricule
 
         year = inscription.academic_year.civil_year
-        
+
         # Use transaction to prevent race conditions
         from django.db import transaction
+
         with transaction.atomic():
             matricule = MatriculeService._get_available_matricule(
                 type_code=type_code,
@@ -67,8 +70,11 @@ class MatriculeService:
         Get an available matricule number for the given type and year.
         """
         import re
-        from services.core_service.student_module.student_profile_app.models import StudentMatricule
-        
+
+        from services.core_service.student_module.student_profile_app.models import (
+            StudentMatricule,
+        )
+
         prefix = f"{type_code}{civil_year}/"
         existing_qs = StudentMatricule.objects.select_for_update().filter(
             matricule__startswith=prefix
@@ -99,14 +105,17 @@ class MatriculeService:
         Extract the numeric part from a matricule string.
         """
         import re
+
         match = re.search(r"/(\d+)$", matricule or "")
         return int(match.group(1)) if match else None
 
     @staticmethod
-    def transfer_academic_year(inscription: "Inscription", target_academic_year, user=None):
+    def transfer_academic_year(
+        inscription: "Inscription", target_academic_year, user=None
+    ):
         """
         Move this inscription to another academic year atomically.
-        
+
         This is intentionally different from a plain PATCH because the class group
         depends on the academic year. When the year changes, the inscription must
         be attached to the default group for the same class in the target year.
@@ -117,6 +126,7 @@ class MatriculeService:
             return inscription
 
         from django.db import transaction
+
         with transaction.atomic():
             inscription_obj = (
                 inscription.__class__.objects.select_for_update()
@@ -134,6 +144,7 @@ class MatriculeService:
             if user:
                 inscription_obj.modified_by = user
                 from django.utils import timezone
+
                 inscription_obj.modified_at = timezone.now()
 
             inscription_obj.clean()
@@ -141,14 +152,18 @@ class MatriculeService:
             update_fields = ["academic_year", "class_group"]
             if user:
                 update_fields.extend(["modified_by", "modified_at"])
-            super(inscription.__class__, inscription_obj).save(update_fields=update_fields)
+            super(inscription.__class__, inscription_obj).save(
+                update_fields=update_fields
+            )
 
             inscription_obj._transfer_matricule_year_if_needed(old_academic_year)
 
             return inscription_obj
 
     @staticmethod
-    def _transfer_matricule_year_if_needed(inscription: "Inscription", old_academic_year):
+    def _transfer_matricule_year_if_needed(
+        inscription: "Inscription", old_academic_year
+    ):
         """
         Keep the student's TypeFormation matricule coherent when an inscription
         was created in the wrong year and is corrected before another inscription
@@ -160,26 +175,39 @@ class MatriculeService:
         except AttributeError:
             return
 
-        from services.core_service.student_module.student_profile_app.models import StudentMatricule
-        matricule = StudentMatricule.objects.select_for_update().filter(
-            student=inscription.student,
-            type_formation=type_formation,
-            academic_year=old_academic_year,
-        ).first()
+        from services.core_service.student_module.student_profile_app.models import (
+            StudentMatricule,
+        )
+
+        matricule = (
+            StudentMatricule.objects.select_for_update()
+            .filter(
+                student=inscription.student,
+                type_formation=type_formation,
+                academic_year=old_academic_year,
+            )
+            .first()
+        )
         if not matricule:
             return
 
-        old_year_still_used = inscription.__class__.objects.filter(
-            student=inscription.student,
-            academic_year=old_academic_year,
-            class_fk__department__faculty__types=type_formation,
-        ).exclude(pk=inscription.pk).exists()
+        old_year_still_used = (
+            inscription.__class__.objects.filter(
+                student=inscription.student,
+                academic_year=old_academic_year,
+                class_fk__department__faculty__types=type_formation,
+            )
+            .exclude(pk=inscription.pk)
+            .exists()
+        )
         if old_year_still_used:
             return
 
         old_prefix = f"{type_code}{old_academic_year.civil_year}/"
         if matricule.matricule.startswith(old_prefix):
-            preferred_number = MatriculeService._extract_matricule_number(matricule.matricule)
+            preferred_number = MatriculeService._extract_matricule_number(
+                matricule.matricule
+            )
             matricule.matricule = MatriculeService._get_available_matricule(
                 type_code=type_code,
                 civil_year=inscription.academic_year.civil_year,
@@ -200,8 +228,9 @@ class MatriculeService:
             return None
 
         from django.db import transaction
+
         from services.core_service.academic_module.class_app.models import ClassGroup
-        
+
         with transaction.atomic():
             group, _ = ClassGroup.objects.get_or_create(
                 class_fk=inscription.class_fk,

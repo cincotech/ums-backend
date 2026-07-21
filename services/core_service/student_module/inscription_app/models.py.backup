@@ -87,7 +87,7 @@ class Inscription(models.Model):
             paymentplan__feessheet__wording__wording_name__icontains="inscription",
             payment_status="verified",
         ).exists()
-    
+
     def has_any_verified_payment_in_year(self):
         """Check if student has ANY verified payment for inscription fees in this academic year.
         Useful for replace() scenarios where payment from previous inscription should be considered.
@@ -198,7 +198,7 @@ class Inscription(models.Model):
                 date_inscription=self.date_inscription,
             )
             new_inscription.save()
-            
+
             # Transfer payment reference if needed
             # Note: In multi-inscription context, each inscription should have its own payment
             # The payment system should be updated to handle this properly
@@ -313,7 +313,7 @@ class Inscription(models.Model):
             return existing.matricule
 
         year = self.academic_year.civil_year
-        
+
         # Use transaction to prevent race conditions
         with transaction.atomic():
             matricule = self._get_available_matricule(
@@ -654,19 +654,19 @@ class Inscription(models.Model):
 
     def save(self, *args, **kwargs):
         user = kwargs.pop('user', None)
-        
+
         # Set created_by and modified_by before clean() to allow payment check skip
         if user:
             if self._state.adding:
                 self.created_by = user
             self.modified_by = user
             self.modified_at = timezone.now()
-        
+
         self.clean()
-        
+
         if self._state.adding and self.class_group is None:
             self.class_group = self.get_or_create_default_group()
-        
+
         # Auto-activate if created by student_service (no payment check)
         if (self._state.adding and user and
             hasattr(user, 'role') and user.role and

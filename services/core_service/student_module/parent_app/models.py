@@ -15,7 +15,7 @@ class Parent(models.Model):
     PARENT_TYPE = (("F", "Father"), ("M", "Mother"), ("G", "Guardian"), ("T", "Tuteur"))
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     parent_name = models.CharField(max_length=60)
-    parent_phone = models.CharField(max_length=15,null=True, blank=True)
+    parent_phone = models.CharField(max_length=15, null=True, blank=True)
     parent_email = models.EmailField(max_length=100, null=True, blank=True)
     profession = models.ForeignKey(Profession, on_delete=models.RESTRICT)
     parent_type = models.CharField(max_length=1, choices=PARENT_TYPE)

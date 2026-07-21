@@ -1,6 +1,7 @@
+from datetime import date
+
 import django_filters
 from django.db.models import Q
-from datetime import date
 
 from .models import Student
 
@@ -8,7 +9,7 @@ from .models import Student
 class StudentFilter(django_filters.FilterSet):
     # Search filter using Q objects
     search = django_filters.CharFilter(method="filter_search")
-    
+
     # Filters based on inscription and related models
     academic_year_id = django_filters.UUIDFilter(
         field_name="inscriptions__academic_year_id", lookup_expr="exact"
@@ -22,11 +23,9 @@ class StudentFilter(django_filters.FilterSet):
     className = django_filters.UUIDFilter(
         field_name="inscriptions__class_fk_id", lookup_expr="exact"
     )
-    sexe = django_filters.CharFilter(
-        field_name="user__gender", lookup_expr="exact"
-    )
+    sexe = django_filters.CharFilter(field_name="user__gender", lookup_expr="exact")
     ageRange = django_filters.CharFilter(method="filter_age_range")
-    
+
     # Additional filters aligned with InscriptionFilter
     regist_status = django_filters.CharFilter(
         field_name="inscriptions__regist_status", lookup_expr="exact"
@@ -67,10 +66,10 @@ class StudentFilter(django_filters.FilterSet):
         """
         age_range = value
         today = date.today()
-        
+
         # Get distinct student IDs and birth dates to avoid duplicates from multiple inscriptions
-        student_data = queryset.distinct().values_list('id', 'user__birth_date')
-        
+        student_data = queryset.distinct().values_list("id", "user__birth_date")
+
         valid_ids = []
         for student_id, birth_date in student_data:
             if not birth_date:
@@ -80,7 +79,7 @@ class StudentFilter(django_filters.FilterSet):
             # Adjust if birthday hasn't occurred yet this year
             if (today.month, today.day) < (birth_date.month, birth_date.day):
                 age -= 1
-            
+
             if age_range == "less_than_nineteen" and age < 19:
                 valid_ids.append(student_id)
             elif age_range == "nineteen_to_twenty_two" and 19 <= age <= 22:
@@ -91,7 +90,7 @@ class StudentFilter(django_filters.FilterSet):
                 valid_ids.append(student_id)
             elif age_range == "greater_than_thirty" and age > 30:
                 valid_ids.append(student_id)
-        
+
         return queryset.filter(id__in=valid_ids)
 
     @property

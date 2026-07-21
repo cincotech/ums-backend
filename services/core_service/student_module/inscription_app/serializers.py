@@ -3,7 +3,9 @@ from rest_framework import serializers
 from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.class_app.serializers import ClassSerializer
 from services.core_service.academic_module.faculty_app.models import Faculty
-from services.core_service.student_module.student_profile_app.models import StudentMatricule
+from services.core_service.student_module.student_profile_app.models import (
+    StudentMatricule,
+)
 
 from .models import Inscription
 
@@ -91,14 +93,17 @@ class InscriptionSerializer(serializers.ModelSerializer):
         try:
             from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
                 JuryDecision,
-                JurySession,
             )
 
-            jury_decision = JuryDecision.objects.filter(
-                student=obj.student,
-                jury_session__class_group__class_fk=obj.class_fk,
-                jury_session__class_group__academic_year=obj.academic_year,
-            ).order_by("-jury_session__session_date", "-validated_at").first()
+            jury_decision = (
+                JuryDecision.objects.filter(
+                    student=obj.student,
+                    jury_session__class_group__class_fk=obj.class_fk,
+                    jury_session__class_group__academic_year=obj.academic_year,
+                )
+                .order_by("-jury_session__session_date", "-validated_at")
+                .first()
+            )
 
             if jury_decision:
                 return {
@@ -122,19 +127,25 @@ class InscriptionSerializer(serializers.ModelSerializer):
 
     def get_payment_status(self, obj):
         """Retourne le statut exact du paiement d'inscription ou null si aucun paiement"""
-        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import Payment
-        
+        from services.dependent_service.dashboard_module.dashboard_collection_agent_app.models import (
+            Payment,
+        )
+
         # Chercher le paiement d'inscription le plus récent pour cette inscription
-        payment = Payment.objects.filter(
-            inscription=obj,
-            paymentplan__feessheet__wording__wording_name__icontains="inscription"
-        ).order_by('-verified_at', '-id').first()
-        
+        payment = (
+            Payment.objects.filter(
+                inscription=obj,
+                paymentplan__feessheet__wording__wording_name__icontains="inscription",
+            )
+            .order_by("-verified_at", "-id")
+            .first()
+        )
+
         if payment:
             return payment.payment_status  # 'verified', 'unverified', ou 'rejected'
         else:
             return None  # Aucun paiement effectué
-    
+
     def get_has_verified_payment(self, obj):
         """Retourne un boolean pour la compatibilité - true si paiement vérifié"""
         return obj.has_verified_payment()
@@ -144,11 +155,13 @@ class InscriptionSerializer(serializers.ModelSerializer):
     # ---------------------------
     def create(self, validated_data):
         from django.utils import timezone
+
         from services.core_service.academic_module.university_app.models import (
             AcademicYear,
         )
-        request = self.context.get('request')
-        user = getattr(request, 'user', None)
+
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
         student = validated_data.get("student")
         faculty_id = validated_data.pop("faculty_id", None)
 
@@ -224,10 +237,10 @@ class InscriptionSerializer(serializers.ModelSerializer):
     # UPDATE METHOD
     # ---------------------------
     def update(self, instance, validated_data):
-        request = self.context.get('request')
-        user = getattr(request, 'user', None)
-        validated_data.pop('faculty_id', None)
-        validated_data.pop('class_fk_id', None)
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        validated_data.pop("faculty_id", None)
+        validated_data.pop("class_fk_id", None)
         for key, value in validated_data.items():
             setattr(instance, key, value)
         instance.save(user=user)

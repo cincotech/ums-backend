@@ -8,8 +8,8 @@ from services.core_service.student_module.student_profile_app.models import Stud
 from services.dependent_service.infrastructure_module.room_app.models import Room
 from services.foundational_service.auth_module.user_app.models import User
 
-
 # ── Legacy models (kept for compatibility) ────────────────────────────────────
+
 
 class ScheduleSlot(models.Model):
     DAYS = (
@@ -147,11 +147,13 @@ class ActivityReport(models.Model):
 
 # ── New professional timetable models ─────────────────────────────────────────
 
+
 class TimetableTemplate(models.Model):
     """
     Grille horaire récurrente d'un groupe de classe.
     Représente le planning théorique (pattern hebdomadaire) avant la génération des séances.
     """
+
     STATUS_DRAFT = "draft"
     STATUS_PUBLISHED = "published"
     STATUS_ARCHIVED = "archived"
@@ -193,6 +195,7 @@ class TemplateEntry(models.Model):
     Créneau récurrent dans une grille horaire.
     Ex: « Chaque lundi 8h–10h, CM Algorithmique, Prof. Dupont, Salle 101 »
     """
+
     DAY_CHOICES = [
         ("Monday", "Lundi"),
         ("Tuesday", "Mardi"),
@@ -239,9 +242,7 @@ class TemplateEntry(models.Model):
     session_type = models.CharField(
         max_length=10, choices=SESSION_TYPE_CHOICES, default="CM"
     )
-    week_type = models.CharField(
-        max_length=3, choices=WEEK_TYPE_CHOICES, default="all"
-    )
+    week_type = models.CharField(max_length=3, choices=WEEK_TYPE_CHOICES, default="all")
     title = models.CharField(max_length=255, null=True, blank=True)
     notes = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -260,6 +261,7 @@ class CourseSession(models.Model):
     Séance réelle (instance datée).
     Peut être générée depuis un TemplateEntry ou créée manuellement (rattrapage, etc.).
     """
+
     STATUS_SCHEDULED = "scheduled"
     STATUS_COMPLETED = "completed"
     STATUS_CANCELLED = "cancelled"

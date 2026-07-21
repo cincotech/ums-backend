@@ -43,6 +43,8 @@ class IsDean(RolePermission):
 
 class IsDeanOrStudentService(RolePermission):
     allowed_roles = ["dean", "student_service"]
+
+
 class IsStudentService(RolePermission):
     allowed_roles = ["student_service"]
 
@@ -115,7 +117,7 @@ class CanSendMessages(permissions.BasePermission):
 
 
 class IsStudentOrFinanceService(RolePermission):
-    allowed_roles = ["student", "guest", "finance_service","student_service"]
+    allowed_roles = ["student", "guest", "finance_service", "student_service"]
 
 
 # -----------------------------

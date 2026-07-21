@@ -1,6 +1,7 @@
 """
 Centralized business validation rules for Inscription model.
 """
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -16,10 +17,10 @@ class InscriptionValidator:
     def validate(inscription: "Inscription") -> None:
         """
         Validate all business rules for an inscription.
-        
+
         Args:
             inscription: The inscription instance to validate
-            
+
         Raises:
             ValidationError: If any business rule is violated
         """
@@ -33,13 +34,14 @@ class InscriptionValidator:
             if previous and previous.regist_status != "Active":
                 # Skip payment check if created by student_service
                 skip_payment = (
-                    inscription.created_by and
-                    hasattr(inscription.created_by, 'role') and
-                    inscription.created_by.role and
-                    inscription.created_by.role.name == "student_service"
+                    inscription.created_by
+                    and hasattr(inscription.created_by, "role")
+                    and inscription.created_by.role
+                    and inscription.created_by.role.name == "student_service"
                 )
                 if not skip_payment and not inscription.has_verified_payment():
                     from django.core.exceptions import ValidationError
+
                     raise ValidationError(
                         "Impossible d'activer l'inscription : le paiement des frais d'inscription doit d'abord être vérifié."
                     )
@@ -58,6 +60,7 @@ class InscriptionValidator:
 
                 if old_faculty != new_faculty:
                     from django.core.exceptions import ValidationError
+
                     raise ValidationError(
                         "Le changement de faculté n'est pas autorisé lors de la mise à jour. "
                         "Si vous souhaitez déplacer l'étudiant vers une autre faculté, "
@@ -71,6 +74,7 @@ class InscriptionValidator:
                 )
                 if same_faculty and not previous.can_change_class:
                     from django.core.exceptions import ValidationError
+
                     raise ValidationError(
                         f"Impossible de déplacer l'étudiant vers une autre classe dans la même faculté. "
                         f"Statut actuel de l'inscription : '{previous.regist_status}'."
@@ -81,15 +85,21 @@ class InscriptionValidator:
             class_type_formation = inscription.class_fk.department.faculty.types
         except AttributeError:
             from django.core.exceptions import ValidationError
+
             raise ValidationError(
                 "La configuration du type de faculté est manquante. Veuillez contacter l'administrateur."
             )
 
         # Check via StudentMatricule table (multi-matricule support)
-        from services.core_service.student_module.student_profile_app.models import StudentMatricule
-        existing_matricule = StudentMatricule.objects.filter(
-            student=inscription.student
-        ).exclude(type_formation=class_type_formation).first()
+        from services.core_service.student_module.student_profile_app.models import (
+            StudentMatricule,
+        )
+
+        existing_matricule = (
+            StudentMatricule.objects.filter(student=inscription.student)
+            .exclude(type_formation=class_type_formation)
+            .first()
+        )
 
         if existing_matricule:
             # Student has a matricule for a different type — that's fine, multi-formation allowed
@@ -117,6 +127,7 @@ class InscriptionValidator:
 
         if qs.exists():
             from django.core.exceptions import ValidationError
+
             raise ValidationError(
                 "Cet étudiant a déjà une inscription active ou en attente pour cette classe spécifique dans l'année académique sélectionnée."
             )
@@ -143,6 +154,7 @@ class InscriptionValidator:
 
         if same_class.exists():
             from django.core.exceptions import ValidationError
+
             raise ValidationError(
                 "L'étudiant est déjà inscrit dans cette classe pour cette année académique."
             )
@@ -161,6 +173,7 @@ class InscriptionValidator:
 
         if same_year_higher.exists():
             from django.core.exceptions import ValidationError
+
             raise ValidationError(
                 f"L'étudiant a déjà une inscription au niveau {target_level} ou supérieur dans ce département pour cette année académique."
             )
@@ -183,6 +196,7 @@ class InscriptionValidator:
 
                 if not previous_level_done:
                     from django.core.exceptions import ValidationError
+
                     raise ValidationError(
                         f"L'étudiant n'a pas d'inscription au niveau {target_level - 1} dans le même type de formation. "
                         f"Impossible de s'inscrire au niveau {target_level} sans avoir complété le niveau précédent. "

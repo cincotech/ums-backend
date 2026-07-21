@@ -24,7 +24,7 @@ jobs:
           script: |
             #!/bin/bash
             set -e  # Stop en cas d'erreur
-            
+
             # Définition de l'environnement
             USER_NAME=${{ secrets.DEV_SERVER_USER }}
             export HOME=/home/$USER_NAME

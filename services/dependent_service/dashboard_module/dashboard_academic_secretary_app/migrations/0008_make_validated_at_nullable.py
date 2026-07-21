@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dashboard_academic_secretary_app', '0007_make_validated_by_nullable'),
+        ("dashboard_academic_secretary_app", "0007_make_validated_by_nullable"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='jurydecision',
-            name='validated_at',
+            model_name="jurydecision",
+            name="validated_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

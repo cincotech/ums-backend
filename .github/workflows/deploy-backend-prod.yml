@@ -24,7 +24,7 @@ jobs:
           script: |
             #!/bin/bash
             set -e
-            
+
             # Variables de production
             USER_NAME=${{ secrets.PROD_SERVER_USER }}
             export HOME=/home/$USER_NAME

@@ -1,10 +1,17 @@
+from typing import TYPE_CHECKING
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
-from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
-    from services.core_service.student_module.inscription_app.models import Inscription as InscriptionType
-    from services.core_service.academic_module.university_app.models import AcademicYear as AcademicYearType
+    from services.core_service.student_module.inscription_app.models import (
+        Inscription as InscriptionType,
+    )
+    from services.core_service.academic_module.university_app.models import (
+        AcademicYear as AcademicYearType,
+    )
+
 from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.university_app.models import AcademicYear
 from services.core_service.student_module.inscription_app.models import Inscription
@@ -76,9 +83,7 @@ class AnnualRegistrationService:
                         "l'inscription reste dans les archives de cette année."
                     )
                 if payment_required:
-                    message += (
-                        " Les frais d'inscription restent dus pour cette année académique."
-                    )
+                    message += " Les frais d'inscription restent dus pour cette année académique."
                 return {
                     "inscription": existing,
                     "created": False,
@@ -117,7 +122,7 @@ class AnnualRegistrationService:
             }
 
     @staticmethod
-    def _validate_year(source:"InscriptionType", target_academic_year:"AcademicYear"):
+    def _validate_year(source: "InscriptionType", target_academic_year: "AcademicYear"):
         if source.academic_year_id == target_academic_year.id:
             raise ValidationError(
                 "La réinscription annuelle doit cibler une autre année académique."
@@ -135,7 +140,9 @@ class AnnualRegistrationService:
         from services.dependent_service.dashboard_module.dashboard_academic_secretary_app.models import (
             JuryDecision,
         )
-        from services.dependent_service.exam_module.result_app.models import CompiledResult
+        from services.dependent_service.exam_module.result_app.models import (
+            CompiledResult,
+        )
 
         jury_decision = None
         if source.class_group_id:
@@ -149,15 +156,15 @@ class AnnualRegistrationService:
             )
 
         compiled_result = (
-            CompiledResult.objects.filter(inscription=source)
-            .order_by("-id")
-            .first()
+            CompiledResult.objects.filter(inscription=source).order_by("-id").first()
         )
 
         return {
             "jury_decision": jury_decision.decision if jury_decision else None,
             "compiled_status": compiled_result.status if compiled_result else None,
-            "is_promoted": bool(compiled_result.is_promoted) if compiled_result else False,
+            "is_promoted": (
+                bool(compiled_result.is_promoted) if compiled_result else False
+            ),
         }
 
     @staticmethod
@@ -177,7 +184,11 @@ class AnnualRegistrationService:
         if mode == AnnualRegistrationService.PROMOTED:
             # Pour la promotion, accepter si la décision du jury est favorable
             # (AAC / R1S / R2S) ou si le résultat compilé indique une promotion.
-            if jury_decision in ("AAC", "R1S", "R2S") or is_promoted or compiled_status == "passed":
+            if (
+                jury_decision in ("AAC", "R1S", "R2S")
+                or is_promoted
+                or compiled_status == "passed"
+            ):
                 return
             raise ValidationError(
                 "Promotion refusée : aucune décision favorable (AAC/R1S/R2S) ou résultat validé ne permet le passage."
@@ -190,7 +201,9 @@ class AnnualRegistrationService:
             if compiled_status in ["repeat", "failed"]:
                 return
             if jury_decision in ("R1S", "R2S"):
-                raise ValidationError("Redoublement refusé : décision du jury indique réussite.")
+                raise ValidationError(
+                    "Redoublement refusé : décision du jury indique réussite."
+                )
             # Tout le reste est autorisé (sauf AAA/ND qui sont bloqués plus haut).
             return
 
@@ -219,7 +232,10 @@ class AnnualRegistrationService:
                     "Redoublement impossible : la classe cible doit être du même niveau que l'inscription source."
                 )
 
-        if target_class.level > 1 and target_class.department != source_class.department:
+        if (
+            target_class.level > 1
+            and target_class.department != source_class.department
+        ):
             started_first_year = Inscription.objects.filter(
                 student=source.student,
                 class_fk__department=target_class.department,
@@ -242,13 +258,19 @@ class AnnualRegistrationService:
             Inscription.objects.filter(pk=source.pk).update(**update_data)
 
     @staticmethod
-    def _build_success_message(mode, target_academic_year:"AcademicYearType"):
-        action = "Promotion" if mode == AnnualRegistrationService.PROMOTED else "Redoublement"
+    def _build_success_message(mode, target_academic_year: "AcademicYearType"):
+        action = (
+            "Promotion"
+            if mode == AnnualRegistrationService.PROMOTED
+            else "Redoublement"
+        )
         message = f"{action} enregistré(e) avec succès pour {target_academic_year.academic_year}."
         if target_academic_year.is_closed:
             message += (
                 " Attention : l'année académique cible est fermée, l'inscription "
                 "sera conservée dans les archives de cette année."
             )
-        message += " Les frais d'inscription restent dus pour cette nouvelle année académique."
+        message += (
+            " Les frais d'inscription restent dus pour cette nouvelle année académique."
+        )
         return message

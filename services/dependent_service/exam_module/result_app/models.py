@@ -80,9 +80,7 @@ class Result(models.Model):
         help_text="Session d'évaluation associée à cette note.",
     )
 
-    mark = models.FloatField(
-        help_text="Note obtenue par l'étudiant pour ce cours."
-    )
+    mark = models.FloatField(help_text="Note obtenue par l'étudiant pour ce cours.")
 
     class Meta:
         db_table = "results"
@@ -93,11 +91,7 @@ class Result(models.Model):
         unique_together = ("course", "inscription", "session")
 
     def __str__(self):
-        return (
-            f"{self.inscription.student} - "
-            f"{self.course.name} - "
-            f"{self.mark}"
-        )
+        return f"{self.inscription.student} - " f"{self.course.name} - " f"{self.mark}"
 
 
 class CompiledResult(models.Model):
@@ -136,8 +130,7 @@ class CompiledResult(models.Model):
     results = models.JSONField(
         default=dict,
         help_text=(
-            "Détails compilés des résultats par cours "
-            "ou par unité d'enseignement."
+            "Détails compilés des résultats par cours " "ou par unité d'enseignement."
         ),
     )
 
@@ -158,16 +151,14 @@ class CompiledResult(models.Model):
         max_length=60,
         choices=STATUS,
         help_text=(
-            "Statut académique final : "
-            "passed, failed, repeat ou incomplete."
+            "Statut académique final : " "passed, failed, repeat ou incomplete."
         ),
     )
 
     is_promoted = models.BooleanField(
         default=False,
         help_text=(
-            "Indique si l'étudiant est autorisé "
-            "à passer au niveau supérieur."
+            "Indique si l'étudiant est autorisé " "à passer au niveau supérieur."
         ),
     )
 
@@ -175,11 +166,7 @@ class CompiledResult(models.Model):
         db_table = "compiled_results"
 
     def __str__(self):
-        return (
-            f"{self.inscription} - "
-            f"{self.status} "
-            f"({self.average_mark})"
-        )
+        return f"{self.inscription} - " f"{self.status} " f"({self.average_mark})"
 
 
 class Supplement(models.Model):
@@ -220,8 +207,7 @@ class Supplement(models.Model):
     validation = models.BooleanField(
         default=False,
         help_text=(
-            "Indique si le supplément a été validé "
-            "par l'administration ou le jury."
+            "Indique si le supplément a été validé " "par l'administration ou le jury."
         ),
     )
 
@@ -243,8 +229,4 @@ class Supplement(models.Model):
         db_table = "supplements"
 
     def __str__(self):
-        return (
-            f"{self.inscription.student} - "
-            f"{self.course.name} "
-            f"(Supplement)"
-        )
+        return f"{self.inscription.student} - " f"{self.course.name} " f"(Supplement)"

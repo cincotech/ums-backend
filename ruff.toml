@@ -1,5 +1,6 @@
 [lint]
 ignore = ["E402"]
+extend-ignore = ["E203"]
 
 [lint.per-file-ignores]
 "create_*.py" = ["E402"]

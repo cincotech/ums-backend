@@ -1,5 +1,5 @@
-from datetime import date
 import logging
+from datetime import date
 
 from django.db.models import Count, Q
 
@@ -190,7 +190,7 @@ class PopulationDataService:
             "class_fk",
             "academic_year",
         )
-        
+
         logger.debug(f"Initial queryset count: {queryset.count()}")
 
         # Apply additional filters
@@ -219,15 +219,17 @@ class PopulationDataService:
         population_data = []
 
         # Get unique combinations (EXCLUDE None genders from the query itself)
-        combinations = queryset.filter(
-            student__user__gender__isnull=False
-        ).values(
-            "class_fk__department__faculty__faculty_abreviation",
-            "class_fk__department__department_name",
-            "class_fk__class_name",
-            "student__user__gender",
-        ).distinct()
-        
+        combinations = (
+            queryset.filter(student__user__gender__isnull=False)
+            .values(
+                "class_fk__department__faculty__faculty_abreviation",
+                "class_fk__department__department_name",
+                "class_fk__class_name",
+                "student__user__gender",
+            )
+            .distinct()
+        )
+
         logger.debug(f"Found {combinations.count()} unique combinations")
 
         for combo in combinations:
@@ -249,7 +251,7 @@ class PopulationDataService:
                 class_fk__class_name=combo["class_fk__class_name"],
                 student__user__gender=combo["student__user__gender"],
             )
-            
+
             combo_count = combo_queryset.count()
             logger.debug(f"Combo queryset count: {combo_count}")
 
@@ -263,13 +265,13 @@ class PopulationDataService:
 
             for inscription in combo_queryset:
                 if not inscription.student or not inscription.student.user.birth_date:
-                    logger.debug(f"Skipping inscription {inscription.id}: no student or birth_date")
+                    logger.debug(
+                        f"Skipping inscription {inscription.id}: no student or birth_date"
+                    )
                     continue
 
                 age = today.year - inscription.student.user.birth_date.year
-                if today < inscription.student.user.birth_date.replace(
-                    year=today.year
-                ):
+                if today < inscription.student.user.birth_date.replace(year=today.year):
                     age -= 1
 
                 total_count += 1
@@ -300,14 +302,16 @@ class PopulationDataService:
                             "30": "thirty",
                             "31": "thirty_one",
                         }.get(age_key, "greater_than_thirty_one")
-                    
+
                     age_counts[age_key] = age_counts.get(age_key, 0) + 1
 
             if total_count == 0:
                 logger.warning(f"No valid age data found for combo: {combo}")
                 continue
 
-            logger.debug(f"Total count for combo: {total_count}, age_counts: {age_counts}")
+            logger.debug(
+                f"Total count for combo: {total_count}, age_counts: {age_counts}"
+            )
 
             # Get totals by gender for this class
             class_totals = queryset.filter(
@@ -328,10 +332,10 @@ class PopulationDataService:
                     "id": len(population_data) + 1,
                     "faculty_abreviation": combo[
                         "class_fk__department__faculty__faculty_abreviation"
-                    ] or "",
-                    "departement_name": combo[
-                        "class_fk__department__department_name"
-                    ] or "",
+                    ]
+                    or "",
+                    "departement_name": combo["class_fk__department__department_name"]
+                    or "",
                     "class_name": combo["class_fk__class_name"] or "",
                     "sexe": combo["student__user__gender"],
                     "less_than_nineteen": age_counts.get("less_than_nineteen", 0),

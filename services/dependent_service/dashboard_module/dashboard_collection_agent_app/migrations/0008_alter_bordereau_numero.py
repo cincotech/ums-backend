@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dashboard_collection_agent_app', '0007_bordereau_bordereauline'),
+        ("dashboard_collection_agent_app", "0007_bordereau_bordereauline"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='bordereau',
-            name='numero',
+            model_name="bordereau",
+            name="numero",
             field=models.CharField(max_length=50, unique=True),
         ),
     ]

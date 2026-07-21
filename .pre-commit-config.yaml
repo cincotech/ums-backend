@@ -31,21 +31,12 @@ repos:
         name: isort (python import sorter)
         args: ["--profile", "black"]
 
-  # ⚡ Ruff for linting + auto-fixes
+  # ⚡ Ruff for linting + auto-fixes (replaces flake8 + isort + more)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.4
     hooks:
       - id: ruff
         args: ["--fix", "--unsafe-fixes"]
-
-
-
-  # 🧩 flake8 (only if you still want it)
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
-    hooks:
-      - id: flake8
-        args: ["--max-line-length=88"]
 
   # 🛡️ Bandit for security checks
   - repo: https://github.com/PyCQA/bandit
@@ -69,14 +60,14 @@ repos:
       # Django checks (basic sanity check)
       - id: django-check
         name: Django check
-        entry: python manage.py check
+        entry: /home/projets/web/ums/ums-backend/venv/bin/python3 manage.py check
         language: system
         pass_filenames: false
 
       # Check for missing migrations
       - id: django-makemigrations-check
         name: Django makemigrations check
-        entry: python manage.py makemigrations --check --dry-run
+        entry: /home/projets/web/ums/ums-backend/venv/bin/python3 manage.py makemigrations --check --dry-run
         language: system
         pass_filenames: false
         types: [python]
@@ -84,7 +75,7 @@ repos:
       # Run Django tests
       - id: django-test
         name: Django tests
-        entry: python manage.py test --settings=ums.settings.test
+        entry: /home/projets/web/ums/ums-backend/venv/bin/python3 manage.py test --settings=ums.settings.test
         language: system
         pass_filenames: false
         types: [python]

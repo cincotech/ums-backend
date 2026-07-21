@@ -37,6 +37,7 @@ class DepartmentResource(resources.ModelResource):
             "faculty",
         )
 
+
 # ----------------------------
 # Department Admin
 # ----------------------------

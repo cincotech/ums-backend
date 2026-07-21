@@ -49,7 +49,9 @@ router.register(
     r"student-graduate-info", StudentGraduateInfoViewSet, basename="studentgraduateinfo"
 )
 router.register(r"inscriptions", InscriptionViewSet, basename="inscription")
-router.register(r"inscription-drafts", InscriptionDraftViewSet, basename="inscription-draft")
+router.register(
+    r"inscription-drafts", InscriptionDraftViewSet, basename="inscription-draft"
+)
 
 router.register(r"student-cards", StudentCardViewSet, basename="student-card")
 router.register(

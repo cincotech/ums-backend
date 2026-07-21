@@ -6,11 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 
-from core.permissions import (
-    IsFinanceOrDirection,
-    IsFinanceService,
-    IsStudentOrFinance,
-)
+from core.permissions import IsFinanceOrDirection, IsFinanceService, IsStudentOrFinance
 from core.views import BaseViewSet
 
 from .filters import (
@@ -24,6 +20,7 @@ from .filters import (
     PaymentReminderFilter,
     WordingFilter,
 )
+from .finance_dashboard_service import FinanceDashboardService
 from .models import (
     Bank,
     Bordereau,
@@ -50,7 +47,6 @@ from .serializers import (
     PaymentSerializer,
     WordingSerializer,
 )
-from .finance_dashboard_service import FinanceDashboardService
 
 User = get_user_model()
 
@@ -344,9 +340,9 @@ class PaymentInstallementViewSet(BaseViewSet):
             )
 
         # Filtrage personnalisé par classe (chaque classe appartient à un département)
-        class_id = self.request.query_params.get("class_id") or self.request.query_params.get(
-            "class_fk"
-        )
+        class_id = self.request.query_params.get(
+            "class_id"
+        ) or self.request.query_params.get("class_fk")
         if class_id:
             queryset = queryset.filter(
                 student__inscriptions__class_fk=class_id,
@@ -364,9 +360,9 @@ class PaymentInstallementViewSet(BaseViewSet):
             )
 
         # Filtrage par faculté
-        faculty_id = self.request.query_params.get("faculty_id") or self.request.query_params.get(
-            "faculty_fk"
-        )
+        faculty_id = self.request.query_params.get(
+            "faculty_id"
+        ) or self.request.query_params.get("faculty_fk")
         if faculty_id:
             queryset = queryset.filter(
                 student__inscriptions__class_fk__department__faculty=faculty_id,
@@ -413,9 +409,11 @@ class PaymentInstallementViewSet(BaseViewSet):
                     "student": {
                         "id": str(inst.student.id),
                         "name": f"{inst.student.user.first_name} {inst.student.user.last_name}",
-                        "matricule": inst.student.get_active_matricule().matricule
-                        if inst.student.get_active_matricule()
-                        else None,
+                        "matricule": (
+                            inst.student.get_active_matricule().matricule
+                            if inst.student.get_active_matricule()
+                            else None
+                        ),
                     },
                     "class_info": (
                         {
@@ -654,9 +652,9 @@ class PaymentPlanViewSet(BaseViewSet):
             queryset = queryset.filter(feessheet__academic_year=academic_year_id)
 
         # Support des alias frontend
-        class_id = self.request.query_params.get("class_id") or self.request.query_params.get(
-            "class_fk"
-        )
+        class_id = self.request.query_params.get(
+            "class_id"
+        ) or self.request.query_params.get("class_fk")
         if class_id:
             queryset = queryset.filter(feessheet__class_fk=class_id)
 
@@ -666,9 +664,9 @@ class PaymentPlanViewSet(BaseViewSet):
         if department_id:
             queryset = queryset.filter(feessheet__department=department_id)
 
-        faculty_id = self.request.query_params.get("faculty_id") or self.request.query_params.get(
-            "faculty_fk"
-        )
+        faculty_id = self.request.query_params.get(
+            "faculty_id"
+        ) or self.request.query_params.get("faculty_fk")
         if faculty_id:
             queryset = queryset.filter(feessheet__faculty=faculty_id)
 
@@ -798,9 +796,9 @@ class PaymentViewSet(BaseViewSet):
         if student_id:
             queryset = queryset.filter(inscription__student__id=student_id)
 
-        class_id = self.request.query_params.get("class_id") or self.request.query_params.get(
-            "class_fk"
-        )
+        class_id = self.request.query_params.get(
+            "class_id"
+        ) or self.request.query_params.get("class_fk")
         if class_id:
             queryset = queryset.filter(
                 inscription__class_fk__id=class_id,
@@ -816,9 +814,9 @@ class PaymentViewSet(BaseViewSet):
                 inscription__regist_status__in=["Active", "Pending"],
             )
 
-        faculty_id = self.request.query_params.get("faculty_id") or self.request.query_params.get(
-            "faculty_fk"
-        )
+        faculty_id = self.request.query_params.get(
+            "faculty_id"
+        ) or self.request.query_params.get("faculty_fk")
         if faculty_id:
             queryset = queryset.filter(
                 inscription__class_fk__department__faculty__id=faculty_id,
@@ -909,44 +907,30 @@ class PaymentViewSet(BaseViewSet):
                 data=serializer.data, message="Paiement mis à jour avec succès"
             )
         return error_response(message="Erreur de validation", errors=serializer.errors)
-    @action(detail=False, methods=['get'], url_path='by-inscription/(?P<inscription_id>[^/.]+)')
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="by-inscription/(?P<inscription_id>[^/.]+)",
+    )
     def by_inscription(self, request, inscription_id=None):
         from core.response_handler import error_response, success_response
+
         """
         Récupère tous les paiements liés à une inscription spécifique
         Usage: /api/payments/by-inscription/<inscription_id>/
         """
-        # On réutilise le queryset de base qui contient déjà les select_related
-        # pour garder les performances optimales (pas de requêtes N+1)
-        if not inscription_id:
-             return error_response(message="inscription_id est requis", status_code=400)
-        payments = self.get_queryset().filter(inscription_id=inscription_id)
-        
-        serializer = self.get_serializer(payments, many=True)
-        
-        return success_response(
-            data=serializer.data,
-            message=f"Paiements récupérés pour l'inscription {inscription_id}"
-        )
-    @action(detail=False, methods=['get'], url_path='by-inscription/(?P<inscription_id>[^/.]+)')
-    def by_inscription(self, request, inscription_id=None):
-        from core.response_handler import error_response, success_response
-        """
-        Récupère tous les paiements liés à une inscription spécifique
-        Usage: /api/payments/by-inscription/<inscription_id>/
-        """
-        
         # On réutilise le queryset de base qui contient déjà les select_related
         # pour garder les performances optimales (pas de requêtes N+1)
         if not inscription_id:
             return error_response(message="inscription_id est requis", status_code=400)
         payments = self.get_queryset().filter(inscription_id=inscription_id)
-        
+
         serializer = self.get_serializer(payments, many=True)
-        
+
         return success_response(
             data=serializer.data,
-            message=f"Paiements récupérés pour l'inscription {inscription_id}"
+            message=f"Paiements récupérés pour l'inscription {inscription_id}",
         )
 
 
@@ -993,7 +977,9 @@ class FinanceDashboardAPIView(viewsets.ViewSet):
             date_from=date_from,
             date_to=date_to,
         )
-        return success_response(data=data, message="Finance overview retrieved successfully")
+        return success_response(
+            data=data, message="Finance overview retrieved successfully"
+        )
 
 
 class BordereauViewSet(BaseViewSet):
@@ -1025,7 +1011,7 @@ class BordereauViewSet(BaseViewSet):
 
     @action(detail=True, methods=["post"], url_path="verify")
     def verify(self, request, pk=None):
-        from core.response_handler import success_response, error_response
+        from core.response_handler import error_response, success_response
 
         bordereau = self.get_object()
         role = getattr(getattr(request.user, "role", None), "name", None)
@@ -1046,12 +1032,14 @@ class BordereauViewSet(BaseViewSet):
     @action(detail=True, methods=["post"], url_path="split")
     def split(self, request, pk=None):
         """Créer des bordereaux enfants à partir d'un bordereau parent."""
-        from core.response_handler import success_response, error_response
+        from core.response_handler import error_response, success_response
 
         parent = self.get_object()
         lines_data = request.data.get("splits", [])
         if not lines_data:
-            return error_response(message="Aucune répartition fournie.", status_code=400)
+            return error_response(
+                message="Aucune répartition fournie.", status_code=400
+            )
 
         total = sum(float(s.get("amount", 0)) for s in lines_data)
         if round(total, 2) != round(float(parent.amount), 2):
@@ -1080,7 +1068,9 @@ class BordereauViewSet(BaseViewSet):
         parent.save()
 
         return success_response(
-            data=BordereauSerializer(children, many=True, context={"request": request}).data,
+            data=BordereauSerializer(
+                children, many=True, context={"request": request}
+            ).data,
             message="Bordereau fractionné avec succès.",
         )
 
