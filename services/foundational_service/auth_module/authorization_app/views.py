@@ -1,7 +1,9 @@
 # Create your views here.
 from django.db import IntegrityError
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
@@ -10,6 +12,7 @@ from services.foundational_service.auth_module.authentication_app.serializers im
     RoleSerializer,
 )
 from services.foundational_service.auth_module.user_app.models import Role
+from services.search.backends import TypesenseFilterBackend
 
 from .models import Profile, Supervisor
 from .serializers import ProfileSerializer, SupervisorSerializer
@@ -18,6 +21,14 @@ from .serializers import ProfileSerializer, SupervisorSerializer
 class ProfileViewSet(BaseViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
+    search_fields = [
+        "user__first_name",
+        "user__last_name",
+        "user__email",
+        "user__phone_number",
+    ]
+    ordering_fields = ["user__first_name", "user__last_name"]
 
     def get_queryset(self):
         user = self.request.user

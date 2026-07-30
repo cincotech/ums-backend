@@ -1,8 +1,7 @@
-from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -11,10 +10,12 @@ from core.response_handler import error_response, success_response
 from services.core_service.student_module.inscription_app.models import (
     ComplementRequirement,
 )
+from services.search.backends import TypesenseFilterBackend
 
 from .filters import (
     ExamFilter,
     GradeComplaintFilter,
+    InscriptionFilter,
     JurySessionFilter,
     OfficialDocumentFilter,
     PaymentClaimFilter,
@@ -53,7 +54,7 @@ def dashboard_stats(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -66,7 +67,7 @@ class ExamViewSet(viewsets.ModelViewSet):
 
     serializer_class = ExamSerializer
     permission_classes = [IsAuthenticated, IsAcademicSecretary]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = ExamFilter
     filterset_fields = ["status", "course", "exam_type"]
     search_fields = [
@@ -177,7 +178,7 @@ def grade_entry_status(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -195,7 +196,7 @@ def course_results(request, course_id):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -208,7 +209,7 @@ class JurySessionViewSet(viewsets.ModelViewSet):
 
     serializer_class = JurySessionSerializer
     permission_classes = [IsAuthenticated, IsAcademicSecretary]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = JurySessionFilter
     filterset_fields = ["status"]
     search_fields = ["session_name", "status"]
@@ -311,7 +312,7 @@ class GradeComplaintViewSet(viewsets.ModelViewSet):
 
     serializer_class = GradeComplaintSerializer
     permission_classes = [IsAuthenticated, IsAcademicSecretary]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = GradeComplaintFilter
     filterset_fields = ["status", "course", "student"]
     search_fields = [
@@ -385,7 +386,7 @@ class ComplementRequirementViewSet(viewsets.ModelViewSet):
 
     serializer_class = ComplementRequirementSerializer
     permission_classes = [IsAuthenticated, IsAcademicSecretary]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["status", "student", "inscription"]
     search_fields = [
         "student__user__first_name",
@@ -410,7 +411,7 @@ class OfficialDocumentViewSet(viewsets.ModelViewSet):
 
     serializer_class = OfficialDocumentSerializer
     permission_classes = [IsAuthenticated, IsAcademicSecretary]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = OfficialDocumentFilter
     filterset_fields = ["document_type", "status"]
     search_fields = ["title", "content", "document_type"]
@@ -476,7 +477,7 @@ class PaymentClaimViewSet(viewsets.ModelViewSet):
 
     serializer_class = TeacherPaymentClaimSerializer
     permission_classes = [IsAuthenticated, IsAcademicSecretary]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = PaymentClaimFilter
     filterset_fields = ["status", "teacher", "course"]
     search_fields = [
@@ -579,6 +580,17 @@ class InscriptionViewSet(viewsets.ModelViewSet):
 
     serializer_class = InscriptionSerializer
     permission_classes = [IsAuthenticated, IsAcademicSecretary]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
+    filterset_class = InscriptionFilter
+    search_fields = [
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__matricule",
+        "class_fk__class_name",
+        "regist_status",
+    ]
+    ordering_fields = ["date_inscription", "regist_status"]
+    ordering = ["-date_inscription"]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -594,20 +606,9 @@ class InscriptionViewSet(viewsets.ModelViewSet):
         if self.request.query_params.get("class_id"):
             filters["class_id"] = self.request.query_params.get("class_id")
 
-        queryset = AcademicSecretaryService.get_inscriptions(
+        return AcademicSecretaryService.get_inscriptions(
             filters if filters else None
-        )
-        search = self.request.query_params.get("search")
-
-        if search:
-            queryset = queryset.filter(
-                Q(student__user__first_name__icontains=search)
-                | Q(student__user__last_name__icontains=search)
-                | Q(student__matricule__icontains=search)
-                | Q(class_fk__class_name__icontains=search)
-                | Q(regist_status__icontains=search)
-            )
-        return queryset
+        ).order_by("-date_inscription")
 
     @action(detail=False, methods=["get"])
     def statistics(self, request):
@@ -641,6 +642,6 @@ def compilation_status(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

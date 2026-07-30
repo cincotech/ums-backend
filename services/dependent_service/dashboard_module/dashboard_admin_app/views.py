@@ -5,7 +5,7 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.token_blacklist.models import (
     BlacklistedToken,
@@ -21,12 +21,12 @@ from services.dependent_service.dashboard_module.dashboard_super_admin_app.model
 from services.foundational_service.auth_module.authentication_app.services import (
     UserService,
 )
+from services.search.backends import TypesenseFilterBackend
 
 from .filters import (
     AuditLogFilter,
     ConfigurationFilter,
     NotificationFilter,
-    StatisticsFilter,
     StudentUserFilter,
     UserFilter,
 )
@@ -118,12 +118,12 @@ class DashboardAPIView(viewsets.ViewSet):
             log_security_event(
                 request,
                 "view",
-                f"Dashboard access failed: {str(e)}",
+                f"Dashboard access failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -154,12 +154,12 @@ class DashboardAPIView(viewsets.ViewSet):
             log_security_event(
                 request,
                 "bulk_delete",
-                f"Bulk delete failed: {str(e)}",
+                f"Bulk delete failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -173,7 +173,7 @@ class ConfigurationViewSet(
     queryset = UniversityConfiguration.objects.all()
     serializer_class = UniversityConfigurationSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = ConfigurationFilter
     filterset_fields = ["category"]
     search_fields = ["key", "value", "category"]
@@ -218,12 +218,12 @@ class StatisticsViewSet(viewsets.ViewSet):
             log_security_event(
                 request,
                 "view",
-                f"Statistics access failed: {str(e)}",
+                f"Statistics access failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -235,9 +235,8 @@ class NotificationViewSet(BaseViewSet):
     queryset = UniversityNotification.objects.all()
     serializer_class = UniversityNotificationSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = NotificationFilter
-    filterset_class = StatisticsFilter
     filterset_fields = ["notification_type", "is_read"]
     search_fields = ["title", "message", "notification_type"]
     ordering_fields = ["created_at", "is_read"]
@@ -262,7 +261,7 @@ class NotificationViewSet(BaseViewSet):
             return success_response(message="Notification marked as read")
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -274,7 +273,7 @@ class AuditLogViewSet(BaseViewSet):
     queryset = AuditLog.objects.all()
     serializer_class = AuditLogSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = AuditLogFilter
     filterset_fields = ["action", "user"]
     search_fields = [
@@ -319,7 +318,7 @@ class BackupViewSet(viewsets.ViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -352,12 +351,12 @@ class BackupViewSet(viewsets.ViewSet):
             log_security_event(
                 request,
                 "create",
-                f"Backup creation failed: {str(e)}",
+                f"Backup creation failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -397,12 +396,12 @@ class BackupViewSet(viewsets.ViewSet):
             log_security_event(
                 request,
                 "update",
-                f"Restore failed: {str(e)}",
+                f"Restore failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -439,12 +438,12 @@ class BackupViewSet(viewsets.ViewSet):
             log_security_event(
                 request,
                 "delete",
-                f"Backup deletion failed: {str(e)}",
+                f"Backup deletion failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -456,7 +455,7 @@ class UserViewSet(BaseViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = UserFilter
     filterset_fields = ["role", "is_active", "university"]
     search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
@@ -525,12 +524,12 @@ class UserViewSet(BaseViewSet):
             log_security_event(
                 request,
                 "update",
-                f"Password change failed: {str(e)}",
+                f"Password change failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -580,12 +579,12 @@ class UserViewSet(BaseViewSet):
             log_security_event(
                 request,
                 "update",
-                f"Role assignment failed: {str(e)}",
+                f"Role assignment failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -646,12 +645,12 @@ class UserViewSet(BaseViewSet):
             log_security_event(
                 request,
                 "update",
-                f"Profile operation failed: {str(e)}",
+                f"Profile operation failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -675,7 +674,7 @@ class UserViewSet(BaseViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -695,7 +694,7 @@ class UserViewSet(BaseViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -720,7 +719,7 @@ class UserViewSet(BaseViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -746,7 +745,7 @@ class UserViewSet(BaseViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -777,7 +776,7 @@ class UserViewSet(BaseViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -803,7 +802,7 @@ class UserViewSet(BaseViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -846,7 +845,7 @@ class UserViewSet(BaseViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -878,12 +877,12 @@ class UserViewSet(BaseViewSet):
             log_security_event(
                 request,
                 "bulk_delete",
-                f"Bulk delete failed: {str(e)}",
+                f"Bulk delete failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -894,7 +893,7 @@ class StudentUserViewSet(BaseViewSet):
     queryset = User.objects.all()
     serializer_class = UserListSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = StudentUserFilter
     filterset_fields = ["is_active", "student__inscriptions__academic_year"]
     search_fields = [
@@ -931,7 +930,7 @@ class RoleViewSet(viewsets.ViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -953,7 +952,7 @@ class RoleProfileViewSet(viewsets.ViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1031,12 +1030,12 @@ class RoleProfileViewSet(viewsets.ViewSet):
             log_security_event(
                 request,
                 "create",
-                f"User creation failed: {str(e)}",
+                f"User creation failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1076,7 +1075,7 @@ class RoleProfileViewSet(viewsets.ViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1137,12 +1136,12 @@ class RoleProfileViewSet(viewsets.ViewSet):
             log_security_event(
                 request,
                 "update",
-                f"Profile update failed: {str(e)}",
+                f"Profile update failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1183,11 +1182,11 @@ class RoleProfileViewSet(viewsets.ViewSet):
             log_security_event(
                 request,
                 "delete",
-                f"Profile delete failed: {str(e)}",
+                f"Profile delete failed: {e!s}",
                 severity="error",
                 success=False,
             )
             return error_response(
-                message=f"Error: {str(e)}",
+                message=f"Error: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

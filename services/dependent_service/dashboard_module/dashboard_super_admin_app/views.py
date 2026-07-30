@@ -124,7 +124,7 @@ class SuperAdminDashboardViewSet(viewsets.ViewSet):
         key = request.data.get("key")
         value = request.data.get("value")
 
-        config, created = SystemConfiguration.objects.get_or_create(
+        config, _created = SystemConfiguration.objects.get_or_create(
             category=category,
             key=key,
             defaults={"created_by": request.user},

@@ -127,7 +127,7 @@ class Command(BaseCommand):
         created_count = 0
         for idx, program_data in enumerate(programs_data):
             faculty = faculties[idx % faculties.count()]
-            program, created = Program.objects.get_or_create(
+            _program, created = Program.objects.get_or_create(
                 faculty=faculty,
                 presentation=program_data["presentation"],
                 defaults={**program_data, "is_active": True},

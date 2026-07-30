@@ -182,7 +182,7 @@ def send_inscription_email(inscription, email_type=None):
         email.send(fail_silently=False)
         return True
     except Exception as e:
-        print(f"Erreur lors de l'envoi de l'email: {str(e)}")
+        print(f"Erreur lors de l'envoi de l'email: {e!s}")
         return False
 
 

@@ -79,7 +79,7 @@ class PaymentService:
                 logger.info("\n✅ CREATE_PAYMENT - Succès")
                 logger.info(f"{'='*80}\n")
         except Exception as e:
-            logger.error(f"\n❌ CREATE_PAYMENT - Erreur: {str(e)}")
+            logger.error(f"\n❌ CREATE_PAYMENT - Erreur: {e!s}")
             logger.error(f"{'='*80}\n")
             raise
 
@@ -123,7 +123,7 @@ class PaymentService:
                 logger.info("\n✅ VERIFY_PAYMENT - Succès")
                 logger.info(f"{'='*80}\n")
         except Exception as e:
-            logger.error(f"\n❌ VERIFY_PAYMENT - Erreur: {str(e)}")
+            logger.error(f"\n❌ VERIFY_PAYMENT - Erreur: {e!s}")
             logger.error(f"{'='*80}\n")
             raise
 
@@ -194,7 +194,7 @@ class PaymentService:
                 logger.info("\n✅ UNVERIFY_PAYMENT - Succès")
                 logger.info(f"{'='*80}\n")
         except Exception as e:
-            logger.error(f"\n❌ UNVERIFY_PAYMENT - Erreur: {str(e)}")
+            logger.error(f"\n❌ UNVERIFY_PAYMENT - Erreur: {e!s}")
             logger.error(f"{'='*80}\n")
             raise
 
@@ -536,5 +536,5 @@ class PaymentService:
 
             logger.info("\n  ✅ HANDLE_SURPLUS - Terminé")
         except Exception as e:
-            logger.error(f"\n  ❌ HANDLE_SURPLUS - Erreur: {str(e)}")
+            logger.error(f"\n  ❌ HANDLE_SURPLUS - Erreur: {e!s}")
             raise

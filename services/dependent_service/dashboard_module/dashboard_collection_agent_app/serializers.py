@@ -1,5 +1,9 @@
 from rest_framework import serializers
 
+from services.core_service.academic_module.class_app.models import Class
+from services.core_service.academic_module.department_app.models import Department
+from services.core_service.academic_module.faculty_app.models import Faculty
+
 from .models import (
     Bank,
     Bordereau,
@@ -87,6 +91,15 @@ class FeesSheetSerializer(FeesSheetInfoMixin, serializers.ModelSerializer):
     department_info = serializers.SerializerMethodField()
     faculty_info = serializers.SerializerMethodField()
     academic_year_info = serializers.SerializerMethodField()
+    excluded_faculties = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="faculty_name"
+    )
+    excluded_departments = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="department_name"
+    )
+    excluded_classes = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="class_name"
+    )
 
     class Meta:
         model = FeesSheet
@@ -103,40 +116,148 @@ class FeesSheetSerializer(FeesSheetInfoMixin, serializers.ModelSerializer):
             "wording",
             "wording_info",
             "base_amount",
+            "apply_to_all_faculties",
+            "apply_to_all_departments",
+            "apply_to_all_classes",
+            "excluded_faculties",
+            "excluded_departments",
+            "excluded_classes",
+            "excluded_faculty_ids",
+            "excluded_department_ids",
+            "excluded_class_ids",
+        ]
+        read_only_fields = [
+            "excluded_faculties",
+            "excluded_departments",
+            "excluded_classes",
         ]
 
+    excluded_faculty_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Faculty.objects.all(),
+        write_only=True,
+        required=False,
+    )
+    excluded_department_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Department.objects.all(),
+        write_only=True,
+        required=False,
+    )
+    excluded_class_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Class.objects.all(),
+        write_only=True,
+        required=False,
+    )
+
+    def create(self, validated_data):
+        excluded_faculties = validated_data.pop("excluded_faculty_ids", [])
+        excluded_departments = validated_data.pop("excluded_department_ids", [])
+        excluded_classes = validated_data.pop("excluded_class_ids", [])
+        instance = super().create(validated_data)
+        instance.excluded_faculties.set(excluded_faculties)
+        instance.excluded_departments.set(excluded_departments)
+        instance.excluded_classes.set(excluded_classes)
+        return instance
+
+    def update(self, instance, validated_data):
+        excluded_faculties = validated_data.pop("excluded_faculty_ids", None)
+        excluded_departments = validated_data.pop("excluded_department_ids", None)
+        excluded_classes = validated_data.pop("excluded_class_ids", None)
+        instance = super().update(instance, validated_data)
+        if excluded_faculties is not None:
+            instance.excluded_faculties.set(excluded_faculties)
+        if excluded_departments is not None:
+            instance.excluded_departments.set(excluded_departments)
+        if excluded_classes is not None:
+            instance.excluded_classes.set(excluded_classes)
+        return instance
+
     def validate(self, data):
-        # Récupérer les valeurs des niveaux depuis les données ou l'instance existante
         class_fk = data.get("class_fk")
         department = data.get("department")
         faculty = data.get("faculty")
+        apply_to_all_faculties = data.get("apply_to_all_faculties", False)
+        apply_to_all_departments = data.get("apply_to_all_departments", False)
+        apply_to_all_classes = data.get("apply_to_all_classes", False)
 
-        # Pour les mises à jour (PUT/PATCH), récupérer les valeurs existantes si non fournies
         if self.instance:
-            # Utiliser les valeurs existantes si elles ne sont pas dans les données
             if "class_fk" not in data:
                 class_fk = self.instance.class_fk
             if "department" not in data:
                 department = self.instance.department
             if "faculty" not in data:
                 faculty = self.instance.faculty
+            if "apply_to_all_faculties" not in data:
+                apply_to_all_faculties = self.instance.apply_to_all_faculties
+            if "apply_to_all_departments" not in data:
+                apply_to_all_departments = self.instance.apply_to_all_departments
+            if "apply_to_all_classes" not in data:
+                apply_to_all_classes = self.instance.apply_to_all_classes
 
-        # Vérifier qu'exactement un seul niveau est défini seulement si au moins un niveau est mentionné
-        level_fields_in_data = any(
-            field in data for field in ["class_fk", "department", "faculty"]
+        def _to_bool(v):
+            return bool(v) and str(v).strip() not in {"", "0", "false", "None"}
+
+        scope_fields_in_data = any(
+            _to_bool(data.get(f))
+            for f in [
+                "class_fk",
+                "department",
+                "faculty",
+                "apply_to_all_faculties",
+                "apply_to_all_departments",
+                "apply_to_all_classes",
+            ]
+            if f in data
         )
 
-        if level_fields_in_data or not self.instance:
-            # Compter les niveaux définis
-            levels_set = sum([bool(class_fk), bool(department), bool(faculty)])
+        if scope_fields_in_data or not self.instance:
+            if _to_bool(apply_to_all_faculties):
+                if faculty or department or class_fk:
+                    raise serializers.ValidationError(
+                        "Impossible de sélectionner une faculté/département/classe "
+                        "lorsque le barème s'applique à toutes les facultés."
+                    )
+                return data
+
+            if _to_bool(apply_to_all_departments):
+                if not faculty or department or class_fk:
+                    raise serializers.ValidationError(
+                        "L'application à tous les départments nécessite une faculté "
+                        "et ne peut pas être combinée à un département ou une classe."
+                    )
+                return data
+
+            if _to_bool(apply_to_all_classes):
+                if not department or class_fk:
+                    raise serializers.ValidationError(
+                        "L'application à toutes les classes nécessite un département "
+                        "et ne peut pas être combinée à une classe."
+                    )
+                return data
+
+            levels_set = sum(
+                [
+                    bool(class_fk),
+                    bool(department),
+                    bool(faculty),
+                ]
+            )
 
             if levels_set == 0:
                 raise serializers.ValidationError(
                     "Vous devez définir exactement un niveau : classe, département ou faculté."
                 )
-            elif levels_set > 1:
+
+            if class_fk and not department:
                 raise serializers.ValidationError(
-                    "Vous ne pouvez définir qu'un seul niveau à la fois : classe, département ou faculté."
+                    "La sélection d'une classe nécessite un département."
+                )
+
+            if department and not faculty:
+                raise serializers.ValidationError(
+                    "La sélection d'un département nécessite une faculté."
                 )
 
         return data

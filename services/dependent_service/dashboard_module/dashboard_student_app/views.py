@@ -45,7 +45,7 @@ def student_dashboard_overview(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -78,7 +78,7 @@ def student_profile(request):
 
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -103,7 +103,7 @@ def student_grades(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -128,7 +128,7 @@ def student_transcript(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -146,7 +146,7 @@ def academic_progress(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -178,7 +178,7 @@ def student_schedule(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -196,7 +196,7 @@ def student_attendance(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -224,7 +224,7 @@ def student_notifications(request):
 
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -257,7 +257,7 @@ def document_requests(request):
 
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -288,7 +288,7 @@ def student_messages(request):
 
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -318,7 +318,7 @@ def download_documents(request):
 
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -336,7 +336,7 @@ def student_jury_decisions(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -374,7 +374,7 @@ def student_grade_complaints(request):
         return error_response(message=str(e), status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -390,7 +390,7 @@ def student_exams(request):
         return success_response(data=serializer.data, message="Exams retrieved")
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -408,7 +408,7 @@ def student_official_documents(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -427,6 +427,6 @@ def student_payments(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

@@ -59,7 +59,7 @@ class Command(BaseCommand):
         with connection.schema_editor(collect_sql=True) as schema_editor:
             for model in models:
                 schema_editor.execute(
-                    f"-- app: {model._meta.app_label} / model: {model.__name__} / table: {model._meta.db_table}"  # noqa: E501
+                    f"-- app: {model._meta.app_label} / model: {model.__name__} / table: {model._meta.db_table}"
                 )
                 try:
                     schema_editor.create_model(model)

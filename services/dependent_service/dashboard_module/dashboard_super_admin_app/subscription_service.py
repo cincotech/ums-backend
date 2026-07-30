@@ -11,7 +11,7 @@ class UniversityProfileService:
     @staticmethod
     def create_profile(university, contact_email, contact_phone=None, website=None):
         """Create university profile"""
-        profile, created = UniversityProfile.objects.get_or_create(
+        profile, _created = UniversityProfile.objects.get_or_create(
             university=university,
             defaults={
                 "contact_email": contact_email,
@@ -100,7 +100,7 @@ class SubscriptionService:
             raise ValueError(f"University already subscribed to {module.name}")
 
         # Create or update subscription
-        subscription, created = UniversitySubscription.objects.update_or_create(
+        subscription, _created = UniversitySubscription.objects.update_or_create(
             university=university,
             module=module,
             defaults={

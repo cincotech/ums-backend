@@ -9,7 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django_otp.plugins.otp_email.models import EmailDevice
 from rest_framework import permissions, status
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -25,6 +25,7 @@ from core.response_handler import error_response, success_response, validate_ser
 from core.views import BaseViewSet
 from services.core_service.academic_module.university_app.models import University
 from services.foundational_service.auth_module.user_app.models import Role, User
+from services.search.backends import TypesenseFilterBackend
 
 from .email_service import TwoFactorEmailService
 from .filters import UserFilter
@@ -102,7 +103,7 @@ class RegisterView(APIView):
             guest_role, _ = Role.objects.get_or_create(name="guest")
             user.role = guest_role
 
-        upg, created = University.objects.get_or_create(
+        upg, _created = University.objects.get_or_create(
             university_name="Université Polytechnique de Gitega", university_abrev="UPG"
         )
         user.university = upg
@@ -122,9 +123,9 @@ class RegisterView(APIView):
                 extra={"typeError": "EmailNotVerified"},
             )
         except Exception as e:
-            logger.error(f"Registration failed: {str(e)}")
+            logger.error(f"Registration failed: {e!s}")
             return error_response(
-                message=f"Failed to send OTP: {str(e)}",
+                message=f"Failed to send OTP: {e!s}",
                 errors=str(e),
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -175,8 +176,8 @@ class SendEmailOTPView(APIView):
                 errors="NotFund",
             )
         except Exception as e:
-            logger.error(f"Send OTP failed: {str(e)}")
-            return error_response(message=f"Send OTP failed: {str(e)}", errors=str(e))
+            logger.error(f"Send OTP failed: {e!s}")
+            return error_response(message=f"Send OTP failed: {e!s}", errors=str(e))
 
 
 class EmailOTPVerificationView(APIView):
@@ -217,9 +218,9 @@ class EmailOTPVerificationView(APIView):
             )
 
         except Exception as e:
-            logger.error(f"Email OTP verification failed: {str(e)}")
+            logger.error(f"Email OTP verification failed: {e!s}")
             return error_response(
-                message=f"Invalid email or no OTP device {str(e)}",
+                message=f"Invalid email or no OTP device {e!s}",
                 errors="VerificationError",
             )
 
@@ -276,7 +277,7 @@ class LoginView(APIView):
                 )
             except Exception as e:
                 logger.error(
-                    f"Login failed: Failed to send verification OTP for {email}: {str(e)}"
+                    f"Login failed: Failed to send verification OTP for {email}: {e!s}"
                 )
                 return error_response(
                     message="Failed to send verification email. Please try again later.",
@@ -299,7 +300,7 @@ class LoginView(APIView):
                     )
                 except Exception as e:
                     logger.error(
-                        f"Login failed: Unable to generate email OTP for {email}: {str(e)}"
+                        f"Login failed: Unable to generate email OTP for {email}: {e!s}"
                     )
                     return error_response(
                         errors="OTPGenerationFailed",
@@ -373,9 +374,9 @@ class SetEmail2FAView(APIView):
                 )
 
             except Exception as e:
-                logger.error(f"Email 2FA setup failed for {user.email}: {str(e)}")
+                logger.error(f"Email 2FA setup failed for {user.email}: {e!s}")
                 return error_response(
-                    message=f"Failed to setup email 2FA: {str(e)}",
+                    message=f"Failed to setup email 2FA: {e!s}",
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
         logger.error(f"Email 2FA setup failed: Already enabled for {user.email}")
@@ -429,8 +430,8 @@ class SetStatic2FAView(APIView):
                 )
 
             except Exception as e:
-                logger.error(f"Static 2FA setup failed for {user.email}: {str(e)}")
-                return error_response(message=f"Failed to setup static 2FA: {str(e)}")
+                logger.error(f"Static 2FA setup failed for {user.email}: {e!s}")
+                return error_response(message=f"Failed to setup static 2FA: {e!s}")
         logger.error(f"Static 2FA setup failed: Already enabled for {user.email}")
         return error_response(
             message="Static 2FA already set up", errors="Static2FAAlready"
@@ -456,7 +457,7 @@ class VerifyEmail2FAView(APIView):
             logger.error(f"Email 2FA verification failed: Invalid OTP for {user.email}")
             return error_response(message="Invalid OTP", errors="InvalidOTP")
         except Exception as e:
-            logger.error(f"Email 2FA verification failed for {user.email}: {str(e)}")
+            logger.error(f"Email 2FA verification failed for {user.email}: {e!s}")
             return error_response(
                 message="Email 2FA not set up", errors="Email2FANotSet"
             )
@@ -484,7 +485,7 @@ class VerifyTOTP2FAView(APIView):
             return error_response(message="Invalid OTP", errors="InvalidOTP")
 
         except Exception as e:
-            logger.error(f"TOTP 2FA verification failed for {user.email}: {str(e)}")
+            logger.error(f"TOTP 2FA verification failed for {user.email}: {e!s}")
             return error_response(message="TOTP 2FA not set up", errors="TOTP2FANotSet")
 
 
@@ -508,7 +509,7 @@ class VerifyStatic2FAView(APIView):
             )
             return error_response(message="Invalid token", errors="InvalidOTP")
         except Exception as e:
-            logger.error(f"Static 2FA verification failed for {user.email}: {str(e)}")
+            logger.error(f"Static 2FA verification failed for {user.email}: {e!s}")
             return error_response(
                 message="Static 2FA not set up", errors="Static2FANotSet"
             )
@@ -536,7 +537,7 @@ class DisableEmail2FAView(APIView):
             )
 
         except Exception as e:
-            logger.error(f"Email 2FA disable failed for {user.email}: {str(e)}")
+            logger.error(f"Email 2FA disable failed for {user.email}: {e!s}")
             return error_response(
                 message="Email 2FA not enabled", errors="Email2FANotEnabled"
             )
@@ -573,7 +574,7 @@ class DisableTOTP2FAView(APIView):
             )
 
         except Exception as e:
-            logger.error(f"TOTP 2FA disable failed for {user.email}: {str(e)}")
+            logger.error(f"TOTP 2FA disable failed for {user.email}: {e!s}")
             return error_response(
                 message="TOTP 2FA not enabled", errors="TOTP2FANotEnabled"
             )
@@ -595,7 +596,7 @@ class DisableStatic2FAView(APIView):
             return success_response(message="Static 2FA disabled successfully")
 
         except Exception as e:
-            logger.error(f"Static 2FA disable failed for {user.email}: {str(e)}")
+            logger.error(f"Static 2FA disable failed for {user.email}: {e!s}")
             return error_response(
                 errors="Static2FANotEnabled",
                 message="Static 2FA not enabled",
@@ -647,10 +648,8 @@ class Email2FALoginView(APIView):
             )
 
         except Exception as e:
-            logger.error(f"Email 2FA login failed for {email}: {str(e)}")
-            return error_response(
-                message=f"Email 2FA login failed for {email}: {str(e)}"
-            )
+            logger.error(f"Email 2FA login failed for {email}: {e!s}")
+            return error_response(message=f"Email 2FA login failed for {email}: {e!s}")
 
 
 class TOTP2FALoginView(APIView):
@@ -698,10 +697,8 @@ class TOTP2FALoginView(APIView):
             )
 
         except Exception as e:
-            logger.error(f"TOTP 2FA login failed for {email}: {str(e)}")
-            return error_response(
-                message=f"TOTP 2FA login failed for {email}: {str(e)}"
-            )
+            logger.error(f"TOTP 2FA login failed for {email}: {e!s}")
+            return error_response(message=f"TOTP 2FA login failed for {email}: {e!s}")
 
 
 class Static2FALoginView(APIView):
@@ -748,10 +745,8 @@ class Static2FALoginView(APIView):
             )
 
         except Exception as e:
-            logger.error(f"Static 2FA login failed for {email}: {str(e)}")
-            return error_response(
-                message=f"Static 2FA login failed for {email}: {str(e)}"
-            )
+            logger.error(f"Static 2FA login failed for {email}: {e!s}")
+            return error_response(message=f"Static 2FA login failed for {email}: {e!s}")
 
 
 class TokenRefreshView(APIView):
@@ -782,7 +777,7 @@ class UserViewSet(BaseViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser, JSONParser)
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = UserFilter
     search_fields = ["email", "first_name", "last_name", "phone_number", "role__name"]
     ordering_fields = ["email", "first_name", "last_name", "created_at"]
@@ -877,9 +872,9 @@ class UserViewSet(BaseViewSet):
                 },
             )
         except Exception as e:
-            logger.error(f"Admin TOTP setup failed for {user.email}: {str(e)}")
+            logger.error(f"Admin TOTP setup failed for {user.email}: {e!s}")
             return error_response(
-                message=f"Failed to setup TOTP 2FA: {str(e)}",
+                message=f"Failed to setup TOTP 2FA: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -900,9 +895,9 @@ class UserViewSet(BaseViewSet):
                 data={"email": user.email, "backup_codes": tokens},
             )
         except Exception as e:
-            logger.error(f"Admin static 2FA setup failed for {user.email}: {str(e)}")
+            logger.error(f"Admin static 2FA setup failed for {user.email}: {e!s}")
             return error_response(
-                message=f"Failed to setup static 2FA: {str(e)}",
+                message=f"Failed to setup static 2FA: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -923,9 +918,9 @@ class UserViewSet(BaseViewSet):
                 data={"email": user.email},
             )
         except Exception as e:
-            logger.error(f"Admin email 2FA setup failed for {user.email}: {str(e)}")
+            logger.error(f"Admin email 2FA setup failed for {user.email}: {e!s}")
             return error_response(
-                message=f"Failed to setup email 2FA: {str(e)}",
+                message=f"Failed to setup email 2FA: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 

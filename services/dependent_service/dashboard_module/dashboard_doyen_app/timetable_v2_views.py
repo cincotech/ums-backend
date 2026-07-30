@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from core.permissions import IsDean
 from core.response_handler import error_response, success_response
@@ -13,6 +13,7 @@ from services.dependent_service.scheduling_module.scheduling_app.models import (
     TemplateEntry,
     TimetableTemplate,
 )
+from services.search.backends import TypesenseFilterBackend
 
 from .timetable_v2_serializers import (
     CourseSessionSerializer,
@@ -37,7 +38,7 @@ class TimetableTemplateViewSet(BaseViewSet):
 
     permission_classes = [IsDean]
     serializer_class = TimetableTemplateSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["class_group", "status"]
     search_fields = ["name", "class_group__group_name"]
     ordering_fields = ["created_at", "updated_at", "name"]
@@ -209,7 +210,7 @@ class TemplateEntryViewSet(BaseViewSet):
 
     permission_classes = [IsDean]
     serializer_class = TemplateEntrySerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = [
         "template",
         "day_of_week",
@@ -245,7 +246,7 @@ class CourseSessionViewSet(BaseViewSet):
 
     permission_classes = [IsDean]
     serializer_class = CourseSessionSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = [
         "template",
         "class_group",

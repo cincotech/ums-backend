@@ -1,8 +1,9 @@
-from django.db.models import Q
+from typing import ClassVar
+
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
 
 from core.views import BaseViewSet
+from services.search.backends import TypesenseFilterBackend, TypesenseOrderingFilter
 
 from .filters import TeacherFilter
 from .models import Attribution, Suggestion, Teacher
@@ -12,30 +13,26 @@ from .serializers import AttributionSerializer, SuggestionSerializer, TeacherSer
 class TeacherViewSet(BaseViewSet):
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = [
+    filter_backends: ClassVar[list] = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
+    filterset_class = TeacherFilter
+    search_fields: ClassVar[list] = [
         "user__first_name",
         "user__last_name",
         "user__email",
         "teacher_grade",
         "speciality",
     ]
-    filterset_class = TeacherFilter
-    ordering_fields = ["user__first_name", "user__last_name", "teacher_grade"]
-    ordering = ["user__last_name"]
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        search = self.request.query_params.get("search")
-
-        if search:
-            queryset = queryset.filter(
-                Q(user__first_name__icontains=search)
-                | Q(user__last_name__icontains=search)
-                | Q(user__email__icontains=search)
-            )
-
-        return queryset
+    filter_fields: ClassVar[list] = ["faculty_id", "university_id", "department_id"]
+    ordering_fields: ClassVar[list] = [
+        "user__first_name",
+        "user__last_name",
+        "teacher_grade",
+    ]
+    ordering: ClassVar[list] = ["user__last_name"]
 
 
 class AttributionViewSet(BaseViewSet):

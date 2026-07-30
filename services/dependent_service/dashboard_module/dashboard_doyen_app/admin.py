@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import SecretaryNote, TeacherWorkload, TeachingProgress
+from .models import (
+    CurriculumCourse,
+    CurriculumTeachingUnit,
+    CurriculumTemplate,
+    SecretaryNote,
+    TeacherWorkload,
+    TeachingProgress,
+)
 
 
 @admin.register(TeachingProgress)
@@ -73,3 +80,30 @@ class SecretaryNoteAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related("faculty", "created_by")
+
+
+class CurriculumCourseInline(admin.TabularInline):
+    model = CurriculumCourse
+    extra = 0
+
+
+@admin.register(CurriculumTeachingUnit)
+class CurriculumTeachingUnitAdmin(admin.ModelAdmin):
+    list_display = ("template", "module", "position", "is_required")
+    list_filter = ("template__status", "is_required")
+    inlines = [CurriculumCourseInline]
+
+
+@admin.register(CurriculumTemplate)
+class CurriculumTemplateAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "class_fk",
+        "academic_year",
+        "semester",
+        "version",
+        "status",
+    )
+    list_filter = ("status", "academic_year", "semester")
+    search_fields = ("title", "class_fk__class_name")
+    readonly_fields = ("created_at", "updated_at", "published_at")

@@ -141,7 +141,7 @@ class ConfigurationService:
     @staticmethod
     def get_or_create_config(university, category, key, default_value=None):
         """Get or create a configuration"""
-        config, created = UniversityConfiguration.objects.get_or_create(
+        config, _created = UniversityConfiguration.objects.get_or_create(
             university=university,
             category=category,
             key=key,
@@ -312,7 +312,7 @@ class UniversityUserManagementService:
     @staticmethod
     def create_user_profile(user, position=None, start_date=None):
         """Create profile for user"""
-        profile, created = Profile.objects.get_or_create(user=user)
+        profile, _created = Profile.objects.get_or_create(user=user)
 
         if position:
             profile.position = position
@@ -388,7 +388,7 @@ class RoleProfileService:
     @staticmethod
     def create_profile_for_user(user, role_id, profile_data):
         """Create role-specific profile for user"""
-        profile, created = Profile.objects.get_or_create(
+        profile, _created = Profile.objects.get_or_create(
             user=user, defaults={"start_date": profile_data.get("start_date")}
         )
 

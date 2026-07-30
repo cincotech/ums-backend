@@ -286,8 +286,7 @@ class StudentDashboardService:
                     if slot.day_of_week in days_order
                     else 0
                 )
-                if day_index > last_day_index:
-                    last_day_index = day_index
+                last_day_index = max(last_day_index, day_index)
 
             total_days = 7  # Monday to Sunday
             calculated_width = (last_day_index + 1) / total_days

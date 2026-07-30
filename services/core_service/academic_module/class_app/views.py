@@ -2,10 +2,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
 
 from core.response_handler import error_response, success_response
 from core.views import BaseViewSet
+from services.search.backends import TypesenseFilterBackend, TypesenseOrderingFilter
 
 from .filters import ClassFilter
 from .models import Class, ClassGroup
@@ -15,13 +15,18 @@ from .serializers import ClassGroupSerializer, ClassSerializer
 class ClassViewSet(BaseViewSet):
     queryset = Class.objects.all()
     serializer_class = ClassSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
     filterset_class = ClassFilter
     search_fields = [
         "class_name",
         "department__department_name",
         "department__faculty__faculty_name",
     ]
+    filter_fields = ["faculty_id", "university_id", "department_id"]
     ordering_fields = ["class_name"]
     ordering = ["class_name"]
 
@@ -52,7 +57,11 @@ class ClassViewSet(BaseViewSet):
 class ClassGroupViewSet(BaseViewSet):
     queryset = ClassGroup.objects.all()
     serializer_class = ClassGroupSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
     filterset_fields = ["class_fk", "academic_year"]
     search_fields = [
         "group_name",

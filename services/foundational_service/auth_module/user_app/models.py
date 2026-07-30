@@ -144,7 +144,7 @@ class User(AbstractUser):
         Returns:
             dict: QR code data for TOTP setup.
         """
-        device, qr_data = UserService().setup_totp_2fa(self)
+        _device, qr_data = UserService().setup_totp_2fa(self)
         self.requires_2fa = True
         self.requires_2fa_qr = True
         self.save()

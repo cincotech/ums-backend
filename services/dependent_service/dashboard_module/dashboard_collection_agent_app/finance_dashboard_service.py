@@ -344,7 +344,7 @@ class FinanceDashboardService:
             faculty_map[key]["collected"] = row["collected"] or 0
 
         by_faculty = []
-        for _, row in faculty_map.items():
+        for row in faculty_map.values():
             expected = row["expected"]
             collected = row["collected"]
             outstanding_faculty = max(expected - collected, 0)

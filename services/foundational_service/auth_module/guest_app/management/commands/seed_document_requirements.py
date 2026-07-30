@@ -452,7 +452,7 @@ class Command(BaseCommand):
         for doc_data in documents:
             try:
                 role = Role.objects.get(name=doc_data["role"])
-                obj, created = RoleDocumentRequirement.objects.update_or_create(
+                _obj, created = RoleDocumentRequirement.objects.update_or_create(
                     role=role,
                     document_type=doc_data["document_type"],
                     defaults={

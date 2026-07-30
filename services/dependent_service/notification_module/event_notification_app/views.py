@@ -4,6 +4,8 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from services.search.backends import TypesenseFilterBackend
+
 from .email_service import send_notification_email
 from .models import Notification
 from .serializers import (
@@ -34,7 +36,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     filter_backends = [
         DjangoFilterBackend,
-        filters.SearchFilter,
+        TypesenseFilterBackend,
         filters.OrderingFilter,
     ]
     filterset_fields = ["delivery_status", "email", "telephone"]

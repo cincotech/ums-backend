@@ -163,5 +163,4 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"Created {total_groups} class groups")
             )
 
-            #
             self.stdout.write(self.style.SUCCESS("Successfully completed setup!"))

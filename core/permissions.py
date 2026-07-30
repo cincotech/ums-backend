@@ -77,6 +77,18 @@ class IsTeacher(RolePermission):
     allowed_roles = ["teacher"]
 
 
+class IsTeacherOrFinanceOrDoyen(RolePermission):
+    allowed_roles = ["teacher", "finance_service", "dean", "admin", "super_admin"]
+
+
+class IsDoyen(RolePermission):
+    allowed_roles = ["dean", "admin", "super_admin"]
+
+
+class IsDoyenOrAdmin(RolePermission):
+    allowed_roles = ["dean", "admin", "super_admin"]
+
+
 class IsSupervisor(RolePermission):
     allowed_roles = ["supervisor"]
 

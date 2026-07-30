@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "services.foundational_service.auth_module.guest_app",
     "services.core_service.academic_module.public_app",
     "services.core_service.academic_module.survey_app",
+    "services.search",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_totp",
@@ -134,6 +135,7 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
     # "core.middlewares.academic_year_lock.AcademicYearLockMiddleware",
+    "core.middlewares.academic_year_filter.AcademicYearFilterMiddleware",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -242,3 +244,47 @@ CELERY_RESULT_BACKEND = get_env_variable(
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
+
+# =============================================================================
+# TYPESENSE CONFIGURATION
+# =============================================================================
+TYPESENSE_HOST = os.getenv("TYPESENSE_HOST", "192.168.2.21")
+TYPESENSE_PORT = int(os.getenv("TYPESENSE_PORT", "8108"))
+TYPESENSE_PROTOCOL = os.getenv("TYPESENSE_PROTOCOL", "http")
+TYPESENSE_API_KEY = os.getenv("TYPESENSE_API_KEY", "")
+TYPESENSE_TIMEOUT = int(os.getenv("TYPESENSE_TIMEOUT", "10"))
+TYPESENSE_MAX_RETRIES = int(os.getenv("TYPESENSE_MAX_RETRIES", "3"))
+TYPESENSE_ENABLED = os.getenv("TYPESENSE_ENABLED", "True").lower() == "true"
+TYPESENSE_FALLBACK_ENABLED = (
+    os.getenv("TYPESENSE_FALLBACK_ENABLED", "True").lower() == "true"
+)
+TYPESENSE_FORCE_FALLBACK = (
+    os.getenv("TYPESENSE_FORCE_FALLBACK", "False").lower() == "true"
+)
+TYPESENSE_SYNONYMS_ENABLED = (
+    os.getenv("TYPESENSE_SYNONYMS_ENABLED", "True").lower() == "true"
+)
+
+TYPESENSE_CONFIG = {
+    "host": TYPESENSE_HOST,
+    "port": TYPESENSE_PORT,
+    "protocol": TYPESENSE_PROTOCOL,
+    "api_key": TYPESENSE_API_KEY,
+    "timeout": TYPESENSE_TIMEOUT,
+    "max_retries": TYPESENSE_MAX_RETRIES,
+    "enabled": TYPESENSE_ENABLED,
+    "fallback_enabled": TYPESENSE_FALLBACK_ENABLED,
+    "force_fallback": TYPESENSE_FORCE_FALLBACK,
+    "synonyms_enabled": TYPESENSE_SYNONYMS_ENABLED,
+}
+
+# Mapping des modèles Django vers les collections Typesense
+SEARCH_COLLECTION_MAP = {
+    "Course": "courses",
+    "Module": "modules",
+    "Teacher": "teachers",
+    "Class": "classes",
+    "Department": "departments",
+    "Faculty": "faculties",
+    "University": "universities",
+}

@@ -5,11 +5,11 @@ from django.db import transaction
 from django.utils import timezone
 
 if TYPE_CHECKING:
-    from services.core_service.student_module.inscription_app.models import (
-        Inscription as InscriptionType,
-    )
     from services.core_service.academic_module.university_app.models import (
         AcademicYear as AcademicYearType,
+    )
+    from services.core_service.student_module.inscription_app.models import (
+        Inscription as InscriptionType,
     )
 
 from services.core_service.academic_module.class_app.models import Class

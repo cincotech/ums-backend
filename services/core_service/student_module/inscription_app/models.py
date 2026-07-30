@@ -1,6 +1,5 @@
 import logging
 import uuid
-from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -16,9 +15,6 @@ from .mixins.inscription_status import InscriptionStatusMixin
 from .services.inscription_automation import InscriptionAutomation
 from .services.matricule_service import MatriculeService
 from .validators.inscription_validator import InscriptionValidator
-
-if TYPE_CHECKING:
-    pass  # No need for TYPE_CHECKING imports since we're importing everything above
 
 # Create your models here.
 logger = logging.getLogger(__name__)
@@ -299,9 +295,11 @@ class Inscription(InscriptionStatusMixin, models.Model):
             )
 
             should_populate = False
-            if is_create:
-                should_populate = True
-            elif old_status != self.regist_status and self.regist_status == "Active":
+            if (
+                is_create
+                or old_status != self.regist_status
+                and self.regist_status == "Active"
+            ):
                 should_populate = True
 
             if should_populate and self.regist_status in [

@@ -21,4 +21,4 @@ def auto_generate_quality_report():
                 generated_by=admin_user,
             )
     except Exception as e:
-        print(f"Erreur lors de la génération du rapport: {str(e)}")
+        print(f"Erreur lors de la génération du rapport: {e!s}")

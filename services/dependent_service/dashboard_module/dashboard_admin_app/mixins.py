@@ -93,5 +93,3 @@ class UniversityModelViewSet(
     viewsets.GenericViewSet,
 ):
     """Base ViewSet for university-administered models"""
-
-    pass

@@ -1,41 +1,43 @@
 import django_filters
 from django.db.models import Q
 
+from services.search.filterset import TypesenseSearchFilterSet
+
 from .models import AcademicYear, University, UniversityDegree
 
 
-class UniversityFilter(django_filters.FilterSet):
+class UniversityFilter(TypesenseSearchFilterSet):
     search = django_filters.CharFilter(method="filter_search")
 
     class Meta:
         model = University
         fields = []
 
-    def filter_search(self, queryset, name, value):
+    def _orm_filter_search(self, queryset, value):
         return queryset.filter(
             Q(university_name__icontains=value) | Q(university_abrev__icontains=value)
         )
 
 
-class AcademicYearFilter(django_filters.FilterSet):
+class AcademicYearFilter(TypesenseSearchFilterSet):
     search = django_filters.CharFilter(method="filter_search")
 
     class Meta:
         model = AcademicYear
         fields = []
 
-    def filter_search(self, queryset, name, value):
+    def _orm_filter_search(self, queryset, value):
         return queryset.filter(
             Q(academic_year__icontains=value) | Q(civil_year__icontains=value)
         )
 
 
-class UniversityDegreeFilter(django_filters.FilterSet):
+class UniversityDegreeFilter(TypesenseSearchFilterSet):
     search = django_filters.CharFilter(method="filter_search")
 
     class Meta:
         model = UniversityDegree
         fields = []
 
-    def filter_search(self, queryset, name, value):
+    def _orm_filter_search(self, queryset, value):
         return queryset.filter(Q(degree_name__icontains=value))

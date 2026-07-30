@@ -1,7 +1,8 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from core.views import BaseViewSet
+from services.search.backends import TypesenseFilterBackend
 
 from .filters import (
     CertificateFilter,
@@ -23,7 +24,7 @@ from .serializers import (
 class HighschoolViewSet(BaseViewSet):
     queryset = Highschool.objects.all()
     serializer_class = HighschoolSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = HighschoolFilter
     search_fields = ["hs_name", "code", "zone__zone_name"]
     ordering_fields = ["hs_name", "code", "zone__zone_name", "id"]
@@ -33,7 +34,7 @@ class HighschoolViewSet(BaseViewSet):
 class SectionViewSet(BaseViewSet):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = SectionFilter
     search_fields = ["section_name"]
     ordering_fields = ["section_name", "id"]
@@ -43,7 +44,7 @@ class SectionViewSet(BaseViewSet):
 class CertificateViewSet(BaseViewSet):
     queryset = Certificate.objects.all()
     serializer_class = CertificateSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = CertificateFilter
     search_fields = ["certificate_name", "section__section_name"]
     ordering_fields = ["certificate_name", "section__section_name", "id"]
@@ -53,7 +54,7 @@ class CertificateViewSet(BaseViewSet):
 class OptionViewSet(BaseViewSet):
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = OptionFilter
     search_fields = ["option_name", "section__section_name"]
     ordering_fields = ["option_name", "section__section_name", "id"]
@@ -63,7 +64,7 @@ class OptionViewSet(BaseViewSet):
 class TrainingCenterViewSet(BaseViewSet):
     queryset = TrainingCenter.objects.all()
     serializer_class = TrainingCenterSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = TrainingCenterFilter
     search_fields = ["name", "commune__commune_name"]
     ordering_fields = ["name", "commune__commune_name", "id"]

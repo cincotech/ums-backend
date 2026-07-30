@@ -1,9 +1,13 @@
 import os
 
-from .base import *  # noqa F401
+from .base import *
+from .base import BASE_DIR
 
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
+
+# --- SEARCH — force ORM fallback in tests to avoid external dependency ---
+TYPESENSE_FORCE_FALLBACK = True
 
 # --- DATABASE — SQLite en mémoire pour les tests ---
 DATABASES = {

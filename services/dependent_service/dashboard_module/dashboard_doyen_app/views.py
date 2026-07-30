@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Avg, Count, Max, Q
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView, PermissionDenied
@@ -34,6 +35,7 @@ from services.dependent_service.exam_module.exam_app.models import (
 from services.dependent_service.exam_module.result_app.models import (
     CompiledResult,
     Result,
+    ResultComment,
     Session,
     Supplement,
 )
@@ -44,6 +46,7 @@ from services.dependent_service.scheduling_module.scheduling_app.models import (
     Timetable,
     TimetableMerge,
 )
+from services.search.backends import TypesenseFilterBackend
 
 from .models import SecretaryNote, TeacherWorkload, TeachingProgress
 from .serializers import (
@@ -127,7 +130,7 @@ class TeachingProgressViewSet(BaseViewSet):
     queryset = TeachingProgress.objects.all()
     serializer_class = TeachingProgressSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["faculty", "attribution", "submitted_by"]
     search_fields = [
         "attribution__course__course_name",
@@ -172,7 +175,7 @@ class TeacherWorkloadViewSet(BaseViewSet):
     queryset = TeacherWorkload.objects.all()
     serializer_class = TeacherWorkloadSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["faculty", "teacher", "academic_year", "is_permanent"]
     search_fields = ["teacher__first_name", "teacher__last_name", "teacher__email"]
     ordering_fields = ["total_hours", "assigned_hours"]
@@ -253,11 +256,201 @@ class TeacherWorkloadViewSet(BaseViewSet):
         )
 
 
+class DoyenGradeViewSet(BaseViewSet):
+    queryset = Result.objects.select_related(
+        "course", "inscription", "session", "semester", "validated_by"
+    )
+    serializer_class = ResultSerializer
+    permission_classes = [IsDean]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
+    filterset_fields = ["course", "inscription", "status", "session"]
+    search_fields = [
+        "comment",
+        "course__course_name",
+        "inscription__student__user__first_name",
+        "inscription__student__user__last_name",
+        "inscription__student__user__email",
+    ]
+    ordering_fields = [
+        "mark",
+        "validated_at",
+        "course__course_name",
+        "inscription__student__user__first_name",
+        "inscription__student__user__last_name",
+    ]
+
+    def get_queryset(self):
+        try:
+            faculty = get_faculty_for_request(self.request)
+        except PermissionDenied:
+            return Result.objects.none()
+
+        queryset = (
+            self.queryset.filter(inscription__class_fk__department__faculty=faculty)
+            .select_related(
+                "course",
+                "inscription",
+                "inscription__student",
+                "inscription__student__user",
+                "inscription__class_fk",
+                "session",
+                "semester",
+                "validated_by",
+            )
+            .prefetch_related("comments__author", "grade_changes__changed_by")
+        )
+        class_fk = self.request.query_params.get("class_fk")
+        academic_year = _get_ay(self.request)
+        semester_number = self.request.query_params.get("semester")
+        if class_fk:
+            queryset = queryset.filter(inscription__class_fk=class_fk)
+        if academic_year:
+            queryset = queryset.filter(inscription__academic_year=academic_year)
+        if semester_number:
+            queryset = queryset.filter(semester__number=semester_number)
+        return queryset
+
+    def perform_create(self, serializer):
+        faculty = get_faculty_for_request(self.request)
+        inscription = serializer.validated_data["inscription"]
+        course = serializer.validated_data["course"]
+
+        if (
+            not inscription.class_fk
+            or inscription.class_fk.department.faculty_id != faculty.id
+            or course.module.class_fk.department.faculty_id != faculty.id
+        ):
+            raise PermissionDenied(
+                "Vous ne pouvez créer que des notes de votre faculté."
+            )
+
+        serializer.save()
+
+    @action(detail=True, methods=["post"])
+    def validate(self, request, pk=None):
+        result = self.get_object()
+        action_name = request.data.get("action", "validate")
+        result.status = "validated" if action_name != "reject" else "rejected"
+        result.validated_by = request.user
+        result.validated_at = timezone.now()
+        if request.data.get("comment"):
+            result.comment = request.data.get("comment")
+        result.save()
+        return success_response(
+            data=ResultSerializer(result).data,
+            message="Grade validated successfully",
+        )
+
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        result = self.get_object()
+        result.status = "rejected"
+        result.validated_by = request.user
+        result.validated_at = timezone.now()
+        if request.data.get("comment"):
+            result.comment = request.data.get("comment")
+        result.save()
+        return success_response(
+            data=ResultSerializer(result).data,
+            message="Grade rejected successfully",
+        )
+
+    @action(detail=True, methods=["post"])
+    def submit(self, request, pk=None):
+        result = self.get_object()
+        result.status = "submitted"
+        result.save()
+        return success_response(
+            data=ResultSerializer(result).data,
+            message="Grade submitted successfully",
+        )
+
+    @action(detail=True, methods=["post"])
+    def add_comment(self, request, pk=None):
+        result = self.get_object()
+        comment_text = (request.data.get("comment") or "").strip()
+        if not comment_text:
+            return error_response(message="Comment text is required")
+        ResultComment.objects.create(
+            result=result,
+            author=request.user,
+            comment=comment_text,
+        )
+        return success_response(
+            data=ResultSerializer(result).data,
+            message="Comment added successfully",
+        )
+
+    @action(detail=False, methods=["get"])
+    def statistics(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        graded_queryset = queryset.exclude(mark__isnull=True)
+        aggregates = graded_queryset.aggregate(
+            average_mark=Avg("mark"),
+            best_mark=Max("mark"),
+            total_marks=Count("id"),
+            passed_marks=Count("id", filter=Q(mark__gte=10)),
+        )
+        total_marks = aggregates["total_marks"]
+        total_students = queryset.values("inscription_id").distinct().count()
+        students_at_risk = (
+            graded_queryset.filter(mark__lt=10)
+            .values("inscription_id")
+            .distinct()
+            .count()
+        )
+        average_mark = round(aggregates["average_mark"] or 0, 2)
+        pass_rate = (
+            round(aggregates["passed_marks"] / total_marks, 2) if total_marks else 0
+        )
+
+        def build_breakdown(label_lookup, response_key):
+            return [
+                {
+                    response_key: row[label_lookup],
+                    "average": round(row["average"] or 0, 2),
+                    "pass_rate": (
+                        round(row["passed"] / row["total"], 2) if row["total"] else 0
+                    ),
+                }
+                for row in graded_queryset.values(label_lookup)
+                .annotate(
+                    average=Avg("mark"),
+                    total=Count("id"),
+                    passed=Count("id", filter=Q(mark__gte=10)),
+                )
+                .order_by(label_lookup)
+            ]
+
+        return success_response(
+            data={
+                "total_students": total_students,
+                "average_mark": average_mark,
+                "pass_rate": pass_rate,
+                "best_mark": aggregates["best_mark"] or 0,
+                "students_at_risk": students_at_risk,
+                "by_course": build_breakdown("course__course_name", "course_name"),
+                "by_class": build_breakdown(
+                    "inscription__class_fk__class_name", "class_name"
+                ),
+                "by_semester": build_breakdown("semester__name", "semester_name"),
+            },
+            message="Grade statistics retrieved successfully",
+        )
+
+    @action(detail=False, methods=["post"])
+    def entry(self, request):
+        return success_response(
+            data={"message": "Grade entry endpoint ready"},
+            message="Grade entry endpoint ready",
+        )
+
+
 class SecretaryNoteViewSet(BaseViewSet):
     queryset = SecretaryNote.objects.all()
     serializer_class = SecretaryNoteSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["faculty", "is_resolved", "created_by"]
     search_fields = ["subject", "message"]
     ordering_fields = ["created_date", "is_resolved"]
@@ -429,7 +622,7 @@ class RoomUtilizationReportView(APIView):
 class CourseAttributionViewSet(BaseViewSet):
     serializer_class = CourseAttributionSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = [
         "course",
         "principal_teacher",
@@ -526,7 +719,7 @@ class DepartmentViewSet(BaseViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["faculty"]
     search_fields = ["department_name", "abreviation"]
     ordering_fields = ["department_name"]
@@ -576,7 +769,7 @@ class ClassViewSet(BaseViewSet):
     queryset = Class.objects.all()
     serializer_class = ClassSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["department"]
     search_fields = ["class_name"]
     ordering_fields = ["class_name"]
@@ -590,7 +783,8 @@ class ClassViewSet(BaseViewSet):
 
         try:
             classes = ClassManagementService.get_faculty_classes(faculty.id)
-            serializer = self.get_serializer(classes, many=True)
+            queryset = self.filter_queryset(classes)
+            serializer = self.get_serializer(queryset, many=True)
 
             return success_response(
                 data=serializer.data,
@@ -628,7 +822,7 @@ class ClassViewSet(BaseViewSet):
 class ClassGroupViewSet(BaseViewSet):
     serializer_class = ClassGroupSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["class_fk", "academic_year"]
     search_fields = [
         "group_name",
@@ -671,7 +865,8 @@ class ClassGroupViewSet(BaseViewSet):
 
         try:
             groups = ClassManagementService.get_class_groups(class_id, academic_year_id)
-            serializer = self.get_serializer(groups, many=True)
+            queryset = self.filter_queryset(groups)
+            serializer = self.get_serializer(queryset, many=True)
 
             return success_response(
                 data=serializer.data,
@@ -772,7 +967,7 @@ class StudentViewSet(BaseViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     search_fields = ["matricule", "user__first_name", "user__last_name", "user__email"]
     ordering_fields = ["matricule", "user__first_name"]
 
@@ -788,8 +983,11 @@ class StudentViewSet(BaseViewSet):
             inscriptions = StudentManagementService.get_faculty_students(
                 faculty.id, academic_year_id
             )
-            students = [insc.student for insc in inscriptions]
-            serializer = self.get_serializer(students, many=True)
+            queryset = Student.objects.filter(
+                id__in=inscriptions.values_list("student_id", flat=True)
+            )
+            queryset = self.filter_queryset(queryset)
+            serializer = self.get_serializer(queryset, many=True)
 
             return success_response(
                 data=serializer.data,
@@ -812,8 +1010,11 @@ class StudentViewSet(BaseViewSet):
             inscriptions = StudentManagementService.get_students_by_class(
                 class_id, academic_year_id
             )
-            students = [insc.student for insc in inscriptions]
-            serializer = self.get_serializer(students, many=True)
+            queryset = Student.objects.filter(
+                id__in=inscriptions.values_list("student_id", flat=True)
+            )
+            queryset = self.filter_queryset(queryset)
+            serializer = self.get_serializer(queryset, many=True)
 
             return success_response(
                 data=serializer.data,
@@ -852,7 +1053,7 @@ class InscriptionViewSet(BaseViewSet):
     queryset = Inscription.objects.all()
     serializer_class = InscriptionSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["student", "academic_year", "class_fk", "regist_status"]
     search_fields = [
         "student__matricule",
@@ -860,6 +1061,22 @@ class InscriptionViewSet(BaseViewSet):
         "student__user__last_name",
     ]
     ordering_fields = ["date_inscription", "regist_status"]
+
+    def get_queryset(self):
+        try:
+            faculty = get_faculty_for_request(self.request)
+        except PermissionDenied:
+            return Inscription.objects.none()
+
+        return Inscription.objects.filter(
+            class_fk__department__faculty=faculty
+        ).select_related(
+            "student",
+            "student__user",
+            "class_fk",
+            "class_fk__department",
+            "academic_year",
+        )
 
     @action(detail=False, methods=["get"])
     def by_faculty(self, request):
@@ -873,7 +1090,8 @@ class InscriptionViewSet(BaseViewSet):
             inscriptions = StudentManagementService.get_faculty_students(
                 faculty.id, academic_year_id
             )
-            serializer = self.get_serializer(inscriptions, many=True)
+            queryset = self.filter_queryset(inscriptions)
+            serializer = self.get_serializer(queryset, many=True)
 
             return success_response(
                 data=serializer.data,
@@ -914,7 +1132,7 @@ class ScheduleSlotViewSet(BaseViewSet):
     queryset = ScheduleSlot.objects.all()
     serializer_class = ScheduleSlotSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["day_of_week"]
     search_fields = ["schedule_name"]
     ordering_fields = ["day_of_week", "start_time"]
@@ -924,7 +1142,7 @@ class TimetableViewSet(BaseViewSet):
     queryset = Timetable.objects.all()
     serializer_class = TimetableSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["class_group", "attribution", "room", "status"]
     search_fields = [
         "class_group__group_name",
@@ -1173,7 +1391,7 @@ class AttendanceViewSet(BaseViewSet):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["timetable", "student", "status"]
     search_fields = [
         "student__matricule",
@@ -1281,7 +1499,7 @@ class ActivityReportViewSet(BaseViewSet):
     queryset = ActivityReport.objects.all()
     serializer_class = ActivityReportSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["timetable"]
     ordering_fields = ["completion_rate", "planned_hours", "delivered_hours"]
 
@@ -1362,7 +1580,7 @@ class ExamTypeViewSet(BaseViewSet):
     queryset = ExamType.objects.all()
     serializer_class = ExamTypeSerializer
     permission_classes = [IsDean]
-    filter_backends = [SearchFilter, OrderingFilter]
+    filter_backends = [TypesenseFilterBackend, OrderingFilter]
     search_fields = ["exam_type_name"]
 
 
@@ -1370,7 +1588,7 @@ class ExamViewSet(BaseViewSet):
     queryset = Exam.objects.all()
     serializer_class = ExamSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["course", "exam_type", "academic_year", "status"]
     search_fields = ["course__course_name", "course__course_code"]
     ordering_fields = ["exam_date", "start_time", "created_at"]
@@ -1468,14 +1686,24 @@ class SessionViewSet(BaseViewSet):
     queryset = Session.objects.all()
     serializer_class = SessionSerializer
     permission_classes = [IsDean]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
+    search_fields = ["session_name"]
+    ordering_fields = ["session_name"]
 
 
 class ResultViewSet(BaseViewSet):
     queryset = Result.objects.all()
     serializer_class = ResultSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend]
     filterset_fields = ["course", "inscription", "session"]
+    search_fields = [
+        "comment",
+        "course__course_name",
+        "inscription__student__first_name",
+        "inscription__student__last_name",
+    ]
+    ordering_fields = ["mark", "validated_at"]
 
     def create(self, request, *args, **kwargs):
         try:
@@ -1525,7 +1753,7 @@ class CompiledResultViewSet(BaseViewSet):
     queryset = CompiledResult.objects.all()
     serializer_class = CompiledResultSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend]
     filterset_fields = ["inscription", "status", "is_promoted"]
 
     @action(detail=False, methods=["post"])
@@ -1673,7 +1901,7 @@ class JurySessionViewSet(BaseViewSet):
     queryset = JurySession.objects.all()
     serializer_class = JurySessionSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["status"]
     search_fields = ["session_name"]
     ordering_fields = ["session_date", "created_at"]
@@ -1840,7 +2068,7 @@ class JuryDecisionViewSet(BaseViewSet):
     queryset = JuryDecision.objects.all()
     serializer_class = JuryDecisionSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend]
     filterset_fields = ["jury_session", "student", "decision"]
 
     def get_queryset(self):
@@ -1926,7 +2154,7 @@ class ComplementRequirementViewSet(BaseViewSet):
     queryset = ComplementRequirement.objects.all()
     serializer_class = ComplementRequirementSerializer
     permission_classes = [IsDeanOrStudentService]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["status", "student", "inscription", "jury_decision", "course"]
     search_fields = [
         "student__user__first_name",
@@ -1984,7 +2212,7 @@ class GradeComplaintViewSet(BaseViewSet):
     queryset = GradeComplaint.objects.all()
     serializer_class = GradeComplaintSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["status", "student", "course"]
     search_fields = ["student__matricule", "course__course_name"]
     ordering_fields = ["submitted_at", "resolved_at"]
@@ -2029,7 +2257,7 @@ class TeacherPaymentClaimViewSet(BaseViewSet):
     queryset = TeacherPaymentClaim.objects.all()
     serializer_class = TeacherPaymentClaimSerializer
     permission_classes = [IsDean]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_fields = ["status", "teacher", "course"]
     search_fields = [
         "teacher__user__first_name",

@@ -24,8 +24,26 @@ class CourseResource(resources.ModelResource):
 
     class Meta:
         model = Course
-        fields = ("id", "course_name", "cm", "td", "tp", "module", "credits")
-        export_order = ("id", "course_name", "cm", "td", "tp", "module", "credits")
+        fields = (
+            "id",
+            "course_code",
+            "course_name",
+            "cm",
+            "td",
+            "tp",
+            "credits",
+            "module",
+        )
+        export_order = (
+            "id",
+            "course_code",
+            "course_name",
+            "cm",
+            "td",
+            "tp",
+            "credits",
+            "module",
+        )
 
 
 # ----------------------------
@@ -34,16 +52,31 @@ class CourseResource(resources.ModelResource):
 @admin.register(Course)
 class CourseAdmin(ImportExportModelAdmin, ModelAdmin):
     resource_class = CourseResource
-    list_display = ("course_name", "module", "cm", "td", "tp", "credits")
+    list_display = (
+        "course_code",
+        "course_name",
+        "module",
+        "cm",
+        "td",
+        "tp",
+        "total_hours",
+        "credits",
+    )
     list_filter = ("module",)
-    search_fields = ("course_name", "module__module_name")
+    search_fields = ("course_name", "course_code", "module__module_name")
     ordering = ("course_name",)
     formats = [base_formats.CSV, base_formats.JSON, base_formats.XLSX]
 
+    readonly_fields = ("id", "total_hours")
+
     fieldsets = (
         (
-            "Course Information",
-            {"fields": ("course_name", "module", "cm", "td", "tp", "credits")},
+            "ECUE Information",
+            {"fields": ("course_name", "course_code", "module", "credits")},
+        ),
+        (
+            "Teaching Hours",
+            {"fields": ("cm", "td", "tp", "total_hours")},
         ),
     )
 
@@ -53,7 +86,12 @@ class CourseAdmin(ImportExportModelAdmin, ModelAdmin):
         },
         models.PositiveSmallIntegerField: {
             "widget": admin.widgets.AdminIntegerFieldWidget(
-                attrs={"class": "vIntegerField"}
+                attrs={"class": "vIntegerField", "size": 4}
             )
         },
     }
+
+    def total_hours(self, obj):
+        return obj.cm + obj.td + obj.tp
+
+    total_hours.short_description = "Total Hours"

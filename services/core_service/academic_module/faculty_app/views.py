@@ -1,7 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
 
 from core.views import BaseViewSet
+from services.search.backends import TypesenseFilterBackend, TypesenseOrderingFilter
 
 from .filters import FacultyFilter, TypeFormationFilter
 from .models import Faculty, TypeFormation
@@ -11,9 +11,14 @@ from .serializers import FacultySerializer, TypeFormationSerializer
 class TypeFormationViewSet(BaseViewSet):
     queryset = TypeFormation.objects.all()
     serializer_class = TypeFormationSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
     filterset_class = TypeFormationFilter
     search_fields = ["name"]
+    filter_fields = ["university_id"]
     ordering_fields = ["name"]
     ordering = ["name"]
 
@@ -21,9 +26,14 @@ class TypeFormationViewSet(BaseViewSet):
 class FacultyViewSet(BaseViewSet):
     queryset = Faculty.objects.all()
     serializer_class = FacultySerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
     filterset_class = FacultyFilter
     search_fields = ["faculty_name", "faculty_abreviation"]
+    filter_fields = ["university_id"]
     ordering_fields = ["faculty_name"]
     ordering = ["faculty_name"]
 

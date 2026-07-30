@@ -121,7 +121,7 @@ class InscriptionAutomation:
         from services.core_service.academic_module.class_app.models import ClassGroup
 
         with transaction.atomic():
-            group, created = ClassGroup.objects.get_or_create(
+            group, _created = ClassGroup.objects.get_or_create(
                 class_fk=inscription.class_fk,
                 academic_year=inscription.academic_year,
                 group_name="G1",

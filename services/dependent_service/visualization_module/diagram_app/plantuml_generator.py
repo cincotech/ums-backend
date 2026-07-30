@@ -208,9 +208,7 @@ class PlantUMLGenerator:
 
         roles = self._load_roles()
         if not roles:
-            roles = [
-                {"name": name, "description": ""} for name in role_to_usecases.keys()
-            ]
+            roles = [{"name": name, "description": ""} for name in role_to_usecases]
 
         content = ["@startuml", "left to right direction", ""]
 

@@ -124,15 +124,18 @@ class InscriptionFilter(django_filters.FilterSet):
             if (today.month, today.day) < (birth_date.month, birth_date.day):
                 age -= 1
 
-            if age_range == "less_than_nineteen" and age < 19:
-                valid_student_ids.append(student.student_id)
-            elif age_range == "nineteen_to_twenty_two" and 19 <= age <= 22:
-                valid_student_ids.append(student.student_id)
-            elif age_range == "twenty_three_to_twenty_six" and 23 <= age <= 26:
-                valid_student_ids.append(student.student_id)
-            elif age_range == "twenty_seven_to_thirty" and 27 <= age <= 30:
-                valid_student_ids.append(student.student_id)
-            elif age_range == "greater_than_thirty" and age > 30:
+            if (
+                age_range == "less_than_nineteen"
+                and age < 19
+                or age_range == "nineteen_to_twenty_two"
+                and 19 <= age <= 22
+                or age_range == "twenty_three_to_twenty_six"
+                and 23 <= age <= 26
+                or age_range == "twenty_seven_to_thirty"
+                and 27 <= age <= 30
+                or age_range == "greater_than_thirty"
+                and age > 30
+            ):
                 valid_student_ids.append(student.student_id)
 
         return queryset.filter(student_id__in=valid_student_ids)

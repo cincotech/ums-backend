@@ -48,6 +48,6 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stdout.write(
                     self.style.ERROR(
-                        f"✗ Backup failed for {university.university_name}: {str(e)}"
+                        f"✗ Backup failed for {university.university_name}: {e!s}"
                     )
                 )

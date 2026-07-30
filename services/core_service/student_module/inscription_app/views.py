@@ -4,11 +4,12 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from core.response_handler import error_response, success_response, validate_serializer
 from core.views import BaseViewSet
 from services.core_service.academic_module.university_app.models import AcademicYear
+from services.search.backends import TypesenseFilterBackend
 
 from .annual_registration_service import AnnualRegistrationService
 from .email_utils import send_inscription_email
@@ -21,7 +22,7 @@ from .serializers import InscriptionSerializer
 class InscriptionViewSet(BaseViewSet):
     queryset = Inscription.objects.all()
     serializer_class = InscriptionSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = InscriptionFilter
     search_fields = [
         "student__user__first_name",
@@ -29,6 +30,7 @@ class InscriptionViewSet(BaseViewSet):
         "student__matricules__matricule",
         "class_fk__class_name",
     ]
+    filter_fields = ["academic_year_id", "class_fk_id", "regist_status"]
     ordering_fields = ["date_inscription", "regist_status"]
     ordering = ["-date_inscription"]
 

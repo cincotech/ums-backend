@@ -27,7 +27,9 @@ from services.dependent_service.exam_module.exam_app.models import (
 )
 from services.dependent_service.exam_module.result_app.models import (
     CompiledResult,
+    GradeChangeHistory,
     Result,
+    ResultComment,
     Session,
     Supplement,
 )
@@ -1258,11 +1260,60 @@ class SessionSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
 
+class ResultCommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source="author.get_full_name", read_only=True)
+
+    class Meta:
+        model = ResultComment
+        fields = ["id", "result", "author", "author_name", "comment", "created_at"]
+        read_only_fields = ["id", "author", "created_at"]
+
+
+class GradeChangeHistorySerializer(serializers.ModelSerializer):
+    changed_by_name = serializers.CharField(
+        source="changed_by.get_full_name", read_only=True
+    )
+
+    class Meta:
+        model = GradeChangeHistory
+        fields = [
+            "id",
+            "previous_mark",
+            "new_mark",
+            "changed_by",
+            "changed_by_name",
+            "reason",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
 class ResultSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source="course.course_name", read_only=True)
+    coefficient = serializers.IntegerField(source="course.credits", read_only=True)
+    class_name = serializers.CharField(
+        source="inscription.class_fk.class_name", read_only=True, allow_null=True
+    )
     session_name = serializers.CharField(source="session.session_name", read_only=True)
     student_name = serializers.SerializerMethodField()
     student_matricule = serializers.SerializerMethodField()
+    academic_year = serializers.UUIDField(
+        source="inscription.academic_year_id", read_only=True
+    )
+    semester_name = serializers.CharField(
+        source="semester.name", read_only=True, allow_null=True
+    )
+    semester_number = serializers.IntegerField(
+        source="semester.number", read_only=True, allow_null=True
+    )
+    validated_by_name = serializers.CharField(
+        source="validated_by.get_full_name", read_only=True, allow_null=True
+    )
+    comments = ResultCommentSerializer(many=True, read_only=True)
+    grade_changes = GradeChangeHistorySerializer(many=True, read_only=True)
+    change_reason = serializers.CharField(
+        write_only=True, required=False, allow_blank=False, trim_whitespace=True
+    )
 
     class Meta:
         model = Result
@@ -1270,14 +1321,82 @@ class ResultSerializer(serializers.ModelSerializer):
             "id",
             "course",
             "course_name",
+            "coefficient",
             "inscription",
+            "class_name",
             "student_name",
             "student_matricule",
             "session",
             "session_name",
+            "academic_year",
+            "semester",
+            "semester_name",
+            "semester_number",
             "mark",
+            "status",
+            "validated_by",
+            "validated_by_name",
+            "validated_at",
+            "comment",
+            "comments",
+            "grade_changes",
+            "change_reason",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = [
+            "id",
+            "academic_year",
+            "class_name",
+            "coefficient",
+            "comments",
+            "grade_changes",
+            "semester_name",
+            "semester_number",
+            "status",
+            "student_matricule",
+            "student_name",
+            "validated_at",
+            "validated_by",
+            "validated_by_name",
+        ]
+
+    def validate_mark(self, value):
+        if value < 0 or value > 20:
+            raise serializers.ValidationError(
+                "La note doit être comprise entre 0 et 20."
+            )
+        return value
+
+    def validate(self, attrs):
+        current_mark = self.instance.mark if self.instance else None
+        next_mark = attrs.get("mark", current_mark)
+
+        if (
+            self.instance
+            and "mark" in attrs
+            and next_mark != current_mark
+            and not attrs.get("change_reason")
+        ):
+            raise serializers.ValidationError(
+                {"change_reason": "Un motif est requis pour modifier une note."}
+            )
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        change_reason = validated_data.pop("change_reason", "")
+        previous_mark = instance.mark
+        updated_result = super().update(instance, validated_data)
+
+        if "mark" in validated_data and updated_result.mark != previous_mark:
+            GradeChangeHistory.objects.create(
+                result=updated_result,
+                previous_mark=previous_mark,
+                new_mark=updated_result.mark,
+                changed_by=self.context["request"].user,
+                reason=change_reason,
+            )
+
+        return updated_result
 
     def get_student_name(self, obj):
         student = obj.inscription.student
@@ -1537,10 +1656,10 @@ class TimetableMergeSerializer(serializers.ModelSerializer):
                     else None
                 )
 
-        unique_values = set(v for v in values.values() if v is not None)
+        unique_values = {v for v in values.values() if v is not None}
         if len(unique_values) > 1:
             return values
-        return list(unique_values)[0] if unique_values else None
+        return next(iter(unique_values)) if unique_values else None
 
     def get_course_name(self, obj):
         return self._get_field_value(obj, "course_name")

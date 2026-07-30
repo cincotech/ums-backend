@@ -2,6 +2,11 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .course_management_views import CourseByTeacherView, CourseViewSet
+from .curriculum_views import (
+    CurriculumCourseViewSet,
+    CurriculumTeachingUnitViewSet,
+    CurriculumTemplateViewSet,
+)
 from .timetable_v2_views import (
     CourseSessionViewSet,
     TemplateEntryViewSet,
@@ -18,6 +23,7 @@ from .views import (
     CourseAttributionViewSet,
     DeanDashboardStatsView,
     DepartmentViewSet,
+    DoyenGradeViewSet,
     ExamRoomViewSet,
     ExamSupervisorViewSet,
     ExamTypeViewSet,
@@ -55,6 +61,17 @@ router.register(
 
 # Course Management
 router.register(r"courses", CourseViewSet)
+router.register(
+    r"curriculum-templates", CurriculumTemplateViewSet, basename="curriculum-template"
+)
+router.register(
+    r"curriculum-teaching-units",
+    CurriculumTeachingUnitViewSet,
+    basename="curriculum-teaching-unit",
+)
+router.register(
+    r"curriculum-courses", CurriculumCourseViewSet, basename="curriculum-course"
+)
 
 # Academic Structure
 router.register(r"departments", DepartmentViewSet)
@@ -86,6 +103,7 @@ router.register(r"exam-supervisors", ExamSupervisorViewSet)
 # Result Management
 router.register(r"sessions", SessionViewSet)
 router.register(r"results", ResultViewSet)
+router.register(r"grades", DoyenGradeViewSet, basename="doyen-grades")
 router.register(r"compiled-results", CompiledResultViewSet)
 router.register(r"supplements", SupplementViewSet)
 

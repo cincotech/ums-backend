@@ -140,7 +140,7 @@ class ModelStatsView(APIView):
         for model in all_models:
             app_label = model._meta.app_label
 
-            for service in stats["models_by_service"].keys():
+            for service in stats["models_by_service"]:
                 if service in app_label:
                     stats["models_by_service"][service] += 1
 

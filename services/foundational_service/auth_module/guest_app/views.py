@@ -25,7 +25,7 @@ from .serializers import (
 def guest_profile(request):
     """Get or update guest profile"""
     try:
-        guest_request, created = GuestRequest.objects.get_or_create(user=request.user)
+        guest_request, _created = GuestRequest.objects.get_or_create(user=request.user)
 
         if request.method == "GET":
             serializer = GuestUserSerializer(
@@ -143,7 +143,7 @@ def guest_profile(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -163,7 +163,7 @@ def account_status(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -183,7 +183,7 @@ def notifications(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -204,7 +204,7 @@ def mark_notification_read(request, notification_id):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -223,7 +223,7 @@ def mark_all_notifications_read(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -281,7 +281,7 @@ def documents(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -302,7 +302,7 @@ def delete_document(request, document_id):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -333,7 +333,7 @@ def contact_support(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -350,6 +350,6 @@ def role_document_requirements(request, role_id):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

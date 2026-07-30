@@ -1,11 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 
 from core.pagination import StandardResultsSetPagination
 from core.permissions import IsStaff, IsStudentService
 from core.response_handler import error_response, success_response
 from core.views import BaseViewSet
+from services.search.backends import TypesenseFilterBackend
 
 from .filters import (
     AbsenceJustificationFilter,
@@ -59,7 +60,7 @@ class DashboardStatsViewSet(viewsets.GenericViewSet):
             )
         except Exception as e:
             return error_response(
-                message=f"Error retrieving dashboard statistics: {str(e)}",
+                message=f"Error retrieving dashboard statistics: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -120,7 +121,7 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
 
         except Exception as e:
             return error_response(
-                message=f"Error retrieving population data: {str(e)}",
+                message=f"Error retrieving population data: {e!s}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -128,7 +129,7 @@ class PopulationDataViewSet(viewsets.GenericViewSet):
 class DocumentRequestViewSet(BaseViewSet):
     queryset = DocumentRequest.objects.all()
     serializer_class = DocumentRequestSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = DocumentRequestFilter
     permission_classes = [IsStudentService]
 
@@ -136,7 +137,7 @@ class DocumentRequestViewSet(BaseViewSet):
 class AbsenceJustificationViewSet(BaseViewSet):
     queryset = AbsenceJustification.objects.all()
     serializer_class = AbsenceJustificationSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = AbsenceJustificationFilter
     permission_classes = [IsStudentService]
 
@@ -144,7 +145,7 @@ class AbsenceJustificationViewSet(BaseViewSet):
 class StudentActivityViewSet(BaseViewSet):
     queryset = StudentActivity.objects.all()
     serializer_class = StudentActivitySerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = StudentActivityFilter
     permission_classes = [IsStudentService]
 
@@ -152,7 +153,7 @@ class StudentActivityViewSet(BaseViewSet):
 class ScholarshipViewSet(BaseViewSet):
     queryset = Scholarship.objects.all()
     serializer_class = ScholarshipSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = ScholarshipFilter
     permission_classes = [IsStudentService]
 
@@ -160,7 +161,7 @@ class ScholarshipViewSet(BaseViewSet):
 class CounselingSessionViewSet(BaseViewSet):
     queryset = CounselingSession.objects.all()
     serializer_class = CounselingSessionSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = CounselingSessionFilter
     permission_classes = [IsStudentService]
 
@@ -168,6 +169,6 @@ class CounselingSessionViewSet(BaseViewSet):
 class StudentStatusChangeViewSet(BaseViewSet):
     queryset = StudentStatusChange.objects.all()
     serializer_class = StudentStatusChangeSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = StudentStatusChangeFilter
     permission_classes = [IsStaff]

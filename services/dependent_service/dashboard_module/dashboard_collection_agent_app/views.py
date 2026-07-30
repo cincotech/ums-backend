@@ -1,13 +1,15 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Avg, Count
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import parsers, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
 from core.permissions import IsFinanceOrDirection, IsFinanceService, IsStudentOrFinance
 from core.views import BaseViewSet
+from services.search.backends import TypesenseFilterBackend
 
 from .filters import (
     BankFilter,
@@ -54,7 +56,7 @@ User = get_user_model()
 class BankViewSet(BaseViewSet):
     queryset = Bank.objects.all()
     serializer_class = BankSerializer
-    filter_backends = [SearchFilter, DjangoFilterBackend]
+    filter_backends = [TypesenseFilterBackend, DjangoFilterBackend]
     filterset_class = BankFilter
     search_fields = ["bank_name", "bank_abreviation", "account_number"]
     filterset_fields = ["status"]
@@ -80,7 +82,7 @@ class WordingViewSet(BaseViewSet):
     queryset = Wording.objects.all()
     serializer_class = WordingSerializer
     permission_classes = [IsFinanceService]
-    filter_backends = [SearchFilter]
+    filter_backends = [TypesenseFilterBackend]
     filterset_class = WordingFilter
     search_fields = ["wording_name"]
 
@@ -97,7 +99,7 @@ class FeesSheetViewSet(BaseViewSet):
         "wording",
     ).all()
     serializer_class = FeesSheetSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, TypesenseFilterBackend]
 
     def get_permissions(self):
         if self.action in ("list", "retrieve", "grouped_options"):
@@ -249,6 +251,55 @@ class FeesSheetViewSet(BaseViewSet):
             message="Options groupées récupérées avec succès",
         )
 
+    @action(detail=False, methods=["get"], url_path="statistics")
+    def statistics(self, request):
+        """Statistiques réelles des barèmes de frais"""
+        from core.response_handler import success_response
+
+        queryset = self.get_queryset()
+        total = queryset.count()
+        avg_amount = queryset.aggregate(avg=Avg("base_amount"))["avg"] or 0
+
+        by_faculty = (
+            queryset.exclude(faculty=None)
+            .values("faculty__faculty_name")
+            .annotate(count=Count("id"), avg=Avg("base_amount"))
+            .order_by("-count")
+        )
+
+        by_department = (
+            queryset.exclude(department=None)
+            .values("department__department_name")
+            .annotate(count=Count("id"), avg=Avg("base_amount"))
+            .order_by("-count")
+        )
+
+        by_class = (
+            queryset.exclude(class_fk=None)
+            .values("class_fk__class_name")
+            .annotate(count=Count("id"), avg=Avg("base_amount"))
+            .order_by("-count")
+        )
+
+        by_wording = (
+            queryset.values("wording__wording_name")
+            .annotate(count=Count("id"), avg=Avg("base_amount"))
+            .order_by("-count")
+        )
+
+        return success_response(
+            data={
+                "total_schedules": total,
+                "active_schedules": total,
+                "average_amount": round(avg_amount, 2),
+                "by_faculty": list(by_faculty),
+                "by_department": list(by_department),
+                "by_class": list(by_class),
+                "by_wording": list(by_wording),
+            },
+            message="Statistiques récupérées avec succès",
+        )
+
 
 class PaymentInstallementViewSet(BaseViewSet):
     queryset = (
@@ -266,7 +317,7 @@ class PaymentInstallementViewSet(BaseViewSet):
     )
     serializer_class = PaymentInstallementSerializer
     permission_classes = [IsStudentOrFinance]
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, TypesenseFilterBackend]
     filterset_class = PaymentInstallementFilter
     filterset_fields = [
         "payment_plan",
@@ -583,7 +634,7 @@ class PaymentReminderViewSet(BaseViewSet):
     queryset = PaymentReminder.objects.all()
     serializer_class = PaymentReminderSerializer
     permission_classes = [IsFinanceService]
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, TypesenseFilterBackend]
     filterset_class = PaymentReminderFilter
     filterset_fields = ["student", "reminder_type", "status"]
     search_fields = [
@@ -610,7 +661,7 @@ class PaymentPlanViewSet(BaseViewSet):
     ).all()
     serializer_class = PaymentPlanSerializer
     permission_classes = [IsStudentOrFinance]
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, TypesenseFilterBackend]
     filterset_class = PaymentPlanFilter
     filterset_fields = ["feessheet", "status", "created_by"]
     search_fields = [
@@ -732,7 +783,7 @@ class PaymentViewSet(BaseViewSet):
         "verified_by",
     ).all()
     serializer_class = PaymentSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, TypesenseFilterBackend]
     filterset_class = PaymentFilter
     filterset_fields = [
         "paymentplan",
@@ -938,7 +989,7 @@ class CollectionCorrespondenceViewSet(BaseViewSet):
     queryset = CollectionCorrespondence.objects.all()
     serializer_class = CollectionCorrespondenceSerializer
     permission_classes = [IsFinanceService]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, TypesenseFilterBackend, OrderingFilter]
     filterset_class = CollectionCorrespondenceFilter
     filterset_fields = ["student", "correspondence_type"]
     search_fields = ["subject", "content"]

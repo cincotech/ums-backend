@@ -2,11 +2,6 @@
 Mixin for inscription status transition methods.
 """
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
-
 
 class InscriptionStatusMixin:
     """

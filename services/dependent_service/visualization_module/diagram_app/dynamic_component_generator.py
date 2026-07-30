@@ -67,7 +67,7 @@ class DynamicComponentGenerator:
         modules = self._get_all_modules()
         generated = []
 
-        for service_name, module_paths in modules.items():
+        for module_paths in modules.values():
             for module_path in module_paths:
                 filename = self.generate_module_component(module_path)
                 if filename:
@@ -80,7 +80,7 @@ class DynamicComponentGenerator:
         modules = self._get_all_modules()
         generated = []
 
-        for service_name, module_paths in modules.items():
+        for module_paths in modules.values():
             for module_path in module_paths:
                 filename = self._generate_module_package(module_path)
                 if filename:

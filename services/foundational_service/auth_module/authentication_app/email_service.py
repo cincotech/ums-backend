@@ -47,7 +47,7 @@ class EmailService:
             return True
 
         except Exception as e:
-            logger.error(f"Failed to send email to {recipient_email}: {str(e)}")
+            logger.error(f"Failed to send email to {recipient_email}: {e!s}")
             return False
 
     @staticmethod
@@ -152,9 +152,7 @@ class TwoFactorEmailService:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Failed to send 2FA setup email to {recipient_email}: {str(e)}"
-            )
+            logger.error(f"Failed to send 2FA setup email to {recipient_email}: {e!s}")
             return False
 
     @staticmethod
@@ -200,7 +198,7 @@ class TwoFactorEmailService:
 
         except Exception as e:
             logger.error(
-                f"Failed to send 2FA verification email to {recipient_email}: {str(e)}"
+                f"Failed to send 2FA verification email to {recipient_email}: {e!s}"
             )
             return False
 
@@ -236,6 +234,6 @@ class TwoFactorEmailService:
 
         except Exception as e:
             logger.error(
-                f"Failed to send static backup codes to {recipient_email}: {str(e)}"
+                f"Failed to send static backup codes to {recipient_email}: {e!s}"
             )
             return False

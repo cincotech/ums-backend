@@ -39,7 +39,7 @@ def teacher_dashboard_overview(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -57,7 +57,7 @@ def teacher_profile(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -73,7 +73,7 @@ def teacher_attributions(request):
         return success_response(data=serializer.data, message="Attributions retrieved")
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -93,7 +93,7 @@ def accept_attribution(request, attribution_id):
         return error_response(message=str(e), status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -114,7 +114,7 @@ def refuse_attribution(request, attribution_id):
         return error_response(message=str(e), status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -130,7 +130,7 @@ def teacher_courses(request):
         return success_response(data=serializer.data, message="Courses retrieved")
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -148,7 +148,7 @@ def course_students(request, course_id):
         return error_response(message=str(e), status_code=status.HTTP_403_FORBIDDEN)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -179,7 +179,7 @@ def enter_grade(request, course_id):
         return error_response(message=str(e), status_code=status.HTTP_403_FORBIDDEN)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -210,7 +210,7 @@ def bulk_enter_grades(request, course_id):
         return error_response(message=str(e), status_code=status.HTTP_403_FORBIDDEN)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -226,7 +226,7 @@ def teacher_exams(request):
         return success_response(data=serializer.data, message="Exams retrieved")
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -242,7 +242,7 @@ def teacher_schedule(request):
         return success_response(data=serializer.data, message="Schedule retrieved")
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -281,7 +281,7 @@ def teacher_payment_claims(request):
         return error_response(message=str(e), status_code=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -313,7 +313,7 @@ def record_attendance(request, course_id):
         return error_response(message=str(e), status_code=status.HTTP_403_FORBIDDEN)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -335,7 +335,7 @@ def course_attendance(request, course_id):
         return error_response(message=str(e), status_code=status.HTTP_403_FORBIDDEN)
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -363,7 +363,7 @@ def teacher_notifications(request):
 
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -398,7 +398,7 @@ def teacher_messages(request):
 
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -416,6 +416,6 @@ def teaching_statistics(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

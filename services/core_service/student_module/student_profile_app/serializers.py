@@ -102,7 +102,7 @@ class StudentSerializer(serializers.ModelSerializer):
         print(parents)
 
         # Check if student already exists
-        student, created = Student.objects.get_or_create(
+        student, _created = Student.objects.get_or_create(
             user=validated_data.get("user"),
             defaults=validated_data,  # Only used if creating a new student
         )

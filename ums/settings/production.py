@@ -1,4 +1,4 @@
-from .base import *  # noqa F401
+from .base import *
 from .base import get_env_variable
 
 DEBUG = False

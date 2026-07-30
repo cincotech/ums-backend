@@ -81,12 +81,12 @@ def university_profile(request, university_id):
         log_security_event(
             request,
             "update",
-            f"Profile operation failed: {str(e)}",
+            f"Profile operation failed: {e!s}",
             severity="error",
             success=False,
         )
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -104,7 +104,7 @@ def module_list(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -168,12 +168,12 @@ def university_subscriptions(request, university_id):
         log_security_event(
             request,
             "create",
-            f"Subscription creation failed: {str(e)}",
+            f"Subscription creation failed: {e!s}",
             severity="error",
             success=False,
         )
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -206,12 +206,12 @@ def cancel_subscription(request, subscription_id):
         log_security_event(
             request,
             "update",
-            f"Subscription cancellation failed: {str(e)}",
+            f"Subscription cancellation failed: {e!s}",
             severity="error",
             success=False,
         )
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -252,12 +252,12 @@ def renew_subscription(request, subscription_id):
         log_security_event(
             request,
             "update",
-            f"Subscription renewal failed: {str(e)}",
+            f"Subscription renewal failed: {e!s}",
             severity="error",
             success=False,
         )
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -276,6 +276,6 @@ def expiring_subscriptions(request):
         )
     except Exception as e:
         return error_response(
-            message=f"Error: {str(e)}",
+            message=f"Error: {e!s}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

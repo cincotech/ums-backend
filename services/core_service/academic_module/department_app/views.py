@@ -1,9 +1,9 @@
 # Create your views here.
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
 
 from core.views import BaseViewSet
+from services.search.backends import TypesenseFilterBackend, TypesenseOrderingFilter
 
 from .filters import DepartmentFilter
 from .models import Department
@@ -13,9 +13,14 @@ from .serializers import DepartmentSerializer
 class DepartmentViewSet(BaseViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
     filterset_class = DepartmentFilter
     search_fields = ["department_name", "abreviation", "faculty__faculty_name"]
+    filter_fields = ["faculty_id", "university_id"]
     ordering_fields = ["department_name"]
     ordering = ["department_name"]
 

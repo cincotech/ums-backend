@@ -85,7 +85,7 @@ class Command(BaseCommand):
 
         count = 0
         for name in PROFESSIONS:
-            obj, created = Profession.objects.get_or_create(profession_name=name)
+            _obj, created = Profession.objects.get_or_create(profession_name=name)
             if created:
                 count += 1
 

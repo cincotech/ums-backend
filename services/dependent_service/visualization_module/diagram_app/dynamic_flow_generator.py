@@ -40,7 +40,7 @@ class DynamicFlowGenerator:
                         )
             return views
         except Exception as e:
-            print(f"error {str(e)}")
+            print(f"error {e!s}")
 
             return []
 
@@ -197,7 +197,7 @@ class DynamicFlowGenerator:
                     filename = self._generate_sequence_for_view(view_info)
                     generated.append(filename)
                 except Exception as e:
-                    print(f"error {str(e)}")
+                    print(f"error {e!s}")
 
         return generated
 
@@ -213,6 +213,6 @@ class DynamicFlowGenerator:
                     filename = self._generate_activity_for_view(view_info)
                     generated.append(filename)
                 except Exception as e:
-                    print(f"error {str(e)}")
+                    print(f"error {e!s}")
 
         return generated

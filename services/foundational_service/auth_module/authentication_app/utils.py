@@ -245,7 +245,7 @@ def generate_qr_code(
         }
 
     except Exception as e:
-        logger.error(f"Failed to process QR code for data: {data}. Error: {str(e)}")
+        logger.error(f"Failed to process QR code for data: {data}. Error: {e!s}")
         raise
 
 
@@ -281,8 +281,8 @@ def export_to_json(data):
         logger.info("Data exported to JSON successfully")
         return json_data
     except (TypeError, ValueError) as e:
-        logger.error(f"JSON export failed: {str(e)}")
-        raise ValueError(f"Failed to export data to JSON: {str(e)}")
+        logger.error(f"JSON export failed: {e!s}")
+        raise ValueError(f"Failed to export data to JSON: {e!s}")
 
 
 def generate_custom_token():
@@ -311,6 +311,6 @@ def get_serializer_error_message(errors):
                 error_message = error_list[0]
                 return f"{field.capitalize()} {error_message.lower()}"
             else:
-                return f"{field.capitalize()} validation failed: {str(error_list)}"
+                return f"{field.capitalize()} validation failed: {error_list!s}"
     # Si errors est une liste ou un autre type, retourner une version stringifiée
     return str(errors)

@@ -10,6 +10,7 @@ from .exam_app.views import (
 )
 from .result_app.views import (
     CompiledResultViewSet,
+    ResultCommentViewSet,
     ResultViewSet,
     SessionViewSet,
     SupplementViewSet,
@@ -23,6 +24,7 @@ router.register(r"exam-supervisors", ExamSupervisorViewSet, basename="exam-super
 router.register(r"exam-attendances", ExamAttendanceViewSet, basename="exam-attendance")
 router.register(r"sessions", SessionViewSet, basename="session")
 router.register(r"results", ResultViewSet, basename="result")
+router.register(r"result-comments", ResultCommentViewSet, basename="result-comment")
 router.register(r"compiled-results", CompiledResultViewSet, basename="compiled-result")
 router.register(r"supplements", SupplementViewSet, basename="supplement")
 

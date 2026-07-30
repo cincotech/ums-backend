@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 def generate_inscription_template(
-    user_id: str, academic_year_id: str, inscription_id: str = None
+    user_id: str, academic_year_id: str, inscription_id: str | None = None
 ):
     user = User.objects.filter(id=user_id).first()
     if not user:

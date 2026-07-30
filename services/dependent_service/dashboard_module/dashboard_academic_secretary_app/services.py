@@ -194,11 +194,10 @@ class AcademicSecretaryService:
 
         courses = Course.objects.all()
 
-        if filters:
-            if filters.get("academic_year_id"):
-                courses = courses.filter(
-                    attributions__academic_year_id=filters["academic_year_id"]
-                )
+        if filters and filters.get("academic_year_id"):
+            courses = courses.filter(
+                attributions__academic_year_id=filters["academic_year_id"]
+            )
 
         for course in courses:
             # Get active attributions for this course
@@ -398,7 +397,7 @@ class AcademicSecretaryService:
         if jury.status == "completed":
             raise ValueError("Cannot modify decisions for completed jury session")
 
-        jury_decision, created = JuryDecision.objects.update_or_create(
+        jury_decision, _created = JuryDecision.objects.update_or_create(
             jury_session_id=jury_id,
             student_id=student_id,
             defaults={

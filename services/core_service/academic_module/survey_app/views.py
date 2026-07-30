@@ -32,7 +32,7 @@ class SurveyViewSet(BaseViewSet):
         """
         if hasattr(request.data, "getlist") and hasattr(request.data, "keys"):
             data = {}
-            for key in request.data.keys():
+            for key in request.data:
                 values = request.data.getlist(key)
                 data[key] = values[0] if len(values) == 1 else values
             return data

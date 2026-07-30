@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from django.utils import timezone
 
 from services.core_service.academic_module.class_app.models import Class
 from services.core_service.academic_module.department_app.models import Department
@@ -100,6 +101,24 @@ class FeesSheet(models.Model):
         Wording, on_delete=models.RESTRICT, related_name="fees_sheets_wording"
     )
     base_amount = models.PositiveIntegerField()
+    apply_to_all_faculties = models.BooleanField(default=False)
+    apply_to_all_departments = models.BooleanField(default=False)
+    apply_to_all_classes = models.BooleanField(default=False)
+    excluded_faculties = models.ManyToManyField(
+        "faculty_app.Faculty",
+        blank=True,
+        related_name="feesheet_excluded_faculties",
+    )
+    excluded_departments = models.ManyToManyField(
+        "department_app.Department",
+        blank=True,
+        related_name="feesheet_excluded_departments",
+    )
+    excluded_classes = models.ManyToManyField(
+        "class_app.Class",
+        blank=True,
+        related_name="feesheet_excluded_classes",
+    )
 
     class Meta:
         db_table = "fees_sheets"
@@ -107,7 +126,30 @@ class FeesSheet(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
 
-        # Vérifier qu'exactement un seul niveau est défini
+        if self.apply_to_all_faculties:
+            if self.faculty or self.department or self.class_fk:
+                raise ValidationError(
+                    "Impossible de sélectionner une faculté/département/classe "
+                    "lorsque le barème s'applique à toutes les facultés."
+                )
+            return
+
+        if self.apply_to_all_departments:
+            if not self.faculty or self.department or self.class_fk:
+                raise ValidationError(
+                    "L'application à tous les départments nécessite une faculté "
+                    "et ne peut pas être combinée à un département ou une classe."
+                )
+            return
+
+        if self.apply_to_all_classes:
+            if not self.department or self.class_fk:
+                raise ValidationError(
+                    "L'application à toutes les classes nécessite un département "
+                    "et ne peut pas être combinée à une classe."
+                )
+            return
+
         levels_set = sum(
             [bool(self.class_fk), bool(self.department), bool(self.faculty)]
         )
@@ -116,9 +158,13 @@ class FeesSheet(models.Model):
             raise ValidationError(
                 "Vous devez définir exactement un niveau : classe, département ou faculté."
             )
-        elif levels_set > 1:
+
+        if self.class_fk and not self.department:
+            raise ValidationError("La sélection d'une classe nécessite un département.")
+
+        if self.department and not self.faculty:
             raise ValidationError(
-                "Vous ne pouvez définir qu'un seul niveau à la fois : classe, département ou faculté."
+                "La sélection d'un département nécessite une faculté."
             )
 
     def save(self, *args, **kwargs):
@@ -287,8 +333,6 @@ class PaymentInstallement(models.Model):
     def save(self, *args, **kwargs):
         import logging
 
-        from django.utils import timezone
-
         logger = logging.getLogger(__name__)
         today = timezone.now().date()
 
@@ -447,7 +491,6 @@ class Payment(models.Model):
 
     def verify(self, verified_by_user):
         """Valide le paiement par le service financier"""
-        from django.utils import timezone
 
         if verified_by_user.role.name != "finance_service":
             raise ValueError("Seul le service financier peut valider les paiements.")
@@ -459,8 +502,6 @@ class Payment(models.Model):
 
     def save(self, *args, **kwargs):
         import logging
-
-        from django.utils import timezone
 
         logger = logging.getLogger(__name__)
 

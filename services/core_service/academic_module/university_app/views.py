@@ -1,9 +1,9 @@
 # Create your views here.
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions
-from rest_framework.filters import OrderingFilter, SearchFilter
 
 from core.views import BaseViewSet
+from services.search.backends import TypesenseFilterBackend, TypesenseOrderingFilter
 
 from .filters import AcademicYearFilter, UniversityDegreeFilter, UniversityFilter
 from .models import AcademicYear, University, UniversityDegree
@@ -18,9 +18,14 @@ class AcademicYearViewSet(BaseViewSet):
     queryset = AcademicYear.objects.all()
     serializer_class = AcademicYearSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
     filterset_class = AcademicYearFilter
     search_fields = ["academic_year"]
+    filter_fields = ["university_id"]
     ordering_fields = ["start_date", "end_date"]
     ordering = ["-start_date"]
 
@@ -53,9 +58,14 @@ class UniversityViewSet(BaseViewSet):
     queryset = University.objects.all()
     serializer_class = UniversitySerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
     filterset_class = UniversityFilter
     search_fields = ["university_name", "university_abrev"]
+    filter_fields = ["country_id"]
     ordering_fields = ["university_name"]
     ordering = ["university_name"]
 
@@ -73,8 +83,13 @@ class UniversityDegreeViewSet(BaseViewSet):
     queryset = UniversityDegree.objects.all()
     serializer_class = UniversityDegreeSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [
+        TypesenseFilterBackend,
+        DjangoFilterBackend,
+        TypesenseOrderingFilter,
+    ]
     filterset_class = UniversityDegreeFilter
     search_fields = ["degree_name"]
+    filter_fields = ["university_id"]
     ordering_fields = ["degree_name"]
     ordering = ["degree_name"]

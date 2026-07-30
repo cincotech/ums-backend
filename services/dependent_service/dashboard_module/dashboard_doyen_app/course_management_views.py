@@ -40,7 +40,15 @@ class CourseViewSet(BaseViewSet):
             module__class_fk__department__faculty=faculty
         ).distinct()
 
-        academic_year_id = self.request.query_params.get("academic_year_id")
+        class_id = self.request.query_params.get(
+            "class_id"
+        ) or self.request.query_params.get("class_fk")
+        if class_id:
+            queryset = queryset.filter(module__class_fk_id=class_id)
+
+        academic_year_id = self.request.query_params.get(
+            "academic_year_id"
+        ) or self.request.query_params.get("academic_year")
         if academic_year_id:
             queryset = queryset.filter(
                 attribution__academic_year_id=academic_year_id

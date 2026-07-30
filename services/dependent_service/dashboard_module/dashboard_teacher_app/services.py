@@ -269,7 +269,7 @@ class TeacherDashboardService:
             raise ValueError("Mark must be between 0 and 100")
 
         # Create or update result
-        result, created = Result.objects.update_or_create(
+        result, _created = Result.objects.update_or_create(
             course_id=course_id,
             inscription_id=inscription_id,
             session_id=session_id,
@@ -307,7 +307,7 @@ class TeacherDashboardService:
             if not 0 <= mark <= 100:
                 raise ValueError(f"Mark {mark} must be between 0 and 100")
 
-            result, created = Result.objects.update_or_create(
+            result, _created = Result.objects.update_or_create(
                 course_id=course_id,
                 inscription_id=grade_data["inscription_id"],
                 session_id=session_id,
@@ -453,7 +453,7 @@ class TeacherDashboardService:
             )
 
         # Get or create attendance record
-        attendance, created = Attendance.objects.update_or_create(
+        attendance, _created = Attendance.objects.update_or_create(
             inscription_id=inscription_id,
             date=attendance_date,
             defaults={"status": status, "notes": notes},

@@ -1458,7 +1458,7 @@ class ResultEntryService:
                         f"Invalid mark {mark} for inscription {inscription_id}"
                     )
 
-                result, created = Result.objects.update_or_create(
+                result, _created = Result.objects.update_or_create(
                     course_id=course_id,
                     inscription_id=inscription_id,
                     session_id=session_id,
@@ -1513,7 +1513,7 @@ class ResultCompilationService:
                 for result in results
             }
 
-            compiled_result, created = CompiledResult.objects.update_or_create(
+            compiled_result, _created = CompiledResult.objects.update_or_create(
                 inscription_id=inscription_id,
                 defaults={
                     "results": results_dict,
@@ -2332,7 +2332,7 @@ class TimetableMergeService:
         errors = []
 
         # Check class match
-        class_ids = set(tt.class_group_id for tt in timetables if tt.class_group_id)
+        class_ids = {tt.class_group_id for tt in timetables if tt.class_group_id}
         if len(class_ids) > 1:
             errors.append(
                 {
@@ -2343,7 +2343,7 @@ class TimetableMergeService:
             )
 
         # Check status match
-        statuses = set(tt.status for tt in timetables)
+        statuses = {tt.status for tt in timetables}
         if len(statuses) > 1:
             errors.append(
                 {
