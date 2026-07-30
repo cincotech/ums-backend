@@ -6,9 +6,9 @@ if ENVIRONMENT == "production":
     print(
         "----------------------------running on production-----------------------------------------------------"
     )
-    from .production import *  # noqa F401
+    from .production import *
 else:
     print(
         "----------------------------running on local-----------------------------------------------------"
     )
-    from .development import *  # noqa F401
+    from .development import *

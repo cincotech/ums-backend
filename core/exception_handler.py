@@ -141,7 +141,7 @@ def custom_exception_handler(exc, context):
         )
 
     # 🛑 FINAL FALLBACK ---------------------------------------------------------
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    logger.error(f"Unhandled exception: {exc}")
     return error_response(
         message="Internal server error occurred.",
         errors=str(exc),

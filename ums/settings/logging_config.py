@@ -16,13 +16,11 @@ class TemplateDebugFilter:
         if "first seen with mtime" in message:
             return False
         # Exclude other file discovery debug messages
-        if (
+        return not (
             "DEBUG" in record.levelname
             and "File" in message
             and "site-packages" in message
-        ):
-            return False
-        return True
+        )
 
 
 LOGGING = {

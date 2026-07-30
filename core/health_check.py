@@ -29,7 +29,7 @@ Please check the system immediately."""
                 fail_silently=True,
             )
         except Exception as e:
-            print(f"Failed to send error notification: {str(e)}")
+            print(f"Failed to send error notification: {e!s}")
 
     @staticmethod
     def check_database():
@@ -39,7 +39,7 @@ Please check the system immediately."""
                 cursor.execute("SELECT 1")
             return {"status": "healthy", "message": "Database connection successful"}
         except Exception as e:
-            error_msg = f"Database error: {str(e)}"
+            error_msg = f"Database error: {e!s}"
             HealthCheckService.send_error_notification("Database", error_msg)
             return {"status": "unhealthy", "message": error_msg}
 
@@ -59,7 +59,7 @@ Please check the system immediately."""
             HealthCheckService.send_error_notification("Cache", error_msg)
             return {"status": "unhealthy", "message": error_msg}
         except Exception as e:
-            error_msg = f"Cache error: {str(e)}"
+            error_msg = f"Cache error: {e!s}"
             HealthCheckService.send_error_notification("Cache", error_msg)
             return {"status": "unhealthy", "message": error_msg}
 

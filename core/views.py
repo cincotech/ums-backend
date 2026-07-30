@@ -154,7 +154,7 @@ class BaseViewSet(viewsets.ModelViewSet):
         )
 
     def handle_exception(self, exc):
-        logger.error(str(exc), exc_info=True)
+        logger.error(str(exc))
         return error_response(
             message=str(exc),
             status_code=status.HTTP_400_BAD_REQUEST,

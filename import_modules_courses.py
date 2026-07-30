@@ -155,7 +155,7 @@ def main():
                 if mod_created:
                     modules_created += 1
 
-                course, crs_created = Course.objects.get_or_create(
+                _course, crs_created = Course.objects.get_or_create(
                     module=module,
                     course_name=course_name,
                     defaults={

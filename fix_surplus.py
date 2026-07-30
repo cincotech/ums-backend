@@ -49,7 +49,7 @@ def fix_surplus_for_payment(payment_id):
     except Payment.DoesNotExist:
         print(f"❌ Paiement {payment_id} non trouvé")
     except Exception as e:
-        print(f"❌ Erreur: {str(e)}")
+        print(f"❌ Erreur: {e!s}")
         import traceback
 
         traceback.print_exc()
